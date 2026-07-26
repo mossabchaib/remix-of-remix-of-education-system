@@ -372,7 +372,8 @@ export function addOrder(o: Order) {
   writeJSON(K.orders, all);
   emit(K.orders);
   logActivity({ kind: "purchase", label: `Purchased ${o.courseTitle}`, refId: o.id });
-  addNotification({ title: "Purchase confirmed", body: `${o.courseTitle} · ${o.invoice}`, kind: "system" });
+  addNotification({ title: "Purchase confirmed", body: `${o.courseTitle} · ${o.invoice}`, kind: "system", audience: { scope: "course", courseId: o.courseId }, courseId: o.courseId, link: `/orders/${o.id}/receipt`, sourceId: `order:${o.id}` });
+  addNotification({ title: "Course available", body: `${o.courseTitle} is ready to start.`, kind: "course", audience: { scope: "course", courseId: o.courseId }, courseId: o.courseId, link: `/dashboard/student/courses/${o.courseId}`, sourceId: `available:${o.courseId}` });
 }
 export type CheckoutDraft = {
   courseId: string;
