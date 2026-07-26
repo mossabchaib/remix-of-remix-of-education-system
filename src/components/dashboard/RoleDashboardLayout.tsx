@@ -163,9 +163,14 @@ export function RoleDashboardLayout({
           <header className="sticky top-0 z-30 flex h-16 items-center gap-2 border-b border-border/60 bg-background/80 px-4 backdrop-blur-lg">
             <SidebarTrigger />
             <div className="ml-auto flex items-center gap-3">
-              <Button asChild variant="ghost" size="icon">
-                <Link to={`/dashboard/${role}/notifications` as string}>
+              <Button asChild variant="ghost" size="icon" className="relative">
+                <Link to={`/dashboard/${role}/notifications` as string} aria-label="Notifications">
                   <Bell className="h-4 w-4" />
+                  {unread > 0 && (
+                    <span className="absolute right-1 top-1 grid h-4 min-w-4 place-items-center rounded-full bg-primary px-1 text-[10px] font-semibold text-primary-foreground">
+                      {unread > 9 ? "9+" : unread}
+                    </span>
+                  )}
                 </Link>
               </Button>
               <div className="flex items-center gap-2">
