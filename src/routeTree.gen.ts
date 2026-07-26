@@ -53,7 +53,6 @@ import { Route as DashboardTeacherCoursesRouteImport } from './routes/dashboard.
 import { Route as DashboardTeacherAssignmentsRouteImport } from './routes/dashboard.teacher.assignments'
 import { Route as DashboardTeacherAnalyticsRouteImport } from './routes/dashboard.teacher.analytics'
 import { Route as DashboardStudentWishlistRouteImport } from './routes/dashboard.student.wishlist'
-import { Route as DashboardStudentSettingsRouteImport } from './routes/dashboard.student.settings'
 import { Route as DashboardStudentResourcesRouteImport } from './routes/dashboard.student.resources'
 import { Route as DashboardStudentQuizzesRouteImport } from './routes/dashboard.student.quizzes'
 import { Route as DashboardStudentProgressRouteImport } from './routes/dashboard.student.progress'
@@ -302,12 +301,6 @@ const DashboardStudentWishlistRoute =
     path: '/wishlist',
     getParentRoute: () => DashboardStudentRoute,
   } as any)
-const DashboardStudentSettingsRoute =
-  DashboardStudentSettingsRouteImport.update({
-    id: '/settings',
-    path: '/settings',
-    getParentRoute: () => DashboardStudentRoute,
-  } as any)
 const DashboardStudentResourcesRoute =
   DashboardStudentResourcesRouteImport.update({
     id: '/resources',
@@ -466,7 +459,6 @@ export interface FileRoutesByFullPath {
   '/dashboard/student/progress': typeof DashboardStudentProgressRoute
   '/dashboard/student/quizzes': typeof DashboardStudentQuizzesRouteWithChildren
   '/dashboard/student/resources': typeof DashboardStudentResourcesRoute
-  '/dashboard/student/settings': typeof DashboardStudentSettingsRoute
   '/dashboard/student/wishlist': typeof DashboardStudentWishlistRoute
   '/dashboard/teacher/analytics': typeof DashboardTeacherAnalyticsRoute
   '/dashboard/teacher/assignments': typeof DashboardTeacherAssignmentsRoute
@@ -531,7 +523,6 @@ export interface FileRoutesByTo {
   '/dashboard/student/progress': typeof DashboardStudentProgressRoute
   '/dashboard/student/quizzes': typeof DashboardStudentQuizzesRouteWithChildren
   '/dashboard/student/resources': typeof DashboardStudentResourcesRoute
-  '/dashboard/student/settings': typeof DashboardStudentSettingsRoute
   '/dashboard/student/wishlist': typeof DashboardStudentWishlistRoute
   '/dashboard/teacher/analytics': typeof DashboardTeacherAnalyticsRoute
   '/dashboard/teacher/assignments': typeof DashboardTeacherAssignmentsRoute
@@ -599,7 +590,6 @@ export interface FileRoutesById {
   '/dashboard/student/progress': typeof DashboardStudentProgressRoute
   '/dashboard/student/quizzes': typeof DashboardStudentQuizzesRouteWithChildren
   '/dashboard/student/resources': typeof DashboardStudentResourcesRoute
-  '/dashboard/student/settings': typeof DashboardStudentSettingsRoute
   '/dashboard/student/wishlist': typeof DashboardStudentWishlistRoute
   '/dashboard/teacher/analytics': typeof DashboardTeacherAnalyticsRoute
   '/dashboard/teacher/assignments': typeof DashboardTeacherAssignmentsRoute
@@ -669,7 +659,6 @@ export interface FileRouteTypes {
     | '/dashboard/student/progress'
     | '/dashboard/student/quizzes'
     | '/dashboard/student/resources'
-    | '/dashboard/student/settings'
     | '/dashboard/student/wishlist'
     | '/dashboard/teacher/analytics'
     | '/dashboard/teacher/assignments'
@@ -734,7 +723,6 @@ export interface FileRouteTypes {
     | '/dashboard/student/progress'
     | '/dashboard/student/quizzes'
     | '/dashboard/student/resources'
-    | '/dashboard/student/settings'
     | '/dashboard/student/wishlist'
     | '/dashboard/teacher/analytics'
     | '/dashboard/teacher/assignments'
@@ -801,7 +789,6 @@ export interface FileRouteTypes {
     | '/dashboard/student/progress'
     | '/dashboard/student/quizzes'
     | '/dashboard/student/resources'
-    | '/dashboard/student/settings'
     | '/dashboard/student/wishlist'
     | '/dashboard/teacher/analytics'
     | '/dashboard/teacher/assignments'
@@ -1159,13 +1146,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardStudentWishlistRouteImport
       parentRoute: typeof DashboardStudentRoute
     }
-    '/dashboard/student/settings': {
-      id: '/dashboard/student/settings'
-      path: '/settings'
-      fullPath: '/dashboard/student/settings'
-      preLoaderRoute: typeof DashboardStudentSettingsRouteImport
-      parentRoute: typeof DashboardStudentRoute
-    }
     '/dashboard/student/resources': {
       id: '/dashboard/student/resources'
       path: '/resources'
@@ -1431,7 +1411,6 @@ interface DashboardStudentRouteChildren {
   DashboardStudentProgressRoute: typeof DashboardStudentProgressRoute
   DashboardStudentQuizzesRoute: typeof DashboardStudentQuizzesRouteWithChildren
   DashboardStudentResourcesRoute: typeof DashboardStudentResourcesRoute
-  DashboardStudentSettingsRoute: typeof DashboardStudentSettingsRoute
   DashboardStudentWishlistRoute: typeof DashboardStudentWishlistRoute
   DashboardStudentIndexRoute: typeof DashboardStudentIndexRoute
 }
@@ -1448,7 +1427,6 @@ const DashboardStudentRouteChildren: DashboardStudentRouteChildren = {
   DashboardStudentProgressRoute: DashboardStudentProgressRoute,
   DashboardStudentQuizzesRoute: DashboardStudentQuizzesRouteWithChildren,
   DashboardStudentResourcesRoute: DashboardStudentResourcesRoute,
-  DashboardStudentSettingsRoute: DashboardStudentSettingsRoute,
   DashboardStudentWishlistRoute: DashboardStudentWishlistRoute,
   DashboardStudentIndexRoute: DashboardStudentIndexRoute,
 }

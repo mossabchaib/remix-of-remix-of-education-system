@@ -78,12 +78,14 @@ export function RoleDashboardLayout({
   role: "teacher" | "student";
   children: ReactNode;
 }) {
+  useReminders();
   const nav = role === "teacher" ? teacherNav : studentNav;
   const account = accountNav(role);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const navigate = useNavigate();
   const session = getSession();
   const displayName = session?.name ?? (role === "teacher" ? "Instructor" : "Learner");
+  const { unread } = useNotifications();
 
   const isActive = (to: string) => {
     if (to === `/dashboard/${role}`) return pathname === to;
