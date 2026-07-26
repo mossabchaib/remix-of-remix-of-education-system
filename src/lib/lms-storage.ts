@@ -108,29 +108,78 @@ export function saveAttempt(id: string, a: QuizAttempt) {
 }
 
 /* ============ Notifications ============ */
-export type Notif = { id: string; title: string; body: string; at: string; read: boolean; kind: "course" | "quiz" | "live" | "system" };
+export type NotifKind =
+  | "course" | "quiz" | "live" | "system"
+  | "assignment" | "resource" | "lesson" | "announcement";
+export type NotifAudience =
+  | { scope: "all" }
+  | { scope: "role"; role: "student" | "teacher" | "admin" }
+  | { scope: "course"; courseId: string }
+  | { scope: "user"; userId: string };
+export type Notif = {
+  id: string;
+  title: string;
+  body: string;
+  at: string;
+  read: boolean;
+  kind: NotifKind;
+  audience: NotifAudience;
+  courseId?: string;
+  link?: string;
+  sourceId?: string;
+  createdBy?: { name: string; role: "student" | "teacher" | "admin" } | null;
+};
 const defaultNotifs: Notif[] = [
-  { id: "n1", title: "New lesson available", body: "Module 3 · Advanced Hooks is now live in Modern React Patterns.", at: "2h ago", read: false, kind: "course" },
-  { id: "n2", title: "Live session in 30 min", body: "Design Systems Mastery with Amelia Carter starts soon.", at: "Today", read: false, kind: "live" },
-  { id: "n3", title: "Quiz graded", body: "You scored 9/10 in TypeScript Fundamentals.", at: "Yesterday", read: true, kind: "quiz" },
-  { id: "n4", title: "Certificate ready", body: "Your certificate for SQL for Analysts is available.", at: "3 days ago", read: true, kind: "system" },
-  { id: "n5", title: "Assignment due tomorrow", body: "Submit Project 2 before 11:59 PM.", at: "3 days ago", read: false, kind: "course" },
+  { id: "n1", title: "New lesson available", body: "Module 3 · Advanced Hooks is now live in Modern React Patterns.", at: "2h ago", read: false, kind: "lesson", audience: { scope: "role", role: "student" } },
+  { id: "n2", title: "Live session in 30 min", body: "Design Systems Mastery with Amelia Carter starts soon.", at: "Today", read: false, kind: "live", audience: { scope: "role", role: "student" } },
+  { id: "n3", title: "Quiz graded", body: "You scored 9/10 in TypeScript Fundamentals.", at: "Yesterday", read: true, kind: "quiz", audience: { scope: "role", role: "student" } },
+  { id: "n4", title: "Certificate ready", body: "Your certificate for SQL for Analysts is available.", at: "3 days ago", read: true, kind: "system", audience: { scope: "role", role: "student" } },
+  { id: "n5", title: "Assignment due tomorrow", body: "Submit Project 2 before 11:59 PM.", at: "3 days ago", read: false, kind: "assignment", audience: { scope: "role", role: "student" } },
 ];
-export function getNotifications(): Notif[] { return readJSON(K.notifications, defaultNotifs); }
+function normalizeNotif(n: Notif): Notif {
+  return n.audience ? n : { ...n, audience: { scope: "role", role: "student" } };
+}
+export function getNotifications(): Notif[] {
+  return readJSON<Notif[]>(K.notifications, defaultNotifs).map(normalizeNotif);
+}
 export function setNotifications(n: Notif[]) { writeJSON(K.notifications, n); emit(K.notifications); }
 export function markNotificationRead(id: string, read = true) {
-  const all = getNotifications().map((n) => (n.id === id ? { ...n, read } : n));
-  setNotifications(all);
+  setNotifications(getNotifications().map((n) => (n.id === id ? { ...n, read } : n)));
 }
 export function markAllNotificationsRead() {
   setNotifications(getNotifications().map((n) => ({ ...n, read: true })));
 }
-export function addNotification(n: Omit<Notif, "id" | "at" | "read">) {
-  const notif: Notif = { id: `n${Date.now()}`, at: "just now", read: false, ...n };
-  setNotifications([notif, ...getNotifications()]);
+/** Add a notification. Deduped by sourceId when supplied. */
+export function addNotification(n: Omit<Notif, "id" | "at" | "read"> & { audience?: NotifAudience }): Notif | null {
+  const existing = getNotifications();
+  if (n.sourceId && existing.some((x) => x.sourceId === n.sourceId)) return null;
+  const notif: Notif = {
+    id: `n${Date.now()}${Math.random().toString(36).slice(2, 6)}`,
+    at: "just now",
+    read: false,
+    audience: n.audience ?? { scope: "role", role: "student" },
+    ...n,
+  } as Notif;
+  setNotifications([notif, ...existing]);
+  return notif;
 }
 export function deleteNotification(id: string) {
   setNotifications(getNotifications().filter((n) => n.id !== id));
+}
+export function notificationsFor(ctx: {
+  role: "student" | "teacher" | "admin" | null;
+  userId?: string | null;
+  enrollments?: string[];
+}): Notif[] {
+  const enrol = ctx.enrollments ?? [];
+  return getNotifications().filter((n) => {
+    const a = n.audience;
+    if (!a || a.scope === "all") return true;
+    if (a.scope === "role") return ctx.role === a.role;
+    if (a.scope === "course") return enrol.includes(a.courseId);
+    if (a.scope === "user") return !!ctx.userId && ctx.userId === a.userId;
+    return false;
+  });
 }
 
 /* ============ Course structure (lessons/modules) ============ */
