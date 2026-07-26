@@ -33,6 +33,7 @@ import { Route as AdminReportsRouteImport } from './routes/admin.reports'
 import { Route as AdminPaymentsRouteImport } from './routes/admin.payments'
 import { Route as AdminCoursesRouteImport } from './routes/admin.courses'
 import { Route as AdminCategoriesRouteImport } from './routes/admin.categories'
+import { Route as AdminAnnouncementsRouteImport } from './routes/admin.announcements'
 import { Route as DashboardTeacherIndexRouteImport } from './routes/dashboard.teacher.index'
 import { Route as DashboardStudentIndexRouteImport } from './routes/dashboard.student.index'
 import { Route as OrdersIdSuccessRouteImport } from './routes/orders.$id.success'
@@ -193,6 +194,11 @@ const AdminCoursesRoute = AdminCoursesRouteImport.update({
 const AdminCategoriesRoute = AdminCategoriesRouteImport.update({
   id: '/categories',
   path: '/categories',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminAnnouncementsRoute = AdminAnnouncementsRouteImport.update({
+  id: '/announcements',
+  path: '/announcements',
   getParentRoute: () => AdminRoute,
 } as any)
 const DashboardTeacherIndexRoute = DashboardTeacherIndexRouteImport.update({
@@ -428,6 +434,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/pricing': typeof PricingRoute
   '/register': typeof RegisterRoute
+  '/admin/announcements': typeof AdminAnnouncementsRoute
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/courses': typeof AdminCoursesRouteWithChildren
   '/admin/payments': typeof AdminPaymentsRouteWithChildren
@@ -494,6 +501,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/pricing': typeof PricingRoute
   '/register': typeof RegisterRoute
+  '/admin/announcements': typeof AdminAnnouncementsRoute
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/courses': typeof AdminCoursesRouteWithChildren
   '/admin/payments': typeof AdminPaymentsRouteWithChildren
@@ -559,6 +567,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/pricing': typeof PricingRoute
   '/register': typeof RegisterRoute
+  '/admin/announcements': typeof AdminAnnouncementsRoute
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/courses': typeof AdminCoursesRouteWithChildren
   '/admin/payments': typeof AdminPaymentsRouteWithChildren
@@ -628,6 +637,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/pricing'
     | '/register'
+    | '/admin/announcements'
     | '/admin/categories'
     | '/admin/courses'
     | '/admin/payments'
@@ -694,6 +704,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/pricing'
     | '/register'
+    | '/admin/announcements'
     | '/admin/categories'
     | '/admin/courses'
     | '/admin/payments'
@@ -758,6 +769,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/pricing'
     | '/register'
+    | '/admin/announcements'
     | '/admin/categories'
     | '/admin/courses'
     | '/admin/payments'
@@ -1004,6 +1016,13 @@ declare module '@tanstack/react-router' {
       path: '/categories'
       fullPath: '/admin/categories'
       preLoaderRoute: typeof AdminCategoriesRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/announcements': {
+      id: '/admin/announcements'
+      path: '/announcements'
+      fullPath: '/admin/announcements'
+      preLoaderRoute: typeof AdminAnnouncementsRouteImport
       parentRoute: typeof AdminRoute
     }
     '/dashboard/teacher/': {
@@ -1344,6 +1363,7 @@ const AdminUsersRouteWithChildren = AdminUsersRoute._addFileChildren(
 )
 
 interface AdminRouteChildren {
+  AdminAnnouncementsRoute: typeof AdminAnnouncementsRoute
   AdminCategoriesRoute: typeof AdminCategoriesRoute
   AdminCoursesRoute: typeof AdminCoursesRouteWithChildren
   AdminPaymentsRoute: typeof AdminPaymentsRouteWithChildren
@@ -1357,6 +1377,7 @@ interface AdminRouteChildren {
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
+  AdminAnnouncementsRoute: AdminAnnouncementsRoute,
   AdminCategoriesRoute: AdminCategoriesRoute,
   AdminCoursesRoute: AdminCoursesRouteWithChildren,
   AdminPaymentsRoute: AdminPaymentsRouteWithChildren,

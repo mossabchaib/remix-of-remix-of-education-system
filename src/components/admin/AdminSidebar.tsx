@@ -1,7 +1,7 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard, Users, GraduationCap, BookOpen, Tags, CreditCard,
-  Receipt, BarChart3, Settings as SettingsIcon, UserCog, LogOut,
+  Receipt, BarChart3, Settings as SettingsIcon, UserCog, LogOut, Megaphone,
 } from "lucide-react";
 import {
   Sidebar,
@@ -32,6 +32,7 @@ const billing = [
 ];
 const insights = [
   { to: "/admin/reports", label: "Reports", icon: BarChart3 },
+  { to: "/admin/announcements", label: "Announcements", icon: Megaphone },
   { to: "/admin/settings", label: "Settings", icon: SettingsIcon },
 ];
 
