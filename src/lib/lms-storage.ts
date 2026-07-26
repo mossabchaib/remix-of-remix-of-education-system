@@ -60,7 +60,7 @@ export function toggleEnrollment(id: string) {
   setEnrollments(next);
   if (!wasEnrolled) {
     logActivity({ kind: "enroll", label: "Enrolled in a new course", refId: id });
-    addNotification({ title: "Course enrolled", body: "A new course has been added to My Courses.", kind: "course" });
+    addNotification({ title: "Course enrolled", body: "A new course has been added to My Courses.", kind: "course", audience: { scope: "course", courseId: id }, courseId: id, link: `/dashboard/student/courses/${id}` });
   }
   return next;
 }
