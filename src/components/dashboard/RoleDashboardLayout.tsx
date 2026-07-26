@@ -68,14 +68,8 @@ const accountNav = (role: "teacher" | "student"): NavItem[] => {
   return base;
 };
 
-const accountNav = (role: "teacher" | "student"): NavItem[] => {
-  const base: NavItem[] = [
-    { label: "Profile", icon: UserCircle, to: `/dashboard/${role}/profile` },
-  ];
-  if (role === "student") base.push({ label: "Settings", icon: SettingsIcon, to: `/dashboard/${role}/settings` });
-  if (role === "teacher") base.push({ label: "Help & support", icon: LifeBuoy, to: `/dashboard/teacher/help` });
-  return base;
-};
+
+
 
 export function RoleDashboardLayout({
   role,
