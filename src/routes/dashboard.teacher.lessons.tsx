@@ -88,7 +88,9 @@ function Lessons() {
         }],
       });
     CourseService.setModules(payload.courseId, mods);
-    toast.success("Lesson created");
+    const course = courses.find((c) => c.id === payload.courseId);
+    if (course) notifyLessonPublished({ courseId: course.id, courseTitle: course.title, lessonTitle: payload.title });
+    toast.success("Lesson created — students notified");
     setCreating(false);
   }
 
