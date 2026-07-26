@@ -3,7 +3,7 @@ import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import {
   BarChart3, Bell, BookOpen, ClipboardList, Compass, DollarSign, FileVideo,
   GraduationCap, LayoutDashboard, LifeBuoy, ListChecks, LogOut, Award,
-  Plus, Settings as SettingsIcon, TrendingUp, UploadCloud,
+  Plus, TrendingUp, UploadCloud,
   UserCircle, Users, Video, Calendar, FileText, Heart, ShoppingBag,
 } from "lucide-react";
 import { useReminders } from "@/hooks/useReminders";
