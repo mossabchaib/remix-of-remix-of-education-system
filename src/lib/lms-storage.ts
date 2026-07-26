@@ -150,16 +150,16 @@ export function markAllNotificationsRead() {
   setNotifications(getNotifications().map((n) => ({ ...n, read: true })));
 }
 /** Add a notification. Deduped by sourceId when supplied. */
-export function addNotification(n: Omit<Notif, "id" | "at" | "read"> & { audience?: NotifAudience }): Notif | null {
+export function addNotification(n: Omit<Notif, "id" | "at" | "read" | "audience"> & { audience?: NotifAudience }): Notif | null {
   const existing = getNotifications();
   if (n.sourceId && existing.some((x) => x.sourceId === n.sourceId)) return null;
   const notif: Notif = {
+    ...n,
     id: `n${Date.now()}${Math.random().toString(36).slice(2, 6)}`,
     at: "just now",
     read: false,
     audience: n.audience ?? { scope: "role", role: "student" },
-    ...n,
-  } as Notif;
+  };
   setNotifications([notif, ...existing]);
   return notif;
 }
