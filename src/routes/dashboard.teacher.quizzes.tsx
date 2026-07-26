@@ -18,6 +18,8 @@ import { EmptyState } from "@/components/common/EmptyState";
 import { useQuizzes } from "@/hooks/useTeacherData";
 import { useTeacherCourses } from "@/hooks/useTeacherCourses";
 import { QuizService } from "@/services";
+import { notifyQuizPublished } from "@/lib/notification-events";
+import { courses as allCourses } from "@/lib/mock-data";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/dashboard/teacher/quizzes")({
