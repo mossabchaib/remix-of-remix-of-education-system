@@ -19,6 +19,8 @@ import { useLiveSessions } from "@/hooks/useTeacherData";
 import { useTeacherCourses } from "@/hooks/useTeacherCourses";
 import { LiveService } from "@/services";
 import { getProfile, type LiveSession } from "@/lib/lms-storage";
+import { notifyLiveScheduled } from "@/lib/notification-events";
+import { courses as allCourses } from "@/lib/mock-data";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/dashboard/teacher/live")({
