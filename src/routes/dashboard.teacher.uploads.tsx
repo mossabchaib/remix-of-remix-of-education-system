@@ -16,6 +16,8 @@ import { UploadService } from "@/services";
 import { useUploads } from "@/hooks/useUploads";
 import { useTeacherCourses } from "@/hooks/useTeacherCourses";
 import { EmptyState } from "@/components/common/EmptyState";
+import { notifyResourceUploaded } from "@/lib/notification-events";
+import { courses as allCourses } from "@/lib/mock-data";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/dashboard/teacher/uploads")({
