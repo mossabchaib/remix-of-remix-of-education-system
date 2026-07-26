@@ -563,6 +563,6 @@ export function issueCertificate(course: { id: string; title: string }): Certifi
   writeJSON(K.certificates, next);
   emit(K.certificates);
   logActivity({ kind: "certificate", label: `Earned certificate · ${course.title}`, refId: course.id });
-  addNotification({ title: "Certificate issued", body: `Your certificate for ${course.title} is ready.`, kind: "system" });
+  addNotification({ title: "Certificate issued", body: `Your certificate for ${course.title} is ready.`, kind: "system", audience: { scope: "course", courseId: course.id }, courseId: course.id, link: `/dashboard/student/certificates`, sourceId: `cert:${course.id}` });
   return cert;
 }
