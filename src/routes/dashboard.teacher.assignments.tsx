@@ -18,6 +18,8 @@ import { type Assignment } from "@/lib/lms-storage";
 import { useAssignments } from "@/hooks/useTeacherData";
 import { useTeacherCourses } from "@/hooks/useTeacherCourses";
 import { AssignmentService } from "@/services";
+import { notifyAssignmentCreated } from "@/lib/notification-events";
+import { courses as allCourses } from "@/lib/mock-data";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/dashboard/teacher/assignments")({
