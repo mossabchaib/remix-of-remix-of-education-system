@@ -79,8 +79,14 @@ function TeacherQuizzes() {
         <DialogContent>
           <DialogHeader><DialogTitle>New quiz</DialogTitle></DialogHeader>
           <NewQuizForm courses={courses.map((c) => c.title)} onSubmit={(v) => {
-            QuizService.create({ title: v.title, course: v.course, minutes: v.minutes, questions: [] });
-            toast.success("Quiz created");
+            const created = QuizService.create({ title: v.title, course: v.course, minutes: v.minutes, questions: [] });
+            notifyQuizPublished({
+              courseId: allCourses.find((c) => c.title === created.course)?.id,
+              courseTitle: created.course,
+              quizId: created.id,
+              quizTitle: created.title,
+            });
+            toast.success("Quiz created — students notified");
             setOpen(false);
           }} />
         </DialogContent>
