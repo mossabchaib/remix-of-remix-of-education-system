@@ -18,6 +18,7 @@ import { CourseService } from "@/services";
 import { useTeacherCourses } from "@/hooks/useTeacherCourses";
 import { useKeyedStorage } from "@/hooks/useKeyedStorage";
 import { storageKeys, type Lesson } from "@/lib/lms-storage";
+import { notifyLessonPublished } from "@/lib/notification-events";
 import { toast } from "sonner";
 
 type Row = Lesson & { course: string; courseId: string; module: string; moduleIndex: number; lessonIndex: number };
@@ -87,7 +88,9 @@ function Lessons() {
         }],
       });
     CourseService.setModules(payload.courseId, mods);
-    toast.success("Lesson created");
+    const course = courses.find((c) => c.id === payload.courseId);
+    if (course) notifyLessonPublished({ courseId: course.id, courseTitle: course.title, lessonTitle: payload.title });
+    toast.success("Lesson created — students notified");
     setCreating(false);
   }
 

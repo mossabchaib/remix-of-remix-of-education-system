@@ -18,6 +18,8 @@ import { EmptyState } from "@/components/common/EmptyState";
 import { useQuizzes } from "@/hooks/useTeacherData";
 import { useTeacherCourses } from "@/hooks/useTeacherCourses";
 import { QuizService } from "@/services";
+import { notifyQuizPublished } from "@/lib/notification-events";
+import { courses as allCourses } from "@/lib/mock-data";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/dashboard/teacher/quizzes")({
@@ -77,8 +79,14 @@ function TeacherQuizzes() {
         <DialogContent>
           <DialogHeader><DialogTitle>New quiz</DialogTitle></DialogHeader>
           <NewQuizForm courses={courses.map((c) => c.title)} onSubmit={(v) => {
-            QuizService.create({ title: v.title, course: v.course, minutes: v.minutes, questions: [] });
-            toast.success("Quiz created");
+            const created = QuizService.create({ title: v.title, course: v.course, minutes: v.minutes, questions: [] });
+            notifyQuizPublished({
+              courseId: allCourses.find((c) => c.title === created.course)?.id,
+              courseTitle: created.course,
+              quizId: created.id,
+              quizTitle: created.title,
+            });
+            toast.success("Quiz created — students notified");
             setOpen(false);
           }} />
         </DialogContent>

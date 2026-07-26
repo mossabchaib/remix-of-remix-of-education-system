@@ -16,6 +16,8 @@ import { UploadService } from "@/services";
 import { useUploads } from "@/hooks/useUploads";
 import { useTeacherCourses } from "@/hooks/useTeacherCourses";
 import { EmptyState } from "@/components/common/EmptyState";
+import { notifyResourceUploaded } from "@/lib/notification-events";
+import { courses as allCourses } from "@/lib/mock-data";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/dashboard/teacher/uploads")({
@@ -40,8 +42,7 @@ function Uploads() {
   const pdfs = uploads.filter((u) => u.kind === "pdf");
 
   function pickFiles() { fileRef.current?.click(); }
-  function onFiles(e: React.ChangeEvent<HTMLInputElement>) {
-    const files = Array.from(e.target.files ?? []);
+  function handleFiles(files: File[]) {
     if (!files.length) return;
     files.forEach((f) => {
       const isVideo = f.type.startsWith("video/") || /\.(mp4|mov|webm|mkv)$/i.test(f.name);
@@ -52,26 +53,22 @@ function Uploads() {
         kind: isVideo ? "video" : "pdf",
         progress: 100,
       });
+      notifyResourceUploaded({
+        courseId: allCourses.find((c) => c.title === course)?.id,
+        courseTitle: course,
+        title: f.name,
+        kind: isVideo ? "video" : "pdf",
+      });
     });
-    toast.success(`${files.length} file${files.length > 1 ? "s" : ""} uploaded`);
+    toast.success(`${files.length} file${files.length > 1 ? "s" : ""} uploaded — students notified`);
+  }
+  function onFiles(e: React.ChangeEvent<HTMLInputElement>) {
+    handleFiles(Array.from(e.target.files ?? []));
     e.target.value = "";
   }
-
   function onDrop(e: React.DragEvent) {
     e.preventDefault();
-    const files = Array.from(e.dataTransfer.files ?? []);
-    if (!files.length) return;
-    files.forEach((f) => {
-      const isVideo = f.type.startsWith("video/") || /\.(mp4|mov|webm|mkv)$/i.test(f.name);
-      UploadService.create({
-        title: f.name,
-        course,
-        size: humanSize(f.size),
-        kind: isVideo ? "video" : "pdf",
-        progress: 100,
-      });
-    });
-    toast.success(`${files.length} file${files.length > 1 ? "s" : ""} uploaded`);
+    handleFiles(Array.from(e.dataTransfer.files ?? []));
   }
 
   return (

@@ -19,6 +19,8 @@ import { useLiveSessions } from "@/hooks/useTeacherData";
 import { useTeacherCourses } from "@/hooks/useTeacherCourses";
 import { LiveService } from "@/services";
 import { getProfile, type LiveSession } from "@/lib/lms-storage";
+import { notifyLiveScheduled } from "@/lib/notification-events";
+import { courses as allCourses } from "@/lib/mock-data";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/dashboard/teacher/live")({
@@ -76,7 +78,18 @@ function Live() {
             courses={courses.map((c) => c.title)}
             onSubmit={(payload) => {
               if (editing) { LiveService.save({ ...editing, ...payload }); toast.success("Session updated"); }
-              else { LiveService.create(payload); toast.success("Session scheduled"); }
+              else {
+                const created = LiveService.create(payload);
+                notifyLiveScheduled({
+                  courseId: allCourses.find((c) => c.title === created.course)?.id,
+                  courseTitle: created.course,
+                  sessionId: created.id,
+                  title: created.title,
+                  startsAt: created.startsAt,
+                  host: created.host,
+                });
+                toast.success("Session scheduled — students notified");
+              }
               setOpen(false); setEditing(null);
             }}
           />
