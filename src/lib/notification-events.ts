@@ -10,6 +10,7 @@ import {
   type Assignment,
   type LiveSession,
 } from "./lms-storage";
+import { courses as allCourses } from "./mock-data";
 
 type Actor = { name: string; role: "student" | "teacher" | "admin" } | null;
 
