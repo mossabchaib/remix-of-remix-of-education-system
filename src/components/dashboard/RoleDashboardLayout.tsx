@@ -58,8 +58,15 @@ const studentNav: NavItem[] = [
   { label: "My orders", icon: ShoppingBag, to: "/dashboard/student/orders" },
   { label: "Notifications", icon: Bell, to: "/dashboard/student/notifications" },
   { label: "Discover", icon: Compass, to: "/courses" },
-  { label: "Messages", icon: MessageSquare, to: "/dashboard/student" },
 ];
+
+const accountNav = (role: "teacher" | "student"): NavItem[] => {
+  const base: NavItem[] = [
+    { label: "Profile", icon: UserCircle, to: `/dashboard/${role}/profile` },
+  ];
+  if (role === "teacher") base.push({ label: "Help & support", icon: LifeBuoy, to: `/dashboard/teacher/help` });
+  return base;
+};
 
 const accountNav = (role: "teacher" | "student"): NavItem[] => {
   const base: NavItem[] = [
