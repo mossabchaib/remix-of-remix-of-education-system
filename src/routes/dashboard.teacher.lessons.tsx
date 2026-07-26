@@ -18,6 +18,7 @@ import { CourseService } from "@/services";
 import { useTeacherCourses } from "@/hooks/useTeacherCourses";
 import { useKeyedStorage } from "@/hooks/useKeyedStorage";
 import { storageKeys, type Lesson } from "@/lib/lms-storage";
+import { notifyLessonPublished } from "@/lib/notification-events";
 import { toast } from "sonner";
 
 type Row = Lesson & { course: string; courseId: string; module: string; moduleIndex: number; lessonIndex: number };
