@@ -129,9 +129,7 @@ export function sendAnnouncement(input: {
 /* ============ Reminder scheduler ============ */
 
 function courseIdByTitle(title: string): string | undefined {
-  // Try to match by title against enrolled/known courses via mock-data. We
-  // avoid importing mock-data here to keep the event module tree-shakeable.
-  return undefined; // audience falls back to role=student
+  return allCourses.find((c) => c.title === title)?.id;
 }
 
 function parseWhen(s: string) {
