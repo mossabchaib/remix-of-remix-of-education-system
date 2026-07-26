@@ -66,7 +66,17 @@ function Assignments() {
             courses={courses.map((c) => c.title)}
             onSubmit={(a) => {
               if (editing) { AssignmentService.save({ ...editing, ...a }); toast.success("Assignment updated"); }
-              else { AssignmentService.create(a); toast.success("Assignment created"); }
+              else {
+                const created = AssignmentService.create(a);
+                notifyAssignmentCreated({
+                  courseId: allCourses.find((c) => c.title === created.course)?.id,
+                  courseTitle: created.course,
+                  assignmentId: created.id,
+                  title: created.title,
+                  due: created.due,
+                });
+                toast.success("Assignment created — students notified");
+              }
               setOpen(false); setEditing(null);
             }}
           />
