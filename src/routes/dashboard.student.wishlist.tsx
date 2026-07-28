@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Heart, ShoppingBag, PlayCircle } from "lucide-react";
 import { RoleDashboardLayout } from "@/components/dashboard/RoleDashboardLayout";
 import { PageHeader } from "@/components/admin/PageHeader";
@@ -7,8 +7,9 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/common/EmptyState";
+import { RemoveWishlistDialog } from "@/components/student/RemoveWishlistDialog";
 import { courses } from "@/lib/mock-data";
-import { toggleWishlist, toggleEnrollment, getEnrollments } from "@/lib/lms-storage";
+import { WishlistService, EnrollmentService } from "@/services";
 import { useWishlistIds, useEnrollmentIds } from "@/hooks/useStudentData";
 import { toast } from "sonner";
 
@@ -23,15 +24,32 @@ function Wishlist() {
   const navigate = useNavigate();
   const items = useMemo(() => courses.filter((c) => ids.includes(c.id)), [ids]);
 
-  const remove = (id: string) => {
-    toggleWishlist(id);
-    toast.success("Removed from wishlist");
+  const [pendingRemoveId, setPendingRemoveId] = useState<string | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
+
+  const pendingCourse = useMemo(
+    () => courses.find((c) => c.id === pendingRemoveId) ?? null,
+    [pendingRemoveId]
+  );
+
+  const askRemove = (id: string) => {
+    setPendingRemoveId(id);
+    setDialogOpen(true);
   };
+
+  const confirmRemove = () => {
+    if (!pendingRemoveId) return;
+    WishlistService.remove(pendingRemoveId);
+    toast.success("Removed from wishlist");
+    setDialogOpen(false);
+    setPendingRemoveId(null);
+  };
+
   const buy = (id: string, price: number) => {
     if (price === 0) {
       // Free enroll → move directly to My Courses
-      if (!getEnrollments().includes(id)) toggleEnrollment(id);
-      toggleWishlist(id);
+      EnrollmentService.enroll(id);
+      WishlistService.remove(id);
       toast.success("Enrolled — added to My Courses");
       navigate({ to: "/dashboard/student/courses" });
       return;
@@ -78,7 +96,7 @@ function Wishlist() {
                         <ShoppingBag className="mr-1.5 h-4 w-4" /> {c.price === 0 ? "Enroll" : "Buy"}
                       </Button>
                     )}
-                    <Button variant="outline" onClick={() => remove(c.id)} title="Remove">
+                    <Button variant="outline" onClick={() => askRemove(c.id)} title="Remove">
                       <Heart className="h-4 w-4 fill-current" />
                     </Button>
                   </div>
@@ -88,6 +106,16 @@ function Wishlist() {
           })}
         </div>
       )}
+
+      <RemoveWishlistDialog
+        courseTitle={pendingCourse?.title ?? null}
+        open={dialogOpen}
+        onOpenChange={(open) => {
+          setDialogOpen(open);
+          if (!open) setPendingRemoveId(null);
+        }}
+        onConfirm={confirmRemove}
+      />
     </RoleDashboardLayout>
   );
 }

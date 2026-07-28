@@ -6,7 +6,7 @@ import { StatusPill } from "@/components/admin/StatusPill";
 import { Badge } from "@/components/ui/badge";
 import { subscriptions as seed, type Subscription } from "@/lib/mock-data";
 
-export const Route = createFileRoute("/admin/subscriptions")({
+export const Route = createFileRoute("/admin/subscriptions/")({
   component: SubsAdmin,
 });
 

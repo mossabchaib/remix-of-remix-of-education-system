@@ -1,0 +1,1 @@
+export { touchCourse as recordCourseAccess } from "@/lib/lms-storage";

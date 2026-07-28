@@ -1,10 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import {
   Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from "recharts";
 import {
-  Award, BookOpen, CheckCircle2, ClipboardList, Clock, Flame, Heart,
+  Award, BookOpen, CheckCircle2, ClipboardList, Clock, Eye, Flame, Heart,
   PlayCircle, Sparkles, Video,
 } from "lucide-react";
 import { RoleDashboardLayout } from "@/components/dashboard/RoleDashboardLayout";
@@ -15,13 +15,17 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { courses, revenueSeries } from "@/lib/mock-data";
-import { courseProgress, flatLessons } from "@/lib/lms-storage";
+import type { Course } from "@/lib/mock-data";
+import { courseProgress, flatLessons, type LiveSession, type Assignment } from "@/lib/lms-storage";
 import {
   useActivity, useEnrollmentIds, useIssuedCertificates, useLastAccessed,
   useProgress, useWishlistIds,
 } from "@/hooks/useStudentData";
 import { useAssignments, useLiveSessions } from "@/hooks/useTeacherData";
 import { useNotifications } from "@/hooks/useNotifications";
+import { QuickResumeDialog } from "@/components/student/QuickResumeDialog";
+import { JoinLiveSessionDialog } from "@/components/student/JoinLiveSessionDialog";
+import { SubmitAssignmentDialog } from "@/components/student/SubmitAssignmentDialog";
 
 export const Route = createFileRoute("/dashboard/student/")({
   head: () => ({ meta: [{ title: "Overview — Student · Lumen" }, { name: "robots", content: "noindex" }] }),
@@ -38,6 +42,10 @@ function StudentOverview() {
   const live = useLiveSessions();
   const assignments = useAssignments();
   const { list: notifs, unread } = useNotifications();
+
+  const [quickCourse, setQuickCourse] = useState<{ course: Course; pct: number } | null>(null);
+  const [joinSession, setJoinSession] = useState<LiveSession | null>(null);
+  const [submitAssignment, setSubmitAssignment] = useState<Assignment | null>(null);
 
   const enrolled = useMemo(() => courses.filter((c) => ids.includes(c.id)), [ids]);
 
@@ -119,23 +127,37 @@ function StudentOverview() {
               </p>
             )}
             {continueLearning.map(({ c, p }) => (
-              <Link
+              <div
                 key={c.id}
-                to="/dashboard/student/courses/$id"
-                params={{ id: c.id }}
                 className="group flex items-center gap-4 rounded-xl border border-border/60 p-3 transition-colors hover:bg-muted/40"
               >
-                <div className="h-14 w-20 shrink-0 rounded-lg" style={{ backgroundImage: c.cover }} />
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-semibold">{c.title}</p>
-                  <p className="truncate text-xs text-muted-foreground">{c.teacher} · {c.category}</p>
-                  <div className="mt-2 flex items-center gap-2">
-                    <Progress value={p.pct} className="h-1.5" />
-                    <span className="w-10 text-right text-xs font-medium text-muted-foreground">{p.pct}%</span>
+                <Link
+                  to="/dashboard/student/courses/$id"
+                  params={{ id: c.id }}
+                  className="flex min-w-0 flex-1 items-center gap-4"
+                >
+                  <div className="h-14 w-20 shrink-0 rounded-lg" style={{ backgroundImage: c.cover }} />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-semibold">{c.title}</p>
+                    <p className="truncate text-xs text-muted-foreground">{c.teacher} · {c.category}</p>
+                    <div className="mt-2 flex items-center gap-2">
+                      <Progress value={p.pct} className="h-1.5" />
+                      <span className="w-10 text-right text-xs font-medium text-muted-foreground">{p.pct}%</span>
+                    </div>
                   </div>
-                </div>
-                <PlayCircle className="h-6 w-6 text-primary opacity-0 transition-opacity group-hover:opacity-100" />
-              </Link>
+                </Link>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setQuickCourse({ course: c, pct: p.pct });
+                  }}
+                  className="grid h-8 w-8 shrink-0 place-items-center rounded-lg text-muted-foreground opacity-0 transition-opacity hover:bg-muted group-hover:opacity-100"
+                  aria-label="Quick preview"
+                >
+                  <Eye className="h-4 w-4" />
+                </button>
+              </div>
             ))}
           </div>
         </Card>
@@ -180,7 +202,9 @@ function StudentOverview() {
                   <p className="truncate text-sm font-medium">{s.title}</p>
                   <p className="truncate text-xs text-muted-foreground">{s.host} · {s.startsAt}</p>
                 </div>
-                <Badge variant="outline">{s.duration}</Badge>
+                <Button size="sm" variant="outline" onClick={() => setJoinSession(s)}>
+                  Join
+                </Button>
               </div>
             ))}
           </div>
@@ -203,6 +227,9 @@ function StudentOverview() {
                   <p className="truncate text-xs text-muted-foreground">{a.course}</p>
                 </div>
                 <Badge variant="outline">Due {a.due.slice(5)}</Badge>
+                <Button size="sm" variant="outline" onClick={() => setSubmitAssignment(a)}>
+                  Submit
+                </Button>
               </div>
             ))}
           </div>
@@ -259,6 +286,23 @@ function StudentOverview() {
           ))}
         </div>
       </Card>
+
+      <QuickResumeDialog
+        course={quickCourse?.course ?? null}
+        progressPct={quickCourse?.pct ?? 0}
+        open={!!quickCourse}
+        onOpenChange={(o) => !o && setQuickCourse(null)}
+      />
+      <JoinLiveSessionDialog
+        session={joinSession}
+        open={!!joinSession}
+        onOpenChange={(o) => !o && setJoinSession(null)}
+      />
+      <SubmitAssignmentDialog
+        assignment={submitAssignment}
+        open={!!submitAssignment}
+        onOpenChange={(o) => !o && setSubmitAssignment(null)}
+      />
     </RoleDashboardLayout>
   );
 }

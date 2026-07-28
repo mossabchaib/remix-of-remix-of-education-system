@@ -17,12 +17,14 @@ import {
 import { EmptyState } from "@/components/common/EmptyState";
 import { useQuizzes } from "@/hooks/useTeacherData";
 import { useTeacherCourses } from "@/hooks/useTeacherCourses";
-import { QuizService } from "@/services";
+// ⚠️ FIX: import directly from the concrete file, not the barrel,
+// to avoid any barrel export mismatch silently breaking this call.
+import { QuizService } from "@/services/quizService";
 import { notifyQuizPublished } from "@/lib/notification-events";
 import { courses as allCourses } from "@/lib/mock-data";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/dashboard/teacher/quizzes")({
+export const Route = createFileRoute("/dashboard/teacher/quizzes/")({
   head: () => ({ meta: [{ title: "Quizzes — Teacher · Lumen" }, { name: "robots", content: "noindex" }] }),
   component: TeacherQuizzes,
 });
@@ -31,6 +33,30 @@ function TeacherQuizzes() {
   const quizzes = useQuizzes();
   const courses = useTeacherCourses();
   const [open, setOpen] = useState(false);
+
+  function handleCreate(v: { title: string; course: string; minutes: number }) {
+    try {
+      const created = QuizService.create({
+        title: v.title,
+        course: v.course,
+        minutes: v.minutes,
+        questions: [],
+      });
+
+      notifyQuizPublished({
+        courseId: allCourses.find((c) => c.title === created.course)?.id,
+        courseTitle: created.course,
+        quizId: created.id,
+        quizTitle: created.title,
+      });
+
+      toast.success("Quiz created — students notified");
+      setOpen(false);
+    } catch (err) {
+      console.error("Failed to create quiz:", err);
+      toast.error("Something went wrong while creating the quiz. Check the console for details.");
+    }
+  }
 
   return (
     <RoleDashboardLayout role="teacher">
@@ -53,7 +79,19 @@ function TeacherQuizzes() {
                   <p className="truncate text-sm font-semibold">{q.title}</p>
                   <p className="truncate text-xs text-muted-foreground">{q.course}</p>
                 </div>
-                <Button variant="ghost" size="icon" onClick={() => { QuizService.remove(q.id); toast.success("Quiz removed"); }}>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => {
+                    try {
+                      QuizService.remove(q.id);
+                      toast.success("Quiz removed");
+                    } catch (err) {
+                      console.error("Failed to remove quiz:", err);
+                      toast.error("Could not remove this quiz.");
+                    }
+                  }}
+                >
                   <Trash2 className="h-4 w-4 text-muted-foreground" />
                 </Button>
               </div>
@@ -78,17 +116,7 @@ function TeacherQuizzes() {
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
           <DialogHeader><DialogTitle>New quiz</DialogTitle></DialogHeader>
-          <NewQuizForm courses={courses.map((c) => c.title)} onSubmit={(v) => {
-            const created = QuizService.create({ title: v.title, course: v.course, minutes: v.minutes, questions: [] });
-            notifyQuizPublished({
-              courseId: allCourses.find((c) => c.title === created.course)?.id,
-              courseTitle: created.course,
-              quizId: created.id,
-              quizTitle: created.title,
-            });
-            toast.success("Quiz created — students notified");
-            setOpen(false);
-          }} />
+          <NewQuizForm courses={courses.map((c) => c.title)} onSubmit={handleCreate} />
         </DialogContent>
       </Dialog>
     </RoleDashboardLayout>
@@ -99,20 +127,37 @@ function NewQuizForm({ courses, onSubmit }: { courses: string[]; onSubmit: (v: {
   const [title, setTitle] = useState("");
   const [course, setCourse] = useState(courses[0] ?? "");
   const [minutes, setMinutes] = useState("10");
+
   return (
-    <form className="grid gap-4" onSubmit={(e) => { e.preventDefault(); onSubmit({ title, course, minutes: Number(minutes) || 10 }); }}>
-      <div className="space-y-1.5"><Label>Title</Label><Input value={title} onChange={(e) => setTitle(e.target.value)} required /></div>
+    <form
+      className="grid gap-4"
+      onSubmit={(e) => {
+        e.preventDefault();
+        onSubmit({ title, course, minutes: Number(minutes) || 10 });
+      }}
+    >
+      <div className="space-y-1.5">
+        <Label>Title</Label>
+        <Input value={title} onChange={(e) => setTitle(e.target.value)} required />
+      </div>
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-1.5">
           <Label>Course</Label>
           <Select value={course} onValueChange={setCourse}>
             <SelectTrigger><SelectValue /></SelectTrigger>
-            <SelectContent>{courses.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
+            <SelectContent>
+              {courses.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+            </SelectContent>
           </Select>
         </div>
-        <div className="space-y-1.5"><Label>Duration (min)</Label><Input type="number" value={minutes} onChange={(e) => setMinutes(e.target.value)} /></div>
+        <div className="space-y-1.5">
+          <Label>Duration (min)</Label>
+          <Input type="number" value={minutes} onChange={(e) => setMinutes(e.target.value)} />
+        </div>
       </div>
-      <DialogFooter><Button type="submit">Create</Button></DialogFooter>
+      <DialogFooter>
+        <Button type="submit">Create</Button>
+      </DialogFooter>
     </form>
   );
 }

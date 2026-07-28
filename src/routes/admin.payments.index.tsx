@@ -7,7 +7,7 @@ import { StatusPill } from "@/components/admin/StatusPill";
 import { Button } from "@/components/ui/button";
 import { payments as seed, type Payment } from "@/lib/mock-data";
 
-export const Route = createFileRoute("/admin/payments")({
+export const Route = createFileRoute("/admin/payments/")({
   component: PaymentsAdmin,
 });
 

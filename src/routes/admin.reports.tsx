@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import {
   Bar, BarChart, CartesianGrid, Cell, Legend, Line, LineChart,
@@ -6,29 +7,55 @@ import {
 import { Download, TrendingUp, Users, DollarSign, BookOpen } from "lucide-react";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { StatCard } from "@/components/admin/StatCard";
+import { DateRangeFilter } from "@/components/admin/reports/DateRangeFilter";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { categories, revenueSeries } from "@/lib/mock-data";
-
+import { useReportsData, type DateRangeKey } from "@/hooks/useReportsData";
+import { downloadCsv } from "@/lib/export-csv";
 export const Route = createFileRoute("/admin/reports")({
   component: Reports,
 });
 
-const pieData = categories.map((c) => ({ name: c.name, value: c.courses, color: c.color }));
-
 function Reports() {
+  const [range, setRange] = useState<DateRangeKey>("30d");
+  const { kpis, revenueSeries, categoriesData, rawOrders } = useReportsData(range);
+
+  const handleExport = () => {
+    downloadCsv(
+      `reports-${range}.csv`,
+      rawOrders.map((o) => ({
+        id: o.id,
+        amount: o.amount,
+        status: o.status,
+        createdAt: o.createdAt,
+      }))
+    );
+  };
+
   return (
     <>
       <PageHeader
         title="Reports"
         description="Understand what's working and where to invest next."
-        actions={<Button variant="outline" size="sm"><Download className="mr-1.5 h-4 w-4" /> Download PDF</Button>}
+        actions={
+          <div className="flex items-center gap-2">
+            <DateRangeFilter value={range} onChange={setRange} />
+            <Button variant="outline" size="sm" onClick={handleExport}>
+              <Download className="mr-1.5 h-4 w-4" /> Export CSV
+            </Button>
+          </div>
+        }
       />
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="Revenue (MTD)" value="$34,210" delta={9.6} icon={DollarSign} />
-        <StatCard label="Enrollments" value="1,842" delta={3.2} icon={Users} />
-        <StatCard label="Completions" value="1,124" delta={6.1} icon={BookOpen} />
-        <StatCard label="Avg. session" value="24m" delta={-2.3} icon={TrendingUp} />
+        <StatCard
+          label="Revenue"
+          value={`$${kpis.revenue.toLocaleString()}`}
+          delta={kpis.revenueDelta}
+          icon={DollarSign}
+        />
+        <StatCard label="Enrollments" value={kpis.enrollments.toLocaleString()} delta={kpis.enrollmentsDelta} icon={Users} />
+        <StatCard label="Completions" value={kpis.completions.toLocaleString()} delta={kpis.completionsDelta} icon={BookOpen} />
+        <StatCard label="Avg. progress" value={`${kpis.avgProgress}%`} delta={0} icon={TrendingUp} />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[1.6fr_1fr]">
@@ -49,12 +76,12 @@ function Reports() {
           </div>
         </Card>
         <Card className="border-border/60 p-6 shadow-card">
-          <p className="text-sm font-semibold">Courses by category</p>
+          <p className="text-sm font-semibold">Enrollments by category</p>
           <div className="mt-4 h-80">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
-                <Pie data={pieData} dataKey="value" innerRadius={60} outerRadius={100} paddingAngle={3}>
-                  {pieData.map((d) => <Cell key={d.name} fill={d.color} />)}
+                <Pie data={categoriesData} dataKey="value" innerRadius={60} outerRadius={100} paddingAngle={3}>
+                  {categoriesData.map((d) => <Cell key={d.name} fill={d.color} />)}
                 </Pie>
                 <Tooltip />
                 <Legend />
@@ -68,13 +95,13 @@ function Reports() {
         <p className="text-sm font-semibold">Top categories by enrollment</p>
         <div className="mt-4 h-80">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={pieData}>
+            <BarChart data={categoriesData}>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
               <XAxis dataKey="name" stroke="var(--muted-foreground)" fontSize={12} />
               <YAxis stroke="var(--muted-foreground)" fontSize={12} />
               <Tooltip contentStyle={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8 }} />
-              <Bar dataKey="value" radius={[6,6,0,0]}>
-                {pieData.map((d) => <Cell key={d.name} fill={d.color} />)}
+              <Bar dataKey="value" radius={[6, 6, 0, 0]}>
+                {categoriesData.map((d) => <Cell key={d.name} fill={d.color} />)}
               </Bar>
             </BarChart>
           </ResponsiveContainer>

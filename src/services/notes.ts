@@ -1,0 +1,1 @@
+export { setLessonNote as saveNote } from "@/lib/lms-storage";

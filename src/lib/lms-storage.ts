@@ -24,6 +24,7 @@ const K = {
   submissions: "lms.submissions",
   certificates: "lms.certificates",
   activity: "lms.activity",
+    studentLiveReminders: "lms.student.liveReminders"
 };
 
 export const STORAGE_EVENT = "lms:storage-change";
@@ -97,7 +98,18 @@ export function courseProgress(courseId: string, totalLessons: number) {
 }
 
 /* ============ Quiz attempts ============ */
-export type QuizAttempt = { score: number; total: number; at: string; answers: number[] };
+/* ============ Quiz attempts ============ */
+export type QuestionAnswer =
+  | { type: "qcm"; selected: number[] }
+  | { type: "true_false"; selected: boolean }
+  | { type: "matching"; selected: Record<string, string> }; // pairId -> right المختار
+
+export type QuizAttempt = {
+  score: number;
+  total: number;
+  at: string;
+  answers: Record<string, QuestionAnswer>; // key = questionId
+};
 export function getAttempts(): Record<string, QuizAttempt> { return readJSON(K.quizAttempts, {}); }
 export function saveAttempt(id: string, a: QuizAttempt) {
   const all = getAttempts();
@@ -221,28 +233,65 @@ export const pdfResources = [
 ];
 
 /* ============ Quizzes ============ */
-export type Question = { id: string; text: string; options: string[]; answer: number };
+/* ============ Quizzes ============ */
+export type QuestionType = "qcm" | "true_false" | "matching";
+
+/** زوج يسار/يمين لسؤال المطابقة. */
+export type MatchingPair = { id: string; left: string; right: string };
+
+export type Question = {
+  id: string;
+  type: QuestionType;
+  text: string;
+
+  // --- qcm ---
+  options?: string[];
+  /** indices فـ options اللي هوما صحاح (كيدعم جواب واحد أو بزاف). */
+  correctOptionIndexes?: number[];
+
+  // --- true_false ---
+  correctBoolean?: boolean;
+
+  // --- matching ---
+  pairs?: MatchingPair[];
+};
+
 export type Quiz = { id: string; title: string; course: string; questions: Question[]; minutes: number };
+
 const defaultQuizzes: Quiz[] = [
-  { id: "q1", title: "React Hooks — Basics", course: "Modern React Patterns", minutes: 10, questions: [
-    { id: "q1a", text: "Which hook manages local component state?", options: ["useEffect", "useState", "useMemo", "useRef"], answer: 1 },
-    { id: "q1b", text: "useEffect callbacks run…", options: ["Before render", "During render", "After commit", "Never"], answer: 2 },
-    { id: "q1c", text: "useMemo is used to…", options: ["Cache callbacks", "Cache derived values", "Trigger effects", "Read refs"], answer: 1 },
-    { id: "q1d", text: "Custom hook names must start with…", options: ["get", "use", "on", "with"], answer: 1 },
-    { id: "q1e", text: "The rules of hooks require calling them…", options: ["Anywhere", "Inside loops", "At the top level", "In classes"], answer: 2 },
-  ]},
-  { id: "q2", title: "TypeScript Fundamentals", course: "TypeScript from Zero to Hero", minutes: 12, questions: [
-    { id: "q2a", text: "Which is a valid tuple type?", options: ["[string, number]", "{string, number}", "(string, number)", "<string, number>"], answer: 0 },
-    { id: "q2b", text: "`readonly` on an array…", options: ["Freezes at runtime", "Blocks mutation at type level", "Removes methods", "Deep clones"], answer: 1 },
-    { id: "q2c", text: "`keyof T` returns…", options: ["Values of T", "Keys of T", "Type of T", "Length of T"], answer: 1 },
-    { id: "q2d", text: "`as const` narrows values to…", options: ["string", "readonly literal types", "any", "unknown"], answer: 1 },
-  ]},
-  { id: "q3", title: "SQL — Aggregates & Joins", course: "SQL for Analysts", minutes: 15, questions: [
-    { id: "q3a", text: "INNER JOIN returns…", options: ["All rows in both", "Matching rows only", "Left rows only", "Right rows only"], answer: 1 },
-    { id: "q3b", text: "GROUP BY is used with…", options: ["Aggregations", "Sub-queries only", "Views", "Indexes"], answer: 0 },
-    { id: "q3c", text: "HAVING filters…", options: ["Rows before grouping", "Grouped rows", "Columns", "Indexes"], answer: 1 },
-  ]},
+  {
+    id: "q1", title: "React Hooks — Basics", course: "Modern React Patterns", minutes: 10,
+    questions: [
+      { id: "q1a", type: "qcm", text: "Which hook manages local component state?", options: ["useEffect", "useState", "useMemo", "useRef"], correctOptionIndexes: [1] },
+      { id: "q1b", type: "qcm", text: "useEffect callbacks run…", options: ["Before render", "During render", "After commit", "Never"], correctOptionIndexes: [2] },
+      { id: "q1c", type: "qcm", text: "useMemo is used to…", options: ["Cache callbacks", "Cache derived values", "Trigger effects", "Read refs"], correctOptionIndexes: [1] },
+      { id: "q1d", type: "true_false", text: "Custom hook names must start with `use`.", correctBoolean: true },
+      { id: "q1e", type: "matching", text: "Match each hook to its purpose.", pairs: [
+        { id: "p1", left: "useState", right: "Local state" },
+        { id: "p2", left: "useEffect", right: "Side effects" },
+        { id: "p3", left: "useMemo", right: "Memoized value" },
+      ]},
+    ],
+  },
+  {
+    id: "q2", title: "TypeScript Fundamentals", course: "TypeScript from Zero to Hero", minutes: 12,
+    questions: [
+      { id: "q2a", type: "qcm", text: "Which is a valid tuple type?", options: ["[string, number]", "{string, number}", "(string, number)", "<string, number>"], correctOptionIndexes: [0] },
+      { id: "q2b", type: "qcm", text: "`readonly` on an array…", options: ["Freezes at runtime", "Blocks mutation at type level", "Removes methods", "Deep clones"], correctOptionIndexes: [1] },
+      { id: "q2c", type: "qcm", text: "`keyof T` returns…", options: ["Values of T", "Keys of T", "Type of T", "Length of T"], correctOptionIndexes: [1] },
+      { id: "q2d", type: "true_false", text: "`as const` narrows values to readonly literal types.", correctBoolean: true },
+    ],
+  },
+  {
+    id: "q3", title: "SQL — Aggregates & Joins", course: "SQL for Analysts", minutes: 15,
+    questions: [
+      { id: "q3a", type: "qcm", text: "INNER JOIN returns…", options: ["All rows in both", "Matching rows only", "Left rows only", "Right rows only"], correctOptionIndexes: [1] },
+      { id: "q3b", type: "qcm", text: "GROUP BY is used with…", options: ["Aggregations", "Sub-queries only", "Views", "Indexes"], correctOptionIndexes: [0] },
+      { id: "q3c", type: "true_false", text: "HAVING filters grouped rows.", correctBoolean: true },
+    ],
+  },
 ];
+
 export function getQuizzes(): Quiz[] { return readJSON(K.teacherQuizzes, defaultQuizzes); }
 export function setQuizzes(q: Quiz[]) { writeJSON(K.teacherQuizzes, q); emit(K.teacherQuizzes); }
 export function getQuiz(id: string): Quiz | undefined { return getQuizzes().find((q) => q.id === id); }
@@ -253,7 +302,6 @@ export function upsertQuiz(q: Quiz) {
   setQuizzes(all);
 }
 export function deleteQuiz(id: string) { setQuizzes(getQuizzes().filter((q) => q.id !== id)); }
-/** Backward-compat: static snapshot for pages that haven't migrated to reactive reads. */
 export const quizzes = defaultQuizzes;
 
 /* ============ Assignments ============ */
@@ -278,14 +326,25 @@ export function deleteAssignment(id: string) { setAssignmentsList(getAssignments
 export const assignments = defaultAssignments;
 
 /* ============ Live sessions ============ */
-export type LiveSession = { id: string; title: string; course: string; host: string; startsAt: string; duration: string; attendees: number };
-const defaultLive: LiveSession[] = [
+// عدّل تعريف LiveSession فقط، الباقي يبقى كما هو
+export type LiveSession = {
+  id: string;
+  title: string;
+  course: string;
+  host: string;
+  startsAt: string;
+  duration: string; // e.g. "60 min"
+  attendees: number;
+  joinUrl?: string;       // جديد: رابط الانضمام (اختياري)
+  recordingUrl?: string;  // جديد: رابط التسجيل بعد الانتهاء (اختياري)
+};const defaultLive: LiveSession[] = [
   { id: "l1", title: "Office hours — React", course: "Modern React Patterns", host: "Amelia Carter", startsAt: "2026-07-27 18:00", duration: "60 min", attendees: 84 },
   { id: "l2", title: "Design critique workshop", course: "Design Systems Mastery", host: "Olivia Reyes", startsAt: "2026-07-28 16:30", duration: "90 min", attendees: 42 },
   { id: "l3", title: "SQL Q&A", course: "SQL for Analysts", host: "Mateo Alvarez", startsAt: "2026-07-30 19:00", duration: "45 min", attendees: 61 },
   { id: "l4", title: "K8s hands-on lab", course: "Docker & Kubernetes", host: "Henry Larsen", startsAt: "2026-08-02 17:00", duration: "120 min", attendees: 118 },
   { id: "l5", title: "ML paper reading club", course: "Machine Learning Foundations", host: "Sofia Patel", startsAt: "2026-08-05 20:00", duration: "60 min", attendees: 37 },
 ];
+
 export function getLiveSessions(): LiveSession[] { return readJSON(K.teacherLive, defaultLive); }
 export function setLiveSessionsList(l: LiveSession[]) { writeJSON(K.teacherLive, l); emit(K.teacherLive); }
 export function upsertLiveSession(l: LiveSession) {
@@ -458,21 +517,44 @@ export function resolvedModules(courseId: string): Module[] {
 }
 
 /* ============ Teacher Uploads (persisted) ============ */
-export type Upload = { id: string; title: string; course: string; size: string; uploaded: string; kind: "video" | "pdf"; progress: number };
+export type UploadKind = "video" | "pdf" | "code" | "document" | "archive";
+
+export type Upload = {
+  id: string;
+  title: string;
+  course: string;       // اسم الكورس المعروض
+  courseId?: string;    // معرف الكورس — يُستعمل للربط مع lms.enrollments
+  size: string;
+  uploaded: string;
+  kind: UploadKind;
+  progress: number;
+  description?: string;
+  url?: string;         // رابط الملف الفعلي (أو placeholder)
+};
+
 const defaultUploads: Upload[] = [
-  { id: "v1", title: "Intro to hooks.mp4", course: "Modern React Patterns", size: "128 MB", uploaded: "2026-06-11", progress: 100, kind: "video" },
-  { id: "v2", title: "State machines.mp4", course: "Modern React Patterns", size: "212 MB", uploaded: "2026-06-08", progress: 100, kind: "video" },
-  { id: "v3", title: "SQL joins deep dive.mp4", course: "SQL for Analysts", size: "185 MB", uploaded: "2026-06-04", progress: 100, kind: "video" },
+  { id: "v1", title: "Intro to hooks.mp4", course: "Modern React Patterns", courseId: "co1", size: "128 MB", uploaded: "2026-06-11", progress: 100, kind: "video", description: "شرح أساسيات React Hooks." },
+  { id: "v2", title: "State machines.mp4", course: "Modern React Patterns", courseId: "co1", size: "212 MB", uploaded: "2026-06-08", progress: 100, kind: "video", description: "بناء آلات الحالة في React." },
+  { id: "v3", title: "SQL joins deep dive.mp4", course: "SQL for Analysts", courseId: "co16", size: "185 MB", uploaded: "2026-06-04", progress: 100, kind: "video", description: "دروس متقدمة في JOINS." },
+  { id: "r1", title: "React Hooks Cheat Sheet.pdf", course: "Modern React Patterns", courseId: "co1", size: "1.2 MB", uploaded: "2026-06-12", progress: 100, kind: "pdf", description: "ورقة مرجعية سريعة." },
+  { id: "r2", title: "TypeScript Generics Guide.pdf", course: "TypeScript from Zero to Hero", courseId: "co2", size: "820 KB", uploaded: "2026-06-08", progress: 100, kind: "pdf", description: "دليل الـ Generics." },
+  { id: "c1", title: "hooks-starter-kit.zip", course: "Modern React Patterns", courseId: "co1", size: "4.6 MB", uploaded: "2026-06-10", progress: 100, kind: "archive", description: "كود ابتدائي للتمارين." },
+  { id: "c2", title: "design-tokens.tsx", course: "Design Systems Mastery", courseId: "co3", size: "18 KB", uploaded: "2026-05-30", progress: 100, kind: "code", description: "أمثلة Source Code لتوكنز التصميم." },
+  { id: "d1", title: "Design Tokens Reference.pdf", course: "Design Systems Mastery", courseId: "co3", size: "2.4 MB", uploaded: "2026-05-30", progress: 100, kind: "document", description: "شرائح تعريفية Presentation." },
 ];
+
 export function getUploads(): Upload[] { return readJSON(K.teacherUploads, defaultUploads); }
 export function setUploads(list: Upload[]) { writeJSON(K.teacherUploads, list); emit(K.teacherUploads); }
 export function addUpload(u: Omit<Upload, "id" | "uploaded">) {
   const up: Upload = { id: `up${Date.now()}`, uploaded: new Date().toISOString().slice(0, 10), ...u };
   setUploads([up, ...getUploads()]);
+  emit(K.teacherUploads);
+  return up;
 }
 export function deleteUpload(id: string) {
   setUploads(getUploads().filter((u) => u.id !== id));
 }
+
 
 /* ============ Last accessed (per course) ============ */
 export function getLastAccessedMap(): Record<string, string> {
@@ -539,16 +621,23 @@ export function logActivity(a: Omit<ActivityEntry, "id" | "at">) {
 }
 
 /* ============ Issued certificates (dynamic + persisted) ============ */
-export type Certificate = { id: string; course: string; courseId?: string; issued: string; credential: string };
+export type Certificate = {
+  id: string;
+  course: string;
+  courseId?: string;
+  teacher?: string;        // جديد: اسم المحاضر ليُطبع على الشهادة
+  issued: string;
+  credential: string;
+};
 const seedCertificates: Certificate[] = [
-  { id: "cert1", course: "SQL for Analysts", issued: "2026-06-14", credential: "LMN-SQL-2026-3491" },
-  { id: "cert2", course: "Advanced CSS & Tailwind", issued: "2026-05-02", credential: "LMN-CSS-2026-2211" },
-  { id: "cert3", course: "TypeScript from Zero to Hero", issued: "2026-03-19", credential: "LMN-TS-2026-1088" },
+  { id: "cert1", course: "SQL for Analysts", teacher: "Mateo Alvarez", issued: "2026-06-14", credential: "LMN-SQL-2026-3491" },
+  { id: "cert2", course: "Advanced CSS & Tailwind", teacher: "Amelia Carter", issued: "2026-05-02", credential: "LMN-CSS-2026-2211" },
+  { id: "cert3", course: "TypeScript from Zero to Hero", teacher: "Noah Bennett", issued: "2026-03-19", credential: "LMN-TS-2026-1088" },
 ];
 export function getIssuedCertificates(): Certificate[] {
   return readJSON(K.certificates, seedCertificates);
 }
-export function issueCertificate(course: { id: string; title: string }): Certificate | null {
+export function issueCertificate(course: { id: string; title: string; teacher?: string }): Certificate | null {
   const list = getIssuedCertificates();
   if (list.some((c) => c.courseId === course.id)) return null;
   const code = course.title.replace(/[^A-Z]/g, "").slice(0, 4) || "CRS";
@@ -556,6 +645,7 @@ export function issueCertificate(course: { id: string; title: string }): Certifi
     id: `cert${Date.now()}`,
     course: course.title,
     courseId: course.id,
+    teacher: course.teacher,
     issued: new Date().toISOString().slice(0, 10),
     credential: `LMN-${code}-${new Date().getFullYear()}-${Math.floor(Math.random() * 9000 + 1000)}`,
   };
@@ -563,6 +653,14 @@ export function issueCertificate(course: { id: string; title: string }): Certifi
   writeJSON(K.certificates, next);
   emit(K.certificates);
   logActivity({ kind: "certificate", label: `Earned certificate · ${course.title}`, refId: course.id });
-  addNotification({ title: "Certificate issued", body: `Your certificate for ${course.title} is ready.`, kind: "system", audience: { scope: "course", courseId: course.id }, courseId: course.id, link: `/dashboard/student/certificates`, sourceId: `cert:${course.id}` });
+  addNotification({
+    title: "Certificate issued",
+    body: `Your certificate for ${course.title} is ready.`,
+    kind: "system",
+    audience: { scope: "course", courseId: course.id },
+    courseId: course.id,
+    link: `/dashboard/student/certificates`,
+    sourceId: `cert:${course.id}`,
+  });
   return cert;
 }

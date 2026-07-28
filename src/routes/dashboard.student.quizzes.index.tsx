@@ -9,7 +9,7 @@ import { StatCard } from "@/components/admin/StatCard";
 import { getAttempts } from "@/lib/lms-storage";
 import { useQuizzes } from "@/hooks/useTeacherData";
 
-export const Route = createFileRoute("/dashboard/student/quizzes")({
+export const Route = createFileRoute("/dashboard/student/quizzes/")({
   head: () => ({ meta: [{ title: "Quizzes — Lumen" }, { name: "robots", content: "noindex" }] }),
   component: Quizzes,
 });

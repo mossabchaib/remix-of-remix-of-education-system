@@ -1,0 +1,1 @@
+export { setLessonComplete as completeLesson } from "@/lib/lms-storage";

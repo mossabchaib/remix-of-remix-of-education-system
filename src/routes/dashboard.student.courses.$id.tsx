@@ -13,12 +13,17 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { courses } from "@/lib/mock-data";
-import {
-  courseProgress, getLessonNote, getProgress, modulesForCourse, pdfResources,
-  setLessonComplete, setLessonNote, touchCourse,
-} from "@/lib/lms-storage";
+import { pdfResources } from "@/lib/lms-storage";
 import { toast } from "sonner";
-import { useProgress } from "@/hooks/useStudentData";
+import * as LessonService from "@/services/lesson";
+import * as NotesService from "@/services/notes";
+import * as ActivityService from "@/services/activity";
+import {
+  useCourseModules,
+  useLessonProgressMap,
+  useLessonNote,
+  useCourseProgress,
+} from "@/hooks/useStudentData";
 
 export const Route = createFileRoute("/dashboard/student/courses/$id")({
   head: () => ({ meta: [{ title: "Course player — Lumen" }, { name: "robots", content: "noindex" }] }),
@@ -43,34 +48,38 @@ export const Route = createFileRoute("/dashboard/student/courses/$id")({
 function CoursePlayer() {
   const { course } = Route.useLoaderData();
   const navigate = useNavigate();
-  const modules = useMemo(() => modulesForCourse(course.id), [course.id]);
+
+  // القراءة كلها عبر الـ Hooks المخصصة فقط (لا استدعاء مباشر لـ lms-storage)
+  const modules = useCourseModules(course.id); // يحترم تعديلات المعلم (lms.teacher.modules)
   const allLessons = useMemo(() => modules.flatMap((m) => m.lessons), [modules]);
+  const progressMap = useLessonProgressMap(course.id); // lms.progress[course.id]
 
-  useProgress(); // subscribe to progress updates
-  const progressMap = getProgress()[course.id] ?? {};
-
-  // First incomplete lesson, or first
+  // أول درس غير مكتمل، أو الأول
   const initial = allLessons.find((l) => !progressMap[l.id])?.id ?? allLessons[0].id;
   const [currentId, setCurrentId] = useState<string>(initial);
 
-  useEffect(() => { touchCourse(course.id); }, [course.id]);
+  useEffect(() => {
+    ActivityService.recordCourseAccess(course.id);
+  }, [course.id]);
 
   const total = allLessons.length;
-  const p = courseProgress(course.id, total);
+  const p = useCourseProgress(course.id, total); // { done, total, pct }
   const current = allLessons.find((l) => l.id === currentId) ?? allLessons[0];
   const idx = allLessons.findIndex((l) => l.id === current.id);
   const module = modules.find((m) => m.lessons.some((l) => l.id === current.id));
 
-  const [note, setNote] = useState(() => getLessonNote(course.id, current.id));
-  useEffect(() => { setNote(getLessonNote(course.id, current.id)); }, [course.id, current.id]);
+  const note = useLessonNote(course.id, current.id); // lms.notes[course.id][lesson.id]
+  const [draftNote, setDraftNote] = useState(note);
+  useEffect(() => { setDraftNote(note); }, [note]);
+
   const saveNote = () => {
-    setLessonNote(course.id, current.id, note);
+    NotesService.saveNote(course.id, current.id, draftNote); // كتابة عبر Service فقط
     toast.success("Note saved");
   };
 
   const resources = pdfResources.filter((r) => r.course === course.title).slice(0, 4);
 
-  const toggle = (id: string, done: boolean) => setLessonComplete(course.id, id, done);
+  const toggle = (id: string, done: boolean) => LessonService.completeLesson(course.id, id, done);
   const goPrev = () => {
     const prev = allLessons[Math.max(idx - 1, 0)];
     setCurrentId(prev.id);
@@ -176,7 +185,7 @@ function CoursePlayer() {
                   Your personal notes for <span className="font-medium text-foreground">{current.title}</span> —
                   saved locally to your device.
                 </p>
-                <Textarea rows={8} value={note} onChange={(e) => setNote(e.target.value)} placeholder="Type your notes here…" />
+                <Textarea rows={8} value={draftNote} onChange={(e) => setDraftNote(e.target.value)} placeholder="Type your notes here…" />
                 <div className="flex justify-end">
                   <Button onClick={saveNote}><Save className="mr-1.5 h-4 w-4" /> Save note</Button>
                 </div>

@@ -11,11 +11,11 @@ import { StatCard } from "@/components/admin/StatCard";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { revenueSeries } from "@/lib/mock-data";
 import { useLiveSessions, useAssignments } from "@/hooks/useTeacherData";
 import { useTeacherCourses } from "@/hooks/useTeacherCourses";
 import { useTeacherStats } from "@/hooks/useTeacherStats";
 import { useNotifications } from "@/hooks/useNotifications";
+import { useTeacherTrend } from "@/hooks/useTeacherTrend";
 
 export const Route = createFileRoute("/dashboard/teacher/")({
   head: () => ({ meta: [{ title: "Overview — Teacher · Lumen" }, { name: "robots", content: "noindex" }] }),
@@ -28,18 +28,11 @@ function TeacherOverview() {
   const liveSessions = useLiveSessions();
   const assignments = useAssignments();
   const { list: notifs } = useNotifications();
+  const { chartData, revenueDeltaPct, signupsDeltaPct, hasData } = useTeacherTrend();
 
   const topCourses = [...courses].sort((a, b) => b.students - a.students).slice(0, 4);
   const upcomingLive = [...liveSessions].sort((a, b) => a.startsAt.localeCompare(b.startsAt)).slice(0, 4);
   const pendingAssignments = assignments.filter((a) => a.status === "Pending");
-
-  // Scale mock chart series by real stat magnitudes so it still feels connected.
-  const scale = Math.max(1, stats.totalStudents / 100);
-  const chartData = revenueSeries.map((r) => ({
-    month: r.month,
-    signups: Math.round(r.signups * scale),
-    revenue: Math.round((stats.totalRevenue / 12) * (0.7 + (r.revenue % 3000) / 6000)),
-  }));
 
   return (
     <RoleDashboardLayout role="teacher">
@@ -54,10 +47,20 @@ function TeacherOverview() {
       />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="Total revenue" value={`$${stats.totalRevenue.toLocaleString()}`} delta={9.2} icon={DollarSign} />
-        <StatCard label="Total students" value={stats.totalStudents.toLocaleString()} delta={4.6} icon={Users} />
+        <StatCard
+          label="Total revenue"
+          value={`$${stats.totalRevenue.toLocaleString()}`}
+          delta={hasData ? Number(revenueDeltaPct.toFixed(1)) : undefined}
+          icon={DollarSign}
+        />
+        <StatCard
+          label="Total students"
+          value={stats.totalStudents.toLocaleString()}
+          delta={hasData ? Number(signupsDeltaPct.toFixed(1)) : undefined}
+          icon={Users}
+        />
         <StatCard label="Published courses" value={String(stats.publishedCourses)} delta={stats.draftCourses} icon={BookOpen} />
-        <StatCard label="Average rating" value={stats.averageRating.toFixed(2)} delta={0.4} icon={Star} />
+        <StatCard label="Average rating" value={stats.averageRating.toFixed(2)} icon={Star} />
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -72,42 +75,54 @@ function TeacherOverview() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-semibold">Enrollments over time</p>
-              <p className="text-xs text-muted-foreground">Trend scaled to {stats.totalStudents.toLocaleString()} learners</p>
+              <p className="text-xs text-muted-foreground">Last 6 months · {stats.totalStudents.toLocaleString()} learners</p>
             </div>
             <Badge variant="outline" className="gap-1"><ArrowUpRight className="h-3 w-3" /> {stats.completionRate}% completion</Badge>
           </div>
           <div className="mt-4 h-72">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={chartData}>
-                <defs>
-                  <linearGradient id="e" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="var(--primary)" stopOpacity={0.35} />
-                    <stop offset="100%" stopColor="var(--primary)" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                <XAxis dataKey="month" stroke="var(--muted-foreground)" fontSize={12} tickLine={false} axisLine={false} />
-                <YAxis stroke="var(--muted-foreground)" fontSize={12} tickLine={false} axisLine={false} />
-                <Tooltip contentStyle={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8 }} />
-                <Area type="monotone" dataKey="signups" stroke="var(--primary)" strokeWidth={2} fill="url(#e)" />
-              </AreaChart>
-            </ResponsiveContainer>
+            {hasData ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={chartData}>
+                  <defs>
+                    <linearGradient id="e" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="var(--primary)" stopOpacity={0.35} />
+                      <stop offset="100%" stopColor="var(--primary)" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                  <XAxis dataKey="month" stroke="var(--muted-foreground)" fontSize={12} tickLine={false} axisLine={false} />
+                  <YAxis stroke="var(--muted-foreground)" fontSize={12} tickLine={false} axisLine={false} />
+                  <Tooltip contentStyle={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8 }} />
+                  <Area type="monotone" dataKey="signups" stroke="var(--primary)" strokeWidth={2} fill="url(#e)" />
+                </AreaChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="flex h-full items-center justify-center text-xs text-muted-foreground">
+                No enrollment activity yet.
+              </div>
+            )}
           </div>
         </Card>
 
         <Card className="border-border/60 p-6 shadow-card">
           <p className="text-sm font-semibold">Revenue by month</p>
-          <p className="text-xs text-muted-foreground">Gross earnings (simulated)</p>
+          <p className="text-xs text-muted-foreground">Gross earnings, last 6 months</p>
           <div className="mt-4 h-72">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                <XAxis dataKey="month" stroke="var(--muted-foreground)" fontSize={12} tickLine={false} axisLine={false} />
-                <YAxis stroke="var(--muted-foreground)" fontSize={12} tickLine={false} axisLine={false} />
-                <Tooltip contentStyle={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8 }} />
-                <Bar dataKey="revenue" fill="var(--primary)" radius={[6, 6, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+            {hasData ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={chartData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                  <XAxis dataKey="month" stroke="var(--muted-foreground)" fontSize={12} tickLine={false} axisLine={false} />
+                  <YAxis stroke="var(--muted-foreground)" fontSize={12} tickLine={false} axisLine={false} />
+                  <Tooltip contentStyle={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8 }} />
+                  <Bar dataKey="revenue" fill="var(--primary)" radius={[6, 6, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="flex h-full items-center justify-center text-xs text-muted-foreground">
+                No revenue recorded yet.
+              </div>
+            )}
           </div>
         </Card>
       </div>
