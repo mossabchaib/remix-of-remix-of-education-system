@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 import { useMemo, useState } from "react";
 import { Award, Clock, PlayCircle, Search, XCircle } from "lucide-react";
 import { RoleDashboardLayout } from "@/components/dashboard/RoleDashboardLayout";
@@ -33,6 +34,7 @@ export const Route = createFileRoute("/dashboard/student/courses/")({
 const LEVELS = ["All", "Beginner", "Intermediate", "Advanced"] as const;
 
 function MyCourses() {
+  const { t } = useTranslation();
   const [query, setQuery] = useState("");
   const [level, setLevel] = useState<(typeof LEVELS)[number]>("All");
   const [category, setCategory] = useState<string>("All");
@@ -86,8 +88,8 @@ function MyCourses() {
   return (
     <RoleDashboardLayout role="student">
       <PageHeader
-        title="My courses"
-        description="Everything you're enrolled in, organized by status."
+        title={t("student.myCourses")}
+        description={t("student.myCoursesDesc")}
         actions={
           <div className="flex flex-wrap items-center gap-2">
             <div className="relative w-56">
@@ -95,7 +97,7 @@ function MyCourses() {
               <Input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search my courses"
+                placeholder={t("student.searchMyCourses")}
                 className="pl-9"
               />
             </div>
@@ -117,10 +119,10 @@ function MyCourses() {
 
       <Tabs defaultValue="all">
         <TabsList>
-          <TabsTrigger value="all">All ({filtered.length})</TabsTrigger>
-          <TabsTrigger value="progress">In progress ({inProgress.length})</TabsTrigger>
-          <TabsTrigger value="not-started">Not started ({notStarted.length})</TabsTrigger>
-          <TabsTrigger value="completed">Completed ({completed.length})</TabsTrigger>
+          <TabsTrigger value="all">{t("student.allCourses")} ({filtered.length})</TabsTrigger>
+          <TabsTrigger value="progress">{t("student.inProgress")} ({inProgress.length})</TabsTrigger>
+          <TabsTrigger value="not-started">{t("student.notStarted")} ({notStarted.length})</TabsTrigger>
+          <TabsTrigger value="completed">{t("common.completed")} ({completed.length})</TabsTrigger>
         </TabsList>
         <TabsContent value="all">
           <Grid items={filtered} onUnenroll={setUnenrollTarget} onViewCertificate={handleViewCertificate} />
@@ -173,9 +175,9 @@ function Grid({
   if (items.length === 0) {
     return (
       <EmptyState
-        title="Nothing here yet"
-        description="Explore the catalog to find your next course."
-        action={<Button asChild><Link to="/courses">Browse courses</Link></Button>}
+        title={t("student.nothingHereYet")}
+        description={t("student.exploreCatalogPrompt")}
+        action={<Button asChild><Link to="/courses">{t("student.browseCourses")}</Link></Button>}
       />
     );
   }
@@ -195,8 +197,8 @@ function Grid({
                 type="button"
                 onClick={() => onUnenroll({ id: c.id, title: c.title })}
                 className="text-muted-foreground hover:text-destructive transition-colors"
-                aria-label="Unenroll"
-                title="Unenroll from this course"
+                aria-label={t("student.unenroll")}
+                title={t("student.unenroll")}
               >
                 <XCircle className="h-4 w-4" />
               </button>
@@ -205,28 +207,28 @@ function Grid({
             <p className="text-xs text-muted-foreground">{c.teacher}</p>
             <div>
               <div className="mb-1 flex items-center justify-between text-xs">
-                <span className="text-muted-foreground">{c.done} / {c.total} lessons</span>
+                <span className="text-muted-foreground">{c.done} / {c.total} {t("admin.lessons")}</span>
                 <span className="font-medium">{c.pct}%</span>
               </div>
               <Progress value={c.pct} className="h-1.5" />
             </div>
             {c.lastAt && (
               <p className="flex items-center gap-1 text-[11px] text-muted-foreground">
-                <Clock className="h-3 w-3" /> Last opened {new Date(c.lastAt).toLocaleDateString()}
+                <Clock className="h-3 w-3" /> {t("student.lastOpened")} {new Date(c.lastAt).toLocaleDateString()}
               </p>
             )}
             {c.pct === 100 ? (
               <Button asChild variant="outline" className="w-full" onClick={() => onViewCertificate(c)}>
                 <Link to="/dashboard/student/certificates">
                   <Award className="mr-1.5 h-4 w-4" />
-                  View certificate
+                  {t("student.viewCertificate")}
                 </Link>
               </Button>
             ) : (
               <Button asChild className="w-full">
                 <Link to="/dashboard/student/courses/$id" params={{ id: c.id }}>
                   <PlayCircle className="mr-1.5 h-4 w-4" />
-                  {c.pct === 0 ? "Start course" : "Continue"}
+                  {c.pct === 0 ? t("student.startCourse") : t("student.continueCourse")}
                 </Link>
               </Button>
             )}

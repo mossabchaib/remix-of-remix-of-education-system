@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 import { useState } from "react";
 import {
   BookOpen, GraduationCap, LifeBuoy, Mail, MessageSquare, PlayCircle, Rocket, Send, ShieldAlert,
@@ -39,24 +40,25 @@ const guides = [
 ];
 
 function Help() {
+  const { t } = useTranslation();
   const [contact, setContact] = useState({ subject: "", message: "" });
   const [report, setReport] = useState({ area: "", details: "" });
 
   return (
     <RoleDashboardLayout role="teacher">
       <PageHeader
-        title="Help & Support"
-        description="Answers, guides and a direct line to the Lumen team."
+        title={t("teacher.helpSupport")}
+        description={t("teacher.helpSupportDesc")}
       />
 
       <Tabs defaultValue="faq" className="space-y-4">
         <TabsList className="flex flex-wrap">
-          <TabsTrigger value="faq"><LifeBuoy className="mr-1.5 h-4 w-4" /> FAQ</TabsTrigger>
-          <TabsTrigger value="contact"><Mail className="mr-1.5 h-4 w-4" /> Contact</TabsTrigger>
-          <TabsTrigger value="report"><ShieldAlert className="mr-1.5 h-4 w-4" /> Report a problem</TabsTrigger>
-          <TabsTrigger value="docs"><BookOpen className="mr-1.5 h-4 w-4" /> Documentation</TabsTrigger>
-          <TabsTrigger value="guide"><Rocket className="mr-1.5 h-4 w-4" /> Platform guide</TabsTrigger>
-          <TabsTrigger value="tutorials"><PlayCircle className="mr-1.5 h-4 w-4" /> Tutorials</TabsTrigger>
+          <TabsTrigger value="faq"><LifeBuoy className="mr-1.5 h-4 w-4" /> {t("teacher.faq")}</TabsTrigger>
+          <TabsTrigger value="contact"><Mail className="mr-1.5 h-4 w-4" /> {t("teacher.contact")}</TabsTrigger>
+          <TabsTrigger value="report"><ShieldAlert className="mr-1.5 h-4 w-4" /> {t("teacher.reportProblem")}</TabsTrigger>
+          <TabsTrigger value="docs"><BookOpen className="mr-1.5 h-4 w-4" /> {t("teacher.documentation")}</TabsTrigger>
+          <TabsTrigger value="guide"><Rocket className="mr-1.5 h-4 w-4" /> {t("teacher.platformGuide")}</TabsTrigger>
+          <TabsTrigger value="tutorials"><PlayCircle className="mr-1.5 h-4 w-4" /> {t("teacher.tutorials")}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="faq">

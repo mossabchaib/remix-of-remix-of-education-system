@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Plus, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "@tanstack/react-router";
@@ -32,6 +33,7 @@ export function UserManagement({
   seed?: User[];
   restrictRole?: User["role"];
 }) {
+  const { t } = useTranslation();
   const all = useAdminUsers();
   const rows = restrictRole ? all.filter((u) => u.role === restrictRole) : all;
   const [open, setOpen] = useState(false);
@@ -42,7 +44,7 @@ export function UserManagement({
     () => [
       {
         key: "name",
-        header: "User",
+        header: t("admin.user"),
         sortable: true,
         render: (u) => (
           <div className="flex items-center gap-3">
@@ -56,11 +58,11 @@ export function UserManagement({
           </div>
         ),
       },
-      { key: "role", header: "Role", sortable: true, render: (u) => <Badge variant="outline">{u.role}</Badge> },
-      { key: "status", header: "Status", sortable: true, render: (u) => <StatusPill value={u.status} /> },
-      { key: "joined", header: "Joined", sortable: true, render: (u) => <span className="text-sm text-muted-foreground">{u.joined}</span> },
+      { key: "role", header: t("admin.role"), sortable: true, render: (u) => <Badge variant="outline">{u.role}</Badge> },
+      { key: "status", header: t("common.status"), sortable: true, render: (u) => <StatusPill value={u.status} /> },
+      { key: "joined", header: t("admin.joined"), sortable: true, render: (u) => <span className="text-sm text-muted-foreground">{u.joined}</span> },
     ],
-    [],
+    [t],
   );
 
   return (
@@ -71,7 +73,7 @@ export function UserManagement({
         actions={
           <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) setEditing(null); }}>
             <DialogTrigger asChild>
-              <Button size="sm"><UserPlus className="mr-1.5 h-4 w-4" /> Add user</Button>
+              <Button size="sm"><UserPlus className="me-1.5 h-4 w-4" /> {t("admin.addUser")}</Button>
             </DialogTrigger>
             <DialogContent>
               <UserForm
@@ -80,10 +82,10 @@ export function UserManagement({
                 onSubmit={(u) => {
                   if (editing) {
                     UserService.save({ ...editing, ...u });
-                    toast.success("User updated");
+                    toast.success(t("admin.userUpdated"));
                   } else {
                     UserService.create(u);
-                    toast.success("User added");
+                    toast.success(t("admin.userAdded"));
                   }
                   setOpen(false);
                   setEditing(null);
@@ -104,7 +106,7 @@ export function UserManagement({
         ]}
         onView={(u) => navigate({ to: "/admin/users/$id", params: { id: u.id } })}
         onEdit={(u) => { setEditing(u); setOpen(true); }}
-        onDelete={(u) => { UserService.remove(u.id); toast.success("User deleted"); }}
+        onDelete={(u) => { UserService.remove(u.id); toast.success(t("admin.userDeleted")); }}
       />
     </>
   );
@@ -119,6 +121,7 @@ function UserForm({
   restrictRole?: User["role"];
   onSubmit: (u: Omit<User, "id">) => void;
 }) {
+  const { t } = useTranslation();
   const [name, setName] = useState(initial?.name ?? "");
   const [email, setEmail] = useState(initial?.email ?? "");
   const [role, setRole] = useState<User["role"]>(initial?.role ?? restrictRole ?? "Student");
@@ -127,29 +130,29 @@ function UserForm({
   return (
     <>
       <DialogHeader>
-        <DialogTitle>{initial ? "Edit user" : "Add user"}</DialogTitle>
-        <DialogDescription>Fill in the details below.</DialogDescription>
+        <DialogTitle>{initial ? t("admin.editUser") : t("admin.addUser")}</DialogTitle>
+        <DialogDescription>{t("admin.fillDetails")}</DialogDescription>
       </DialogHeader>
       <form
         className="grid gap-4"
         onSubmit={(e) => {
           e.preventDefault();
-          if (!name || !email) return toast.error("All fields are required");
+          if (!name || !email) return toast.error(t("admin.allFieldsRequired"));
           onSubmit({ name, email, role, status, joined: initial?.joined ?? new Date().toISOString().slice(0, 10) });
         }}
       >
         <div className="space-y-1.5">
-          <Label htmlFor="n">Full name</Label>
+          <Label htmlFor="n">{t("admin.fullName")}</Label>
           <Input id="n" value={name} onChange={(e) => setName(e.target.value)} required />
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor="e">Email</Label>
+          <Label htmlFor="e">{t("login.emailLabel")}</Label>
           <Input id="e" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
           {!restrictRole && (
             <div className="space-y-1.5">
-              <Label>Role</Label>
+              <Label>{t("admin.role")}</Label>
               <Select value={role} onValueChange={(v) => setRole(v as User["role"])}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
@@ -169,7 +172,7 @@ function UserForm({
           </div>
         </div>
         <DialogFooter>
-          <Button type="submit"><Plus className="mr-1.5 h-4 w-4" /> Save</Button>
+          <Button type="submit"><Plus className="me-1.5 h-4 w-4" /> {t("common.saveChanges")}</Button>
         </DialogFooter>
       </form>
     </>

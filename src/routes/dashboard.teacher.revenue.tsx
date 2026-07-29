@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 import { useState } from "react";
 import {
   Area, AreaChart, Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis,
@@ -23,6 +24,7 @@ export const Route = createFileRoute("/dashboard/teacher/revenue")({
 });
 
 function Revenue() {
+  const { t } = useTranslation();
   const [courseId, setCourseId] = useState<string>("all");
   const [range, setRange] = useState<DateRangeValue>("all");
   const courses = useTeacherCourses();
@@ -32,7 +34,7 @@ function Revenue() {
 
   function handleExport() {
     if (revenue.filteredOrders.length === 0) {
-      toast.error("No orders to export for the current filters");
+      toast.error(t("teacher.noOrdersToExport"));
       return;
     }
     const rows = revenue.filteredOrders.map((o) => ({
@@ -46,15 +48,15 @@ function Revenue() {
       Date: o.date.slice(0, 10),
     }));
     downloadCsv(`revenue-statement-${new Date().toISOString().slice(0, 10)}.csv`, rows);
-    toast.success("Statement exported");
+    toast.success(t("teacher.statementExported"));
   }
 
   return (
     <RoleDashboardLayout role="teacher">
       <PageHeader
-        title="Revenue"
-        description="Earnings derived from your catalog and real student orders."
-        actions={<Button variant="outline" onClick={handleExport}><Download className="mr-1.5 h-4 w-4" /> Export</Button>}
+        title={t("teacher.revenueTitle")}
+        description={t("teacher.revenueDescPage")}
+        actions={<Button variant="outline" onClick={handleExport}><Download className="mr-1.5 h-4 w-4" /> {t("common.export")}</Button>}
       />
 
       <div className="flex flex-wrap items-center gap-3">
@@ -63,21 +65,21 @@ function Revenue() {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="Total revenue" value={`$${revenue.totalRevenue.toLocaleString()}`} icon={DollarSign} />
-        <StatCard label="Order revenue" value={`$${revenue.realOrdersRevenue.toLocaleString()}`} icon={Wallet} />
-        <StatCard label="Catalog revenue" value={`$${revenue.simulatedRevenue.toLocaleString()}`} icon={TrendingUp} />
-        <StatCard label="Paid orders" value={String(revenue.paidOrdersCount)} icon={Receipt} />
+        <StatCard label={t("teacher.totalRevenue")} value={`$${revenue.totalRevenue.toLocaleString()}`} icon={DollarSign} />
+        <StatCard label={t("teacher.orderRevenue")} value={`$${revenue.realOrdersRevenue.toLocaleString()}`} icon={Wallet} />
+        <StatCard label={t("teacher.catalogRevenue")} value={`$${revenue.simulatedRevenue.toLocaleString()}`} icon={TrendingUp} />
+        <StatCard label={t("teacher.paidOrders")} value={String(revenue.paidOrdersCount)} icon={Receipt} />
       </div>
       <div className="grid gap-4 sm:grid-cols-3">
-        <StatCard label="Revenue this month" value={`$${revenue.revenueThisMonth.toLocaleString()}`} icon={CalendarDays} />
-        <StatCard label="Revenue this week" value={`$${revenue.revenueThisWeek.toLocaleString()}`} icon={CalendarDays} />
-        <StatCard label="Avg. order value" value={`$${revenue.averageOrderValue.toLocaleString()}`} icon={Wallet} />
+        <StatCard label={t("teacher.revenueThisMonth")} value={`$${revenue.revenueThisMonth.toLocaleString()}`} icon={CalendarDays} />
+        <StatCard label={t("teacher.revenueThisWeek")} value={`$${revenue.revenueThisWeek.toLocaleString()}`} icon={CalendarDays} />
+        <StatCard label={t("teacher.avgOrderValue")} value={`$${revenue.averageOrderValue.toLocaleString()}`} icon={Wallet} />
       </div>
 
       <Card className="border-border/60 p-6 shadow-card">
-        <p className="text-sm font-semibold">Monthly earnings</p>
+        <p className="text-sm font-semibold">{t("teacher.monthlyEarnings")}</p>
         <p className="text-xs text-muted-foreground">
-          Simulated catalog history + real orders, by month — no artificial scaling.
+          {t("teacher.monthlyEarningsDesc")}
         </p>
         <div className="mt-4 h-72">
           <ResponsiveContainer width="100%" height="100%">
@@ -102,12 +104,12 @@ function Revenue() {
       </Card>
 
       <Card className="border-border/60 p-6 shadow-card">
-        <p className="text-sm font-semibold">Revenue by course</p>
-        <p className="text-xs text-muted-foreground">Top 8 courses by real paid orders, matching current filters.</p>
+        <p className="text-sm font-semibold">{t("teacher.revenueByCourse")}</p>
+        <p className="text-xs text-muted-foreground">{t("teacher.revenueByCourseDesc")}</p>
         <div className="mt-4 h-64">
           {revenue.revenuePerCourse.length === 0 ? (
             <div className="flex h-full items-center justify-center text-xs text-muted-foreground">
-              No paid orders for the selected filters yet.
+              {t("teacher.noOrdersForFilters")}
             </div>
           ) : (
             <ResponsiveContainer width="100%" height="100%">
@@ -127,12 +129,12 @@ function Revenue() {
       </Card>
 
       <Card className="border-border/60 p-6 shadow-card">
-        <p className="text-sm font-semibold">Recent orders</p>
-        <p className="text-xs text-muted-foreground">Payments captured through student checkouts, matching current filters.</p>
+        <p className="text-sm font-semibold">{t("teacher.recentOrders")}</p>
+        <p className="text-xs text-muted-foreground">{t("teacher.recentOrdersDesc")}</p>
         <div className="mt-4 divide-y divide-border/60">
           {revenue.filteredOrders.length === 0 && (
             <p className="py-8 text-center text-xs text-muted-foreground">
-              No orders match the current filters — student purchases will appear here in real time.
+              {t("teacher.noOrdersMatch")}
             </p>
           )}
           {revenue.filteredOrders.slice(0, 8).map((o) => (
@@ -143,7 +145,7 @@ function Revenue() {
               </div>
               <StatusPill value={o.status === "paid" ? "Active" : o.status === "failed" ? "Suspended" : "Pending"} />
               <span className="font-semibold">${o.amount}</span>
-              <Button asChild variant="ghost" size="sm"><Link to="/admin/payments/$id" params={{ id: o.id }}>View</Link></Button>
+              <Button asChild variant="ghost" size="sm"><Link to="/admin/payments/$id" params={{ id: o.id }}>{t("common.view")}</Link></Button>
             </div>
           ))}
         </div>

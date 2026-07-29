@@ -1,4 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 import { useState } from "react";
 import { ImagePlus, Save, Sparkles } from "lucide-react";
 import { RoleDashboardLayout } from "@/components/dashboard/RoleDashboardLayout";
@@ -29,6 +30,7 @@ const covers = [
 
 function CreateCourse() {
   const nav = useNavigate();
+  const { t } = useTranslation();
   const [f, setF] = useState({
     title: "", subtitle: "", category: "", level: "Beginner" as Course["level"],
     price: "49", description: "", language: "English",
@@ -52,21 +54,21 @@ function CreateCourse() {
   });
 
   const create = (status: Course["status"] = "Draft") => {
-    if (!f.title) { toast.error("Give your course a title"); return; }
+    if (!f.title) { toast.error(t("teacher.titleRequired")); return; }
     const created = CourseService.create(buildCourse(status));
-    toast.success(status === "Published" ? "Course published" : "Course saved as draft");
+    toast.success(status === "Published" ? t("teacher.coursePublished") : t("teacher.courseSavedDraft"));
     nav({ to: "/dashboard/teacher/courses/$id", params: { id: created.id } });
   };
 
   return (
     <RoleDashboardLayout role="teacher">
       <PageHeader
-        title="Create a new course"
-        description="Set the essentials — you can refine everything in the course builder."
+        title={t("teacher.createCourse")}
+        description={t("teacher.createCourseDesc")}
         actions={
           <div className="flex gap-2">
-            <Button variant="outline" onClick={() => create("Draft")}>Save draft</Button>
-            <Button onClick={() => create("Published")}><Save className="mr-1.5 h-4 w-4" /> Publish</Button>
+            <Button variant="outline" onClick={() => create("Draft")}>{t("teacher.saveDraft")}</Button>
+            <Button onClick={() => create("Published")}><Save className="mr-1.5 h-4 w-4" /> {t("teacher.publish")}</Button>
           </div>
         }
       />
@@ -74,25 +76,25 @@ function CreateCourse() {
       <div className="grid gap-4 lg:grid-cols-[1fr_320px]">
         <Card className="border-border/60 p-6 shadow-card space-y-5">
           <div className="space-y-2">
-            <Label>Title</Label>
-            <Input placeholder="e.g. Advanced React Patterns" value={f.title} onChange={(e) => setF({ ...f, title: e.target.value })} />
+            <Label>{t("teacher.courseTitle")}</Label>
+            <Input placeholder={t("teacher.courseTitlePlaceholder")} value={f.title} onChange={(e) => setF({ ...f, title: e.target.value })} />
           </div>
           <div className="space-y-2">
-            <Label>Subtitle</Label>
-            <Input placeholder="A short, punchy tagline" value={f.subtitle} onChange={(e) => setF({ ...f, subtitle: e.target.value })} />
+            <Label>{t("teacher.courseSubtitle")}</Label>
+            <Input placeholder={t("teacher.courseSubtitlePlaceholder")} value={f.subtitle} onChange={(e) => setF({ ...f, subtitle: e.target.value })} />
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label>Category</Label>
+              <Label>{t("teacher.courseCategory")}</Label>
               <Select value={f.category} onValueChange={(v) => setF({ ...f, category: v })}>
-                <SelectTrigger><SelectValue placeholder="Choose a category" /></SelectTrigger>
+                <SelectTrigger><SelectValue placeholder={t("teacher.categoryPlaceholder")} /></SelectTrigger>
                 <SelectContent>
                   {categories.map((c) => <SelectItem key={c.id} value={c.name}>{c.name}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>Level</Label>
+              <Label>{t("teacher.courseLevel")}</Label>
               <Select value={f.level} onValueChange={(v) => setF({ ...f, level: v as Course["level"] })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
@@ -101,39 +103,39 @@ function CreateCourse() {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>Price (USD)</Label>
+              <Label>{t("teacher.coursePrice")}</Label>
               <Input type="number" value={f.price} onChange={(e) => setF({ ...f, price: e.target.value })} />
             </div>
             <div className="space-y-2">
-              <Label>Language</Label>
+              <Label>{t("teacher.courseLanguage")}</Label>
               <Input value={f.language} onChange={(e) => setF({ ...f, language: e.target.value })} />
             </div>
           </div>
           <div className="space-y-2">
-            <Label>Description</Label>
-            <Textarea rows={6} placeholder="What will learners get out of this course?"
+            <Label>{t("teacher.courseDescription")}</Label>
+            <Textarea rows={6} placeholder={t("teacher.courseDescriptionPlaceholder")}
               value={f.description} onChange={(e) => setF({ ...f, description: e.target.value })} />
           </div>
         </Card>
 
         <div className="space-y-4">
           <Card className="border-border/60 p-6 shadow-card">
-            <p className="text-sm font-semibold">Cover image</p>
+            <p className="text-sm font-semibold">{t("teacher.coverImage")}</p>
             <div className="mt-3 grid h-40 place-items-center rounded-xl border border-dashed border-border bg-muted/20 text-muted-foreground">
               <div className="text-center">
                 <ImagePlus className="mx-auto h-6 w-6" />
-                <p className="mt-2 text-xs">A random gradient cover is assigned on save</p>
+                <p className="mt-2 text-xs">{t("teacher.coverImageHint")}</p>
               </div>
             </div>
           </Card>
           <Card className="border-border/60 p-6 shadow-card">
             <div className="flex items-center gap-2 text-primary">
-              <Sparkles className="h-4 w-4" /><p className="text-sm font-semibold">Tips</p>
+              <Sparkles className="h-4 w-4" /><p className="text-sm font-semibold">{t("teacher.tips")}</p>
             </div>
             <ul className="mt-3 space-y-2 text-sm text-muted-foreground list-disc pl-4">
-              <li>Aim for a clear, specific title.</li>
-              <li>Use the subtitle to highlight the outcome.</li>
-              <li>Add a cover with strong contrast.</li>
+              <li>{t("teacher.tipTitle")}</li>
+              <li>{t("teacher.tipSubtitle")}</li>
+              <li>{t("teacher.tipContrast")}</li>
             </ul>
           </Card>
         </div>

@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import type { ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ArrowDown,
   ArrowUp,
@@ -82,6 +83,7 @@ export function DataTable<T extends { id: string }>({
   onDelete?: (row: T) => void;
   pageSize?: number;
 }) {
+  const { t } = useTranslation();
   const [query, setQuery] = useState("");
   const [sortKey, setSortKey] = useState<string | null>(null);
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
@@ -136,7 +138,7 @@ export function DataTable<T extends { id: string }>({
               setQuery(e.target.value);
               setPage(1);
             }}
-            placeholder="Search…"
+            placeholder={t("dashboard_common.search")}
             className="pl-9"
           />
         </div>
@@ -153,7 +155,7 @@ export function DataTable<T extends { id: string }>({
               <SelectValue placeholder={f.label} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All {f.label.toLowerCase()}</SelectItem>
+              <SelectItem value="all">{t("common.all")} {f.label.toLowerCase()}</SelectItem>
               {f.options.map((o) => (
                 <SelectItem key={o} value={o}>
                   {o}
@@ -194,7 +196,7 @@ export function DataTable<T extends { id: string }>({
                 </TableHead>
               ))}
               {(onView || onEdit || onDelete) && (
-                <TableHead className="w-10 text-right" />
+                <TableHead className="w-10 text-end" />
               )}
             </TableRow>
           </TableHeader>
@@ -202,7 +204,7 @@ export function DataTable<T extends { id: string }>({
             {slice.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={columns.length + 1} className="p-0">
-                  <EmptyState title="No results" description="Try adjusting your search or filters." />
+                  <EmptyState title={t("dashboard_common.noResults")} description={t("dashboard_common.tryAdjustFilters")} />
                 </TableCell>
               </TableRow>
             ) : (
@@ -214,7 +216,7 @@ export function DataTable<T extends { id: string }>({
                     </TableCell>
                   ))}
                   {(onView || onEdit || onDelete) && (
-                    <TableCell className="text-right">
+                    <TableCell className="text-end">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -239,7 +241,7 @@ export function DataTable<T extends { id: string }>({
                                 className="text-destructive focus:text-destructive"
                                 onClick={() => setPending(row)}
                               >
-                                <Trash2 className="mr-2 h-4 w-4" /> Delete
+                                <Trash2 className="me-2 h-4 w-4" /> {t("dashboard_common.delete")}
                               </DropdownMenuItem>
                             </>
                           )}
@@ -301,7 +303,7 @@ export function DataTable<T extends { id: string }>({
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => {
                 if (pending) {
@@ -312,7 +314,7 @@ export function DataTable<T extends { id: string }>({
               }}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              Delete
+              {t("dashboard_common.delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

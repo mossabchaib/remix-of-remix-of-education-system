@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 import { useState } from "react";
 import { Camera, Save } from "lucide-react";
 import { RoleDashboardLayout } from "@/components/dashboard/RoleDashboardLayout";
@@ -19,14 +20,15 @@ export const Route = createFileRoute("/dashboard/student/profile")({
 });
 
 export function ProfilePage({ role }: { role: "student" | "teacher" }) {
+  const { t } = useTranslation();
   const [p, setP] = useState(() => getProfile());
   return (
     <RoleDashboardLayout role={role}>
       <PageHeader
-        title="Profile"
-        description="How you appear to instructors and classmates."
+        title={t("student.profileTitle")}
+        description={t("student.profileDesc")}
         actions={
-          <Button onClick={() => { setProfile(p); toast.success("Profile saved"); }}>
+          <Button onClick={() => { setProfile(p); toast.success(t("student.profileSaved")); }}>
             <Save className="mr-1.5 h-4 w-4" /> Save
           </Button>
         }
@@ -49,13 +51,13 @@ export function ProfilePage({ role }: { role: "student" | "teacher" }) {
         </Card>
         <Card className="border-border/60 p-6 shadow-card space-y-4">
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="Full name" value={p.name} onChange={(v) => setP({ ...p, name: v })} />
-            <Field label="Email" value={p.email} onChange={(v) => setP({ ...p, email: v })} />
-            <Field label="Timezone" value={p.timezone} onChange={(v) => setP({ ...p, timezone: v })} />
-            <Field label="Language" value={p.language} onChange={(v) => setP({ ...p, language: v })} />
+            <Field label={t("student.fullName")} value={p.name} onChange={(v) => setP({ ...p, name: v })} />
+            <Field label={t("student.email")} value={p.email} onChange={(v) => setP({ ...p, email: v })} />
+            <Field label={t("student.timezone")} value={p.timezone} onChange={(v) => setP({ ...p, timezone: v })} />
+            <Field label={t("student.language")} value={p.language} onChange={(v) => setP({ ...p, language: v })} />
           </div>
           <div className="space-y-2">
-            <Label>Bio</Label>
+            <Label>{t("student.bio")}</Label>
             <Textarea rows={5} value={p.bio} onChange={(e) => setP({ ...p, bio: e.target.value })} />
           </div>
         </Card>

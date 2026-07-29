@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 import { useState } from "react";
 import { Receipt as ReceiptIcon, ShoppingBag, Eye, RefreshCcw } from "lucide-react";
 import { RoleDashboardLayout } from "@/components/dashboard/RoleDashboardLayout";
@@ -20,6 +21,7 @@ export const Route = createFileRoute("/dashboard/student/orders")({
 });
 
 function MyOrders() {
+  const { t } = useTranslation();
   const rows = useOrders();
 
   const [previewOrder, setPreviewOrder] = useState<Order | null>(null);
@@ -35,39 +37,39 @@ function MyOrders() {
 
   const retry = (order: Order) => {
     const retried = OrderService.retryPayment(order);
-    toast.success(`Payment retried — new invoice ${retried.invoice}`);
+    toast.success(t("student.paymentRetried", { invoice: retried.invoice }));
   };
 
   const columns: Column<Order>[] = [
-    { key: "invoice", header: "Invoice", sortable: true, render: (r) => <span className="font-mono text-xs">{r.invoice}</span> },
-    { key: "courseTitle", header: "Course", sortable: true, render: (r) => <span className="font-medium">{r.courseTitle}</span> },
-    { key: "amount", header: "Amount", sortable: true, render: (r) => `$${r.amount.toFixed(2)}` },
-    { key: "method", header: "Method", sortable: true },
+    { key: "invoice", header: t("admin.id"), sortable: true, render: (r) => <span className="font-mono text-xs">{r.invoice}</span> },
+    { key: "courseTitle", header: t("admin.course"), sortable: true, render: (r) => <span className="font-medium">{r.courseTitle}</span> },
+    { key: "amount", header: t("admin.price"), sortable: true, render: (r) => `$${r.amount.toFixed(2)}` },
+    { key: "method", header: t("common.filter"), sortable: true },
     {
       key: "status",
-      header: "Status",
+      header: t("common.status"),
       sortable: true,
       render: (r) => (
         <StatusPill value={r.status === "paid" ? "Paid" : r.status === "failed" ? "Failed" : "Pending"} />
       ),
     },
-    { key: "date", header: "Date", sortable: true, render: (r) => <span className="text-sm text-muted-foreground">{r.date.slice(0, 10)}</span> },
+    { key: "date", header: t("admin.updated"), sortable: true, render: (r) => <span className="text-sm text-muted-foreground">{r.date.slice(0, 10)}</span> },
     {
       key: "actions",
       header: "",
       render: (r) => (
         <div className="flex items-center justify-end gap-1.5">
-          <Button variant="ghost" size="sm" onClick={() => openPreview(r)} title="Quick preview">
+          <Button variant="ghost" size="sm" onClick={() => openPreview(r)} title={t("student.quickPreview")}>
             <Eye className="h-4 w-4" />
           </Button>
           <Button asChild variant="outline" size="sm">
             <Link to="/orders/$id/receipt" params={{ id: r.id }}>
-              <ReceiptIcon className="mr-1.5 h-4 w-4" /> Receipt
+              <ReceiptIcon className="mr-1.5 h-4 w-4" /> {t("student.receipt")}
             </Link>
           </Button>
           {r.status === "failed" && (
             <Button size="sm" onClick={() => retry(r)}>
-              <RefreshCcw className="mr-1.5 h-4 w-4" /> Retry
+              <RefreshCcw className="mr-1.5 h-4 w-4" /> {t("student.retry")}
             </Button>
           )}
         </div>
@@ -77,19 +79,19 @@ function MyOrders() {
 
   return (
     <RoleDashboardLayout role="student">
-      <PageHeader title="My orders" description="Purchase history and simulated receipts." />
+      <PageHeader title={t("student.myOrdersTitle")} description={t("student.ordersDesc")} />
       {rows.length > 0 && (
         <div className="grid gap-4 sm:grid-cols-3">
-          <StatCard label="Total orders" value={String(rows.length)} icon={ReceiptIcon} />
-          <StatCard label="Paid" value={String(paid.length)} icon={ShoppingBag} />
-          <StatCard label="Total spent" value={`$${totalSpent.toFixed(2)}`} icon={ReceiptIcon} />
+          <StatCard label={t("student.totalOrders")} value={String(rows.length)} icon={ReceiptIcon} />
+          <StatCard label={t("student.paid")} value={String(paid.length)} icon={ShoppingBag} />
+          <StatCard label={t("student.totalSpent")} value={`$${totalSpent.toFixed(2)}`} icon={ReceiptIcon} />
         </div>
       )}
       {rows.length === 0 ? (
         <EmptyState
-          title="No orders yet"
-          description="Purchase a course to see your orders and receipts here."
-          action={<Button asChild><Link to="/courses"><ShoppingBag className="mr-1.5 h-4 w-4" /> Browse courses</Link></Button>}
+          title={t("student.noOrdersYet")}
+          description={t("student.ordersEmptyDesc")}
+          action={<Button asChild><Link to="/courses"><ShoppingBag className="mr-1.5 h-4 w-4" /> {t("student.browseCourses")}</Link></Button>}
         />
       ) : (
         <DataTable
@@ -97,8 +99,8 @@ function MyOrders() {
           columns={columns}
           searchKeys={["invoice", "courseTitle"]}
           filters={[
-            { key: "status", label: "Status", options: ["paid", "failed", "pending"] },
-            { key: "method", label: "Method", options: ["Card", "PayPal", "Free enrollment"] },
+            { key: "status", label: t("common.status"), options: ["paid", "failed", "pending"] },
+            { key: "method", label: t("common.filter"), options: ["Card", "PayPal", "Free enrollment"] },
           ]}
         />
       )}
