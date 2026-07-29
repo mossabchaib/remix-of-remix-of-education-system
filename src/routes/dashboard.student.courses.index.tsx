@@ -15,7 +15,7 @@ import {
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { EmptyState } from "@/components/common/EmptyState";
 import { UnenrollDialog } from "@/components/student/UnenrollDialog";
-import { flatLessons } from "@/lib/lms-storage";
+import { flatLessons, courseProgress } from "@/lib/lms-storage";
 import * as CertificateService from "@/services/certificate";
 import {
   useEnrollmentIds,
@@ -32,6 +32,14 @@ export const Route = createFileRoute("/dashboard/student/courses/")({
 });
 
 const LEVELS = ["All", "Beginner", "Intermediate", "Advanced"] as const;
+
+type Item = Course & {
+  pct: number;
+  done: number;
+  total: number;
+  lastAt?: string;
+  hasCertificate: boolean;
+};
 
 function MyCourses() {
   const { t } = useTranslation();
@@ -150,18 +158,9 @@ function MyCourses() {
 
 // حساب محلي بسيط بدل استدعاء courseProgress مباشرة من lms-storage داخل الصفحة —
 // نبقيها كدالة عرض فقط (لا كتابة)؛ يمكن استبدالها لاحقاً بـ hook مخصص useCourseProgress(id)
-import { courseProgress } from "@/lib/lms-storage";
 function courseProgressSafe(courseId: string, total: number) {
   return courseProgress(courseId, total);
 }
-
-type Item = Course & {
-  pct: number;
-  done: number;
-  total: number;
-  lastAt?: string;
-  hasCertificate: boolean;
-};
 
 function Grid({
   items,
@@ -169,9 +168,11 @@ function Grid({
   onViewCertificate,
 }: {
   items: Item[];
-  onUnenroll: (t: { id: string; title: string }) => void;
+  onUnenroll: (target: { id: string; title: string }) => void;
   onViewCertificate: (course: Item) => void;
 }) {
+  const { t } = useTranslation();
+
   if (items.length === 0) {
     return (
       <EmptyState

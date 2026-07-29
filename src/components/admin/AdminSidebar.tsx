@@ -38,7 +38,7 @@ export function AdminSidebar() {
   const insights = [
     { to: "/admin/reports", label: t("admin.reports"), icon: BarChart3 },
     { to: "/admin/announcements", label: t("admin.announcements"), icon: Megaphone },
-    { to: "/admin/settings", label: t("admin.settings"), icon: SettingsIcon },
+    // { to: "/admin/settings", label: t("admin.settings"), icon: SettingsIcon },
   ];
 
   const isActive = (to: string, exact?: boolean) =>
