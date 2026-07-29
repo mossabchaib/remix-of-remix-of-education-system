@@ -5,6 +5,7 @@ import {
 import {
   ArrowUpRight, BookOpen, ClipboardList, DollarSign, ListChecks, Plus, Star, Users, Video,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { RoleDashboardLayout } from "@/components/dashboard/RoleDashboardLayout";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { StatCard } from "@/components/admin/StatCard";
@@ -23,6 +24,7 @@ export const Route = createFileRoute("/dashboard/teacher/")({
 });
 
 function TeacherOverview() {
+  const { t } = useTranslation();
   const stats = useTeacherStats();
   const courses = useTeacherCourses();
   const liveSessions = useLiveSessions();
@@ -37,37 +39,37 @@ function TeacherOverview() {
   return (
     <RoleDashboardLayout role="teacher">
       <PageHeader
-        title="Instructor overview"
-        description="Live snapshot of your catalog, learners and revenue."
+        title={t("teacher.overview")}
+        description={t("teacher.overviewDesc")}
         actions={
           <Button asChild size="sm">
-            <Link to="/dashboard/teacher/courses/new"><Plus className="mr-1.5 h-4 w-4" /> New course</Link>
+            <Link to="/dashboard/teacher/courses/new"><Plus className="me-1.5 h-4 w-4" /> {t("teacher.createCourse")}</Link>
           </Button>
         }
       />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
-          label="Total revenue"
+          label={t("admin.totalRevenue")}
           value={`$${stats.totalRevenue.toLocaleString()}`}
           delta={hasData ? Number(revenueDeltaPct.toFixed(1)) : undefined}
           icon={DollarSign}
         />
         <StatCard
-          label="Total students"
+          label={t("admin.students")}
           value={stats.totalStudents.toLocaleString()}
           delta={hasData ? Number(signupsDeltaPct.toFixed(1)) : undefined}
           icon={Users}
         />
-        <StatCard label="Published courses" value={String(stats.publishedCourses)} delta={stats.draftCourses} icon={BookOpen} />
-        <StatCard label="Average rating" value={stats.averageRating.toFixed(2)} icon={Star} />
+        <StatCard label={t("admin.publishedCourses")} value={String(stats.publishedCourses)} delta={stats.draftCourses} icon={BookOpen} />
+        <StatCard label={t("about.statRating")} value={stats.averageRating.toFixed(2)} icon={Star} />
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="Lessons" value={String(stats.totalLessons)} icon={BookOpen} />
-        <StatCard label="Quizzes" value={String(stats.totalQuizzes)} icon={ListChecks} />
-        <StatCard label="Assignments" value={String(stats.totalAssignments)} icon={ClipboardList} />
-        <StatCard label="Live sessions" value={String(stats.totalLiveSessions)} icon={Video} />
+        <StatCard label={t("teacher.lessonsNav")} value={String(stats.totalLessons)} icon={BookOpen} />
+        <StatCard label={t("teacher.quizzes")} value={String(stats.totalQuizzes)} icon={ListChecks} />
+        <StatCard label={t("teacher.assignments")} value={String(stats.totalAssignments)} icon={ClipboardList} />
+        <StatCard label={t("teacher.liveSessions")} value={String(stats.totalLiveSessions)} icon={Video} />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[1.6fr_1fr]">
@@ -131,7 +133,7 @@ function TeacherOverview() {
         <Card className="border-border/60 p-6 shadow-card">
           <div className="flex items-center justify-between">
             <p className="text-sm font-semibold">Top courses</p>
-            <Button asChild variant="ghost" size="sm"><Link to="/dashboard/teacher/courses">All</Link></Button>
+            <Button asChild variant="ghost" size="sm"><Link to="/dashboard/teacher/courses">{t("common.viewAll")}</Link></Button>
           </div>
           <div className="mt-4 divide-y divide-border/60">
             {topCourses.length === 0 && <p className="py-6 text-center text-xs text-muted-foreground">No courses yet.</p>}
@@ -151,7 +153,7 @@ function TeacherOverview() {
         <Card className="border-border/60 p-6 shadow-card">
           <div className="flex items-center justify-between">
             <p className="text-sm font-semibold">Upcoming live</p>
-            <Button asChild variant="ghost" size="sm"><Link to="/dashboard/teacher/live">All</Link></Button>
+            <Button asChild variant="ghost" size="sm"><Link to="/dashboard/teacher/live">{t("common.viewAll")}</Link></Button>
           </div>
           <div className="mt-4 divide-y divide-border/60">
             {upcomingLive.length === 0 && <p className="py-6 text-center text-xs text-muted-foreground">Nothing scheduled.</p>}
@@ -169,8 +171,8 @@ function TeacherOverview() {
 
         <Card className="border-border/60 p-6 shadow-card">
           <div className="flex items-center justify-between">
-            <p className="text-sm font-semibold">Recent notifications</p>
-            <Button asChild variant="ghost" size="sm"><Link to="/dashboard/teacher/notifications">All</Link></Button>
+            <p className="text-sm font-semibold">{t("common.notifications")}</p>
+            <Button asChild variant="ghost" size="sm"><Link to="/dashboard/teacher/notifications">{t("common.viewAll")}</Link></Button>
           </div>
           <div className="mt-4 divide-y divide-border/60">
             {notifs.slice(0, 4).map((n) => (
@@ -201,4 +203,4 @@ function TeacherOverview() {
       </Card>
     </RoleDashboardLayout>
   );
-}
+}

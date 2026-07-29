@@ -7,6 +7,7 @@ import {
   Award, BookOpen, CheckCircle2, ClipboardList, Clock, Eye, Flame, Heart,
   PlayCircle, Sparkles, Video,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { RoleDashboardLayout } from "@/components/dashboard/RoleDashboardLayout";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { StatCard } from "@/components/admin/StatCard";
@@ -33,6 +34,7 @@ export const Route = createFileRoute("/dashboard/student/")({
 });
 
 function StudentOverview() {
+  const { t } = useTranslation();
   const ids = useEnrollmentIds();
   const wishlist = useWishlistIds();
   const certs = useIssuedCertificates();
@@ -76,18 +78,18 @@ function StudentOverview() {
   return (
     <RoleDashboardLayout role="student">
       <PageHeader
-        title="Welcome back"
-        description="Pick up where you left off and stay on track this week."
+        title={t("student.overview")}
+        description={t("student.overviewDesc")}
         actions={
           <div className="flex gap-2">
             <Button asChild size="sm" variant="outline">
               <Link to="/dashboard/student/wishlist">
-                <Heart className="mr-1.5 h-4 w-4" /> Wishlist ({wishlist.length})
+                <Heart className="me-1.5 h-4 w-4" /> {t("student.wishlist")} ({wishlist.length})
               </Link>
             </Button>
             <Button asChild size="sm">
               <Link to="/courses">
-                <Sparkles className="mr-1.5 h-4 w-4" /> Discover courses
+                <Sparkles className="me-1.5 h-4 w-4" /> {t("student.discover")}
               </Link>
             </Button>
           </div>
@@ -95,16 +97,16 @@ function StudentOverview() {
       />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="Enrolled courses" value={String(enrolled.length)} icon={BookOpen} />
-        <StatCard label="In progress" value={String(inProgressCount)} icon={PlayCircle} />
-        <StatCard label="Completed" value={String(completedCount)} icon={CheckCircle2} />
-        <StatCard label="Certificates" value={String(certs.length)} icon={Award} />
+        <StatCard label={t("student.myCourses")} value={String(enrolled.length)} icon={BookOpen} />
+        <StatCard label={t("common.pending")} value={String(inProgressCount)} icon={PlayCircle} />
+        <StatCard label={t("common.completed")} value={String(completedCount)} icon={CheckCircle2} />
+        <StatCard label={t("student.certificates")} value={String(certs.length)} icon={Award} />
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="Upcoming live" value={String(upcoming.length)} icon={Video} />
-        <StatCard label="Pending assignments" value={String(pendingAssignments)} icon={ClipboardList} />
-        <StatCard label="Unread notifications" value={String(unread)} icon={Sparkles} />
+        <StatCard label={t("teacher.liveSessions")} value={String(upcoming.length)} icon={Video} />
+        <StatCard label={t("teacher.assignments")} value={String(pendingAssignments)} icon={ClipboardList} />
+        <StatCard label={t("common.notifications")} value={String(unread)} icon={Sparkles} />
         <StatCard label="Study streak" value="14 days" icon={Flame} />
       </div>
 
@@ -116,14 +118,14 @@ function StudentOverview() {
               <p className="text-xs text-muted-foreground">Jump back in with one click</p>
             </div>
             <Button asChild variant="ghost" size="sm">
-              <Link to="/dashboard/student/courses">See all</Link>
+              <Link to="/dashboard/student/courses">{t("common.viewAll")}</Link>
             </Button>
           </div>
           <div className="mt-4 space-y-3">
             {continueLearning.length === 0 && (
               <p className="text-sm text-muted-foreground">
                 You aren't enrolled in any courses yet.{" "}
-                <Link to="/courses" className="text-primary underline">Browse the catalog</Link>.
+                <Link to="/courses" className="text-primary underline">{t("home.browseCourses")}</Link>.
               </p>
             )}
             {continueLearning.map(({ c, p }) => (
@@ -142,7 +144,7 @@ function StudentOverview() {
                     <p className="truncate text-xs text-muted-foreground">{c.teacher} · {c.category}</p>
                     <div className="mt-2 flex items-center gap-2">
                       <Progress value={p.pct} className="h-1.5" />
-                      <span className="w-10 text-right text-xs font-medium text-muted-foreground">{p.pct}%</span>
+                      <span className="w-10 text-end text-xs font-medium text-muted-foreground">{p.pct}%</span>
                     </div>
                   </div>
                 </Link>
@@ -188,8 +190,8 @@ function StudentOverview() {
       <div className="grid gap-4 lg:grid-cols-3">
         <Card className="border-border/60 p-6 shadow-card">
           <div className="flex items-center justify-between">
-            <p className="text-sm font-semibold">Upcoming live</p>
-            <Button asChild variant="ghost" size="sm"><Link to="/dashboard/student/live">All</Link></Button>
+            <p className="text-sm font-semibold">{t("teacher.liveSessions")}</p>
+            <Button asChild variant="ghost" size="sm"><Link to="/dashboard/student/live">{t("common.viewAll")}</Link></Button>
           </div>
           <div className="mt-3 divide-y divide-border/60">
             {upcoming.length === 0 && <p className="py-3 text-sm text-muted-foreground">Nothing scheduled.</p>}
@@ -212,8 +214,8 @@ function StudentOverview() {
 
         <Card className="border-border/60 p-6 shadow-card">
           <div className="flex items-center justify-between">
-            <p className="text-sm font-semibold">Assignments due</p>
-            <Button asChild variant="ghost" size="sm"><Link to="/dashboard/student/assignments">All</Link></Button>
+            <p className="text-sm font-semibold">{t("student.assignments")}</p>
+            <Button asChild variant="ghost" size="sm"><Link to="/dashboard/student/assignments">{t("common.viewAll")}</Link></Button>
           </div>
           <div className="mt-3 divide-y divide-border/60">
             {dueSoon.length === 0 && <p className="py-3 text-sm text-muted-foreground">Nothing due.</p>}
@@ -237,8 +239,8 @@ function StudentOverview() {
 
         <Card className="border-border/60 p-6 shadow-card">
           <div className="flex items-center justify-between">
-            <p className="text-sm font-semibold">Recent notifications</p>
-            <Button asChild variant="ghost" size="sm"><Link to="/dashboard/student/notifications">All</Link></Button>
+            <p className="text-sm font-semibold">{t("common.notifications")}</p>
+            <Button asChild variant="ghost" size="sm"><Link to="/dashboard/student/notifications">{t("common.viewAll")}</Link></Button>
           </div>
           <div className="mt-3 divide-y divide-border/60">
             {notifs.slice(0, 4).map((n) => (
@@ -305,4 +307,4 @@ function StudentOverview() {
       />
     </RoleDashboardLayout>
   );
-}
+}

@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Check, Sparkles } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -18,25 +19,44 @@ export const Route = createFileRoute("/pricing")({
   component: Pricing,
 });
 
-const plans = [
-  {
-    name: "Starter", price: 0, subtitle: "Explore the catalog",
-    features: ["Access to 20+ free courses","Community access","Learner profile","Basic progress tracking"],
-    cta: "Get started",
-  },
-  {
-    name: "Pro", price: 19, subtitle: "For individual learners", popular: true,
-    features: ["Unlimited course access","Certificates on completion","Downloadable resources","Priority support","Learning path recommendations"],
-    cta: "Start free trial",
-  },
-  {
-    name: "Team", price: 49, subtitle: "For growing teams",
-    features: ["Everything in Pro","Up to 25 seats","Team analytics dashboard","SSO (Google)","Dedicated account manager"],
-    cta: "Contact sales",
-  },
-];
-
 function Pricing() {
+  const { t } = useTranslation();
+
+  const plans = [
+    {
+      name: t("pricing.starterName"), price: 0, subtitle: t("pricing.starterSubtitle"),
+      features: [
+        t("pricing.starterFeature1"),
+        t("pricing.starterFeature2"),
+        t("pricing.starterFeature3"),
+        t("pricing.starterFeature4"),
+      ],
+      cta: t("common.getStarted"),
+    },
+    {
+      name: t("pricing.proName"), price: 19, subtitle: t("pricing.proSubtitle"), popular: true,
+      features: [
+        t("pricing.proFeature1"),
+        t("pricing.proFeature2"),
+        t("pricing.proFeature3"),
+        t("pricing.proFeature4"),
+        t("pricing.proFeature5"),
+      ],
+      cta: t("pricing.startFreeTrial"),
+    },
+    {
+      name: t("pricing.teamName"), price: 49, subtitle: t("pricing.teamSubtitle"),
+      features: [
+        t("pricing.teamFeature1"),
+        t("pricing.teamFeature2"),
+        t("pricing.teamFeature3"),
+        t("pricing.teamFeature4"),
+        t("pricing.teamFeature5"),
+      ],
+      cta: t("pricing.contactSales"),
+    },
+  ];
+
   return (
     <SiteLayout>
       <section className="relative overflow-hidden border-b border-border/60">
@@ -44,9 +64,9 @@ function Pricing() {
           <div className="absolute -top-40 left-1/2 h-96 w-[36rem] -translate-x-1/2 rounded-full bg-primary/10 blur-3xl" />
         </div>
         <div className="mx-auto max-w-3xl px-4 py-20 text-center sm:px-6">
-          <Badge variant="secondary" className="mb-4"><Sparkles className="mr-1.5 h-3.5 w-3.5 text-primary" /> Simple pricing</Badge>
-          <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">Pricing that scales with you</h1>
-          <p className="mt-3 text-muted-foreground">Start free. Upgrade when you're ready. No hidden fees.</p>
+          <Badge variant="secondary" className="mb-4"><Sparkles className="me-1.5 h-3.5 w-3.5 text-primary" /> {t("pricing.badge")}</Badge>
+          <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">{t("pricing.heroTitle")}</h1>
+          <p className="mt-3 text-muted-foreground">{t("pricing.heroSubtitle")}</p>
         </div>
       </section>
 
@@ -59,13 +79,13 @@ function Pricing() {
                 p.popular && "border-primary/50 shadow-elegant lg:-translate-y-2",
               )}>
                 {p.popular && (
-                  <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 gradient-brand text-primary-foreground">Most popular</Badge>
+                  <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 gradient-brand text-primary-foreground">{t("pricing.mostPopular")}</Badge>
                 )}
                 <p className="text-sm font-semibold text-primary">{p.name}</p>
                 <p className="mt-1 text-xs text-muted-foreground">{p.subtitle}</p>
                 <div className="mt-6 flex items-baseline gap-1">
                   <span className="text-5xl font-semibold tracking-tight">${p.price}</span>
-                  <span className="text-sm text-muted-foreground">/ month</span>
+                  <span className="text-sm text-muted-foreground">{t("common.perMonth")}</span>
                 </div>
                 <Button asChild className={cn("mt-6 w-full", !p.popular && "bg-foreground text-background hover:bg-foreground/90")}>
                   <Link to="/register">{p.cta}</Link>
@@ -85,12 +105,12 @@ function Pricing() {
           <div className="mt-16 rounded-2xl border border-border/60 bg-muted/30 p-8 sm:p-12">
             <div className="grid gap-6 lg:grid-cols-[1.5fr_1fr] lg:items-center">
               <div>
-                <h3 className="text-2xl font-semibold tracking-tight">Enterprise</h3>
-                <p className="mt-2 text-muted-foreground">Custom deployments for 100+ seat organizations. SAML SSO, SCIM, audit logs, custom SLAs, and dedicated infrastructure.</p>
+                <h3 className="text-2xl font-semibold tracking-tight">{t("pricing.enterpriseTitle")}</h3>
+                <p className="mt-2 text-muted-foreground">{t("pricing.enterpriseDesc")}</p>
               </div>
               <div className="flex flex-wrap items-center gap-3 lg:justify-end">
-                <Button asChild size="lg" variant="outline"><Link to="/contact">Book a demo</Link></Button>
-                <Button asChild size="lg"><Link to="/contact">Contact sales</Link></Button>
+                <Button asChild size="lg" variant="outline"><Link to="/contact">{t("pricing.bookDemo")}</Link></Button>
+                <Button asChild size="lg"><Link to="/contact">{t("pricing.contactSales")}</Link></Button>
               </div>
             </div>
           </div>

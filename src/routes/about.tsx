@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Compass, Heart, Sparkles, Users } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { Card } from "@/components/ui/card";
 
@@ -15,28 +16,30 @@ export const Route = createFileRoute("/about")({
   component: About,
 });
 
-const stats = [
-  { v: "128k+", l: "Active learners" },
-  { v: "1.4M", l: "Lessons completed" },
-  { v: "320+", l: "Expert instructors" },
-  { v: "4.9★", l: "Average rating" },
-];
-const values = [
-  { icon: Sparkles, t: "Crafted with care", d: "Every screen and lesson is polished to feel effortless." },
-  { icon: Users, t: "Learner obsessed", d: "We start from real learners and work backwards." },
-  { icon: Compass, t: "Clear direction", d: "We ship focused features that move the needle." },
-  { icon: Heart, t: "Human first", d: "Behind every course is a real person helping others grow." },
-];
-
 function About() {
+  const { t } = useTranslation();
+
+  const stats = [
+    { v: "128k+", l: t("about.statLearners") },
+    { v: "1.4M", l: t("about.statLessons") },
+    { v: "320+", l: t("about.statInstructors") },
+    { v: "4.9★", l: t("about.statRating") },
+  ];
+
+  const values = [
+    { icon: Sparkles, t: t("about.valueCraft"), d: t("about.valueCraftDesc") },
+    { icon: Users, t: t("about.valueLearner"), d: t("about.valueLearnerDesc") },
+    { icon: Compass, t: t("about.valueDirection"), d: t("about.valueDirectionDesc") },
+    { icon: Heart, t: t("about.valueHuman"), d: t("about.valueHumanDesc") },
+  ];
+
   return (
     <SiteLayout>
       <section className="border-b border-border/60">
         <div className="mx-auto max-w-4xl px-4 py-20 text-center sm:px-6">
-          <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">We're building the classroom we always wanted.</h1>
+          <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">{t("about.heroTitle")}</h1>
           <p className="mx-auto mt-4 max-w-2xl text-lg text-muted-foreground">
-            Lumen started as a small studio obsessed with the craft of teaching.
-            Today, we're a global team helping hundreds of thousands of learners grow — beautifully.
+            {t("about.heroSubtitle")}
           </p>
         </div>
       </section>
@@ -57,8 +60,8 @@ function About() {
       <section className="py-16 border-t border-border/60 bg-muted/20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-2xl text-center">
-            <h2 className="text-3xl font-semibold tracking-tight">What we believe</h2>
-            <p className="mt-2 text-muted-foreground">A few principles that guide every decision we make.</p>
+            <h2 className="text-3xl font-semibold tracking-tight">{t("about.valuesTitle")}</h2>
+            <p className="mt-2 text-muted-foreground">{t("about.valuesSubtitle")}</p>
           </div>
           <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {values.map((v) => (

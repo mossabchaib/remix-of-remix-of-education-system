@@ -7,6 +7,7 @@ import {
   Area, AreaChart, Bar, BarChart, CartesianGrid,
   ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from "recharts";
+import { useTranslation } from "react-i18next";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { StatCard } from "@/components/admin/StatCard";
 import { StatusPill } from "@/components/admin/StatusPill";
@@ -23,6 +24,7 @@ export const Route = createFileRoute("/admin/")({
 
 function AdminDashboard() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { kpis, revenueSeries, payments, users } = useAdminOverview();
 
   function handleExport() {
@@ -41,12 +43,12 @@ function AdminDashboard() {
   return (
     <>
       <PageHeader
-        title="Overview"
-        description="A snapshot of your learning platform this month."
+        title={t("admin.overview")}
+        description={t("admin.overviewDesc")}
         actions={
           <>
             <Button variant="outline" size="sm" onClick={handleExport}>
-              <Download className="mr-1.5 h-4 w-4" /> Export
+              <Download className="me-1.5 h-4 w-4" /> {t("common.export")}
             </Button>
           </>
         }
@@ -54,25 +56,25 @@ function AdminDashboard() {
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
-          label="Total revenue"
+          label={t("admin.totalRevenue")}
           value={`$${kpis.totalRevenue.toLocaleString()}`}
           delta={kpis.revenueDelta}
           icon={DollarSign}
         />
         <StatCard
-          label="Active learners"
+          label={t("admin.activeLearners")}
           value={kpis.activeLearners.toLocaleString()}
           delta={kpis.learnersDelta}
           icon={Users}
         />
         <StatCard
-          label="Published courses"
+          label={t("admin.publishedCourses")}
           value={String(kpis.publishedCourses)}
           delta={kpis.coursesDelta}
           icon={BookOpen}
         />
         <StatCard
-          label="Completion rate"
+          label={t("admin.completionRate")}
           value={`${kpis.completionRate}%`}
           icon={TrendingUp}
         />
@@ -82,8 +84,8 @@ function AdminDashboard() {
         <Card className="border-border/60 p-6 shadow-card">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-semibold">Revenue trend</p>
-              <p className="text-xs text-muted-foreground">Monthly recurring revenue</p>
+              <p className="text-sm font-semibold">{t("admin.revenueTrend")}</p>
+              <p className="text-xs text-muted-foreground">{t("admin.mrr")}</p>
             </div>
             <Badge variant="outline" className="gap-1">
               {kpis.revenueDelta >= 0 ? (
@@ -114,8 +116,8 @@ function AdminDashboard() {
         </Card>
 
         <Card className="border-border/60 p-6 shadow-card">
-          <p className="text-sm font-semibold">New signups</p>
-          <p className="text-xs text-muted-foreground">Last 12 months</p>
+          <p className="text-sm font-semibold">{t("admin.newSignups")}</p>
+          <p className="text-xs text-muted-foreground">{t("admin.last12Months")}</p>
           <div className="mt-4 h-72">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={revenueSeries}>
@@ -134,8 +136,8 @@ function AdminDashboard() {
         <Card className="border-border/60 p-6 shadow-card">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-semibold">Recent payments</p>
-              <p className="text-xs text-muted-foreground">Latest transactions</p>
+              <p className="text-sm font-semibold">{t("admin.recentPayments")}</p>
+              <p className="text-xs text-muted-foreground">{t("admin.latestTransactions")}</p>
             </div>
             <Button variant="ghost" size="icon" onClick={handleExport}>
               <MoreHorizontal className="h-4 w-4" />
@@ -162,7 +164,7 @@ function AdminDashboard() {
                 </div>
                 <div className="flex items-center gap-3">
                   <StatusPill value={p.status} />
-                  <p className="w-16 text-right text-sm font-semibold">${p.amount}</p>
+                  <p className="w-16 text-end text-sm font-semibold">${p.amount}</p>
                 </div>
               </div>
             ))}
@@ -170,8 +172,8 @@ function AdminDashboard() {
         </Card>
 
         <Card className="border-border/60 p-6 shadow-card">
-          <p className="text-sm font-semibold">New users</p>
-          <p className="text-xs text-muted-foreground">Recently joined</p>
+          <p className="text-sm font-semibold">{t("admin.newUsers")}</p>
+          <p className="text-xs text-muted-foreground">{t("admin.recentlyJoined")}</p>
           <div className="mt-4 space-y-3">
             {users.map((u) => (
               <div key={u.id} className="flex items-center gap-3">
@@ -192,4 +194,4 @@ function AdminDashboard() {
       </div>
     </>
   );
-}
+}

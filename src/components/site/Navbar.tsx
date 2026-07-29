@@ -1,6 +1,7 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { GraduationCap, Menu, Heart, LayoutDashboard, LogOut, User as UserIcon } from "lucide-react";
+import { GraduationCap, Menu, Heart, LayoutDashboard, LogOut, User as UserIcon, Globe } from "lucide-react";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -18,19 +19,27 @@ import { useWishlist } from "@/hooks/useLmsStore";
 import { clearSession, dashboardPathForRole } from "@/lib/auth";
 import { toast } from "sonner";
 
-const nav = [
-  { to: "/", label: "Home" },
-  { to: "/courses", label: "Courses" },
-  { to: "/pricing", label: "Pricing" },
-  { to: "/about", label: "About" },
-  { to: "/contact", label: "Contact" },
-] as const;
-
 export function Navbar() {
   const [open, setOpen] = useState(false);
   const session = useSession();
   const { count: wishlistCount } = useWishlist();
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation();
+
+  const nav = [
+    { to: "/", label: t("nav.home") },
+    { to: "/courses", label: t("nav.courses") },
+    { to: "/pricing", label: t("nav.pricing") },
+    { to: "/about", label: t("nav.about") },
+    { to: "/contact", label: t("nav.contact") },
+  ] as const;
+
+  const toggleLanguage = () => {
+    const nextLang = i18n.language === "ar" ? "en" : "ar";
+    i18n.changeLanguage(nextLang);
+  };
+
+  const currentLangDisplay = i18n.language === "ar" ? "English" : "العربية";
 
   const initials = session
     ? session.name.split(" ").map((s) => s[0]).slice(0, 2).join("").toUpperCase() || "L"
@@ -38,7 +47,7 @@ export function Navbar() {
 
   const handleSignOut = () => {
     clearSession();
-    toast.success("Signed out");
+    toast.success(t("common.signedOut"));
     navigate({ to: "/" });
   };
 
@@ -69,13 +78,25 @@ export function Navbar() {
         </nav>
 
         <div className="hidden md:flex items-center gap-2">
+          {/* Language Switcher Toggle */}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={toggleLanguage}
+            aria-label="Toggle language"
+            className="gap-1.5 px-2.5 font-medium"
+          >
+            <Globe className="h-4 w-4" />
+            <span className="text-xs">{currentLangDisplay}</span>
+          </Button>
+
           {session ? (
             <>
               <Button asChild variant="ghost" size="icon" aria-label="Wishlist" className="relative">
                 <Link to={wishlistHref}>
                   <Heart className="h-5 w-5" />
                   {wishlistCount > 0 && (
-                    <Badge className="absolute -top-1 -right-1 h-5 min-w-5 rounded-full px-1 text-[10px]">
+                    <Badge className="absolute -top-1 -end-1 h-5 min-w-5 rounded-full px-1 text-[10px]">
                       {wishlistCount}
                     </Badge>
                   )}
@@ -100,16 +121,16 @@ export function Navbar() {
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
-                    <Link to={dashHref}><LayoutDashboard className="mr-2 h-4 w-4" /> Dashboard</Link>
+                    <Link to={dashHref}><LayoutDashboard className="me-2 h-4 w-4" /> {t("common.dashboard")}</Link>
                   </DropdownMenuItem>
                   {session.role === "student" && (
                     <DropdownMenuItem asChild>
-                      <Link to="/dashboard/student/profile"><UserIcon className="mr-2 h-4 w-4" /> Profile</Link>
+                      <Link to="/dashboard/student/profile"><UserIcon className="me-2 h-4 w-4" /> {t("common.profile")}</Link>
                     </DropdownMenuItem>
                   )}
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleSignOut} className="text-destructive focus:text-destructive">
-                    <LogOut className="mr-2 h-4 w-4" /> Sign out
+                    <LogOut className="me-2 h-4 w-4" /> {t("common.signOut")}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -117,28 +138,39 @@ export function Navbar() {
           ) : (
             <>
               <Button asChild variant="ghost" size="sm">
-                <Link to="/login">Sign in</Link>
+                <Link to="/login">{t("common.signIn")}</Link>
               </Button>
               <Button asChild size="sm" className="shadow-elegant">
-                <Link to="/register">Get started</Link>
+                <Link to="/register">{t("common.getStarted")}</Link>
               </Button>
             </>
           )}
         </div>
 
         <div className="md:hidden flex items-center gap-1">
+          {/* Mobile language toggle icon */}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleLanguage}
+            aria-label="Toggle language"
+          >
+            <Globe className="h-5 w-5" />
+          </Button>
+
           {session && (
             <Button asChild variant="ghost" size="icon" aria-label="Wishlist" className="relative">
               <Link to={wishlistHref}>
                 <Heart className="h-5 w-5" />
                 {wishlistCount > 0 && (
-                  <Badge className="absolute -top-1 -right-1 h-4 min-w-4 rounded-full px-1 text-[10px]">
+                  <Badge className="absolute -top-1 -end-1 h-4 min-w-4 rounded-full px-1 text-[10px]">
                     {wishlistCount}
                   </Badge>
                 )}
               </Link>
             </Button>
           )}
+
           <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon" aria-label="Open menu">
@@ -157,6 +189,19 @@ export function Navbar() {
                     {n.label}
                   </Link>
                 ))}
+
+                {/* Mobile Language Switcher Button */}
+                <div className="mt-2 border-t pt-3">
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start gap-2"
+                    onClick={toggleLanguage}
+                  >
+                    <Globe className="h-4 w-4" />
+                    <span>{currentLangDisplay}</span>
+                  </Button>
+                </div>
+
                 <div className="mt-4 flex flex-col gap-2">
                   {session ? (
                     <>
@@ -165,7 +210,7 @@ export function Navbar() {
                         <p className="text-xs text-muted-foreground truncate">{session.email}</p>
                       </div>
                       <Button asChild variant="outline">
-                        <Link to={dashHref} onClick={() => setOpen(false)}>Dashboard</Link>
+                        <Link to={dashHref} onClick={() => setOpen(false)}>{t("common.dashboard")}</Link>
                       </Button>
                       <Button
                         variant="ghost"
@@ -174,16 +219,16 @@ export function Navbar() {
                           handleSignOut();
                         }}
                       >
-                        <LogOut className="mr-2 h-4 w-4" /> Sign out
+                        <LogOut className="me-2 h-4 w-4" /> {t("common.signOut")}
                       </Button>
                     </>
                   ) : (
                     <>
                       <Button asChild variant="outline">
-                        <Link to="/login" onClick={() => setOpen(false)}>Sign in</Link>
+                        <Link to="/login" onClick={() => setOpen(false)}>{t("common.signIn")}</Link>
                       </Button>
                       <Button asChild>
-                        <Link to="/register" onClick={() => setOpen(false)}>Get started</Link>
+                        <Link to="/register" onClick={() => setOpen(false)}>{t("common.getStarted")}</Link>
                       </Button>
                     </>
                   )}

@@ -1,5 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { GraduationCap, ArrowRight } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,14 +21,15 @@ export const Route = createFileRoute("/login")({
 
 function Login() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
   return (
     <AuthShell>
-      <p className="text-sm text-muted-foreground">Welcome back</p>
-      <h1 className="mt-1 text-2xl font-semibold tracking-tight">Sign in to Lumen</h1>
+      <p className="text-sm text-muted-foreground">{t("login.welcomeBack")}</p>
+      <h1 className="mt-1 text-2xl font-semibold tracking-tight">{t("login.signInTitle")}</h1>
       <form
         className="mt-6 space-y-4"
         onSubmit={(e) => {
@@ -36,36 +38,37 @@ function Login() {
           setTimeout(() => {
             const role = inferRole(email);
             setSession({ email, name: email.split("@")[0] || "Learner", role });
-            toast.success(`Welcome back — signed in as ${role}`);
+            toast.success(t("login.welcomeBackToast", { role }));
             navigate({ to: dashboardPathForRole(role) });
           }, 500);
         }}
       >
         <div className="space-y-1.5">
-          <Label htmlFor="email">Email</Label>
+          <Label htmlFor="email">{t("login.emailLabel")}</Label>
           <Input id="email" type="email" required autoComplete="email"
-            placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} />
-          <p className="text-xs text-muted-foreground">Tip: use <code>admin@…</code>, <code>teacher@…</code> or any email for student.</p>
+            placeholder={t("login.emailPlaceholder")} value={email} onChange={(e) => setEmail(e.target.value)} />
+          <p className="text-xs text-muted-foreground" dangerouslySetInnerHTML={{ __html: t("login.emailTip") }} />
         </div>
         <div className="space-y-1.5">
           <div className="flex items-center justify-between">
-            <Label htmlFor="pw">Password</Label>
-            <Link to="/login" className="text-xs text-primary hover:underline">Forgot?</Link>
+            <Label htmlFor="pw">{t("login.passwordLabel")}</Label>
+            <Link to="/login" className="text-xs text-primary hover:underline">{t("login.forgot")}</Link>
           </div>
           <Input id="pw" type="password" required minLength={4} value={password} onChange={(e) => setPassword(e.target.value)} />
         </div>
         <Button type="submit" size="lg" className="w-full" disabled={loading}>
-          {loading ? "Signing in…" : (<>Sign in <ArrowRight className="ml-1.5 h-4 w-4" /></>)}
+          {loading ? t("login.signingIn") : (<>{t("login.signInBtn")} <ArrowRight className="ms-1.5 h-4 w-4 rtl:rotate-180" /></>)}
         </Button>
       </form>
       <p className="mt-6 text-sm text-muted-foreground">
-        Don't have an account? <Link to="/register" className="font-medium text-primary hover:underline">Create one</Link>
+        {t("login.noAccount")} <Link to="/register" className="font-medium text-primary hover:underline">{t("login.createOne")}</Link>
       </p>
     </AuthShell>
   );
 }
 
 export function AuthShell({ children }: { children: React.ReactNode }) {
+  const { t } = useTranslation();
   return (
     <div className="grid min-h-screen lg:grid-cols-2">
       <div className="relative hidden overflow-hidden lg:block">
@@ -80,9 +83,9 @@ export function AuthShell({ children }: { children: React.ReactNode }) {
           </Link>
           <div>
             <p className="text-3xl font-semibold leading-tight tracking-tight">
-              "Lumen is the calm, focused classroom my team has always needed."
+              {t("login.testimonial")}
             </p>
-            <p className="mt-4 text-sm text-primary-foreground/80">Priya S. — Head of Learning, Northwind</p>
+            <p className="mt-4 text-sm text-primary-foreground/80">{t("login.testimonialAuthor")}</p>
           </div>
         </div>
       </div>
