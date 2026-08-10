@@ -1,8 +1,4 @@
 // Pure, READ-ONLY analytics derived from persisted LMS storage.
-// This module never writes to storage — it only reads via the existing
-// lms-storage getters and shapes numbers for the Admin Overview page.
-// (Per project rules: reads flow through hooks/computation helpers,
-// writes stay exclusively inside lms-storage + Services.)
 import {
   getOrders,
   getAdminUsers,
@@ -11,6 +7,7 @@ import {
   courseProgress,
   type Order,
 } from "./lms-storage";
+import type { ProfileData } from "./lms-storage";
 import { payments as seedPayments, courses as catalogCourses, users as seedUsers } from "./mock-data";
 
 const MONTH_LABELS = [
@@ -18,14 +15,6 @@ const MONTH_LABELS = [
   "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
 ];
 
-/**
- * `lms.orders` defaults to an EMPTY array (see lms-storage.getOrders()).
- * Until the checkout flow produces real orders (addOrder), the Admin
- * Overview would show all zeros. We fall back to a deterministic seed
- * built from the existing `payments` mock so the dashboard isn't blank
- * on first load. Real orders take over automatically the moment they
- * exist, since `real.length > 0` short-circuits the seed.
- */
 function resolvedOrders(): Order[] {
   const real = getOrders();
   if (real.length > 0) return real;
@@ -44,8 +33,6 @@ function resolvedOrders(): Order[] {
       txId: `seed-${p.id}`,
       date: p.date,
       buyerName: p.user,
-      // `payments` and `users` in mock-data are generated from the same
-      // `names` pool, so this lookup reliably resolves a real seeded email.
       buyerEmail: seedUsers.find((u) => u.name === p.user)?.email ?? "",
     } satisfies Order;
   });
@@ -61,6 +48,25 @@ function pctDelta(current: number, previous: number) {
   return Math.round(((current - previous) / previous) * 1000) / 10;
 }
 
+/** Safe fallback: never let a rejected/mistyped call blow up analytics. */
+async function safeUsers(): Promise<ProfileData[]> {
+  try {
+    const list = await getAdminUsers();
+    return Array.isArray(list) ? list : [];
+  } catch {
+    return [];
+  }
+}
+
+async function safeCourses(): Promise<any[]> {
+  try {
+    const list = await getTeacherCourses();
+    return Array.isArray(list) ? list : [];
+  } catch {
+    return [];
+  }
+}
+
 export type AdminKpis = {
   totalRevenue: number;
   revenueDelta: number;
@@ -68,11 +74,10 @@ export type AdminKpis = {
   learnersDelta: number;
   publishedCourses: number;
   coursesDelta: number;
-  /** Approximate — see note in computeKpis(). */
   completionRate: number;
 };
 
-export function computeKpis(): AdminKpis {
+export async function computeKpis(): Promise<AdminKpis> {
   const orders = resolvedOrders();
   const paid = orders.filter((o) => o.status === "paid");
   const totalRevenue = paid.reduce((sum, o) => sum + o.amount, 0);
@@ -91,13 +96,17 @@ export function computeKpis(): AdminKpis {
         )
       : 0;
 
-  const users = getAdminUsers();
-  const students = users.filter((u) => u.role === "Student");
-  const activeLearners = students.filter((u) => u.status === "Active").length;
+  const users = await safeUsers();
+  // `profiles` has no `status` column — every returned row is an existing
+  // account, so "active" just means "is a student" until a status field
+  // is added to the schema.
+  const students = users.filter((u) => u.role === "student");
+  const activeLearners = students.length;
 
   const learnersByMonth = new Map<string, number>();
   for (const u of students) {
-    const k = monthKey(u.joined);
+    if (!u.created_at) continue;
+    const k = monthKey(u.created_at);
     learnersByMonth.set(k, (learnersByMonth.get(k) ?? 0) + 1);
   }
   const lMonths = [...learnersByMonth.keys()].sort();
@@ -109,12 +118,13 @@ export function computeKpis(): AdminKpis {
         )
       : 0;
 
-  const courses = getTeacherCourses();
+  const courses = await safeCourses();
   const published = courses.filter((c) => c.status === "Published");
   const publishedCourses = published.length;
 
   const coursesByMonth = new Map<string, number>();
   for (const c of published) {
+    if (!c.updatedAt) continue;
     const k = monthKey(c.updatedAt);
     coursesByMonth.set(k, (coursesByMonth.get(k) ?? 0) + 1);
   }
@@ -127,12 +137,6 @@ export function computeKpis(): AdminKpis {
         )
       : 0;
 
-  // NOTE (important limitation, be transparent with the user about this):
-  // This app has no backend, so there is no cross-user progress table —
-  // `lms.progress` only tracks the CURRENT BROWSER's learner. A true
-  // platform-wide completion rate is not derivable client-side. We
-  // approximate it from the current session's enrolled-course progress.
-  // Replace with a real aggregate once a backend/API exists.
   const enrolled = getEnrollments();
   const pcts = enrolled.map((id) => {
     const course =
@@ -156,9 +160,10 @@ export function computeKpis(): AdminKpis {
 
 export type RevenuePoint = { month: string; revenue: number; signups: number };
 
-export function computeMonthlySeries(monthsBack = 12): RevenuePoint[] {
+export async function computeMonthlySeries(monthsBack = 12): Promise<RevenuePoint[]> {
   const orders = resolvedOrders().filter((o) => o.status === "paid");
-  const students = getAdminUsers().filter((u) => u.role === "Student");
+  const users = await safeUsers();
+  const students = users.filter((u) => u.role === "student");
   const now = new Date();
 
   const points: RevenuePoint[] = [];
@@ -168,7 +173,7 @@ export function computeMonthlySeries(monthsBack = 12): RevenuePoint[] {
     const revenue = orders
       .filter((o) => monthKey(o.date) === key)
       .reduce((sum, o) => sum + o.amount, 0);
-    const signups = students.filter((u) => monthKey(u.joined) === key).length;
+    const signups = students.filter((u) => u.created_at && monthKey(u.created_at) === key).length;
     points.push({ month: MONTH_LABELS[d.getMonth()], revenue, signups });
   }
   return points;
@@ -198,10 +203,11 @@ export function recentPayments(limit = 6): RecentPayment[] {
     }));
 }
 
-export function recentUsers(limit = 6) {
-  return getAdminUsers()
+export async function recentUsers(limit = 6): Promise<ProfileData[]> {
+  const users = await safeUsers();
+  return users
     .slice()
-    .sort((a, b) => (a.joined < b.joined ? 1 : -1))
+    .sort((a, b) => ((a.created_at ?? "") < (b.created_at ?? "") ? 1 : -1))
     .slice(0, limit);
 }
 
@@ -215,8 +221,6 @@ export type UserPayment = {
   date: string;
 };
 
-/** All orders placed by a given user, newest first. Used on the Admin
- * User Detail page — matched by email since `Order` has no `userId`. */
 export function paymentsForUser(email: string): UserPayment[] {
   const normalized = email.trim().toLowerCase();
   return resolvedOrders()
@@ -233,9 +237,7 @@ export function paymentsForUser(email: string): UserPayment[] {
     }));
 }
 
-/** Courses authored by a given teacher (matched by name, since Course
- * has no teacherId — mirrors how `teacher` is stored elsewhere). Used
- * on the Admin User Detail page when the user's role is "Teacher". */
-export function coursesForTeacher(teacherName: string) {
-  return getTeacherCourses().filter((c) => c.teacher === teacherName);
+export async function coursesForTeacher(teacherName: string) {
+  const courses = await safeCourses();
+  return courses.filter((c) => c.teacher === teacherName);
 }

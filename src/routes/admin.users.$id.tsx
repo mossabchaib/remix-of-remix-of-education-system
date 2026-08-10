@@ -1,6 +1,6 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import {
-  ArrowLeft, Mail, Shield, Calendar, User as UserIcon,
+  ArrowLeft, Mail, Shield, User as UserIcon,
   Receipt, GraduationCap, Users as UsersIcon, Star,
 } from "lucide-react";
 import { PageHeader } from "@/components/admin/PageHeader";
@@ -8,18 +8,18 @@ import { StatCard } from "@/components/admin/StatCard";
 import { StatusPill } from "@/components/admin/StatusPill";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { UserService } from "@/services";
 import { paymentsForUser, coursesForTeacher } from "@/lib/analytics";
 
 export const Route = createFileRoute("/admin/users/$id")({
   head: () => ({ meta: [{ title: "User details — Admin · Lumen" }, { name: "robots", content: "noindex" }] }),
-  loader: ({ params }) => {
-    const user = UserService.get(params.id);
+  loader: async ({ params }) => {
+    const user:any = await UserService.get(params.id);
     if (!user) throw notFound();
     const payments = paymentsForUser(user.email);
-    const taughtCourses = user.role === "Teacher" ? coursesForTeacher(user.name) : [];
+    const taughtCourses = user?.role === "teacher" ? coursesForTeacher(user?.full_name) : [];
     return { user, payments, taughtCourses };
   },
   notFoundComponent: () => (
@@ -40,12 +40,12 @@ export const Route = createFileRoute("/admin/users/$id")({
 
 function UserDetail() {
   const { user: u, payments, taughtCourses } = Route.useLoaderData();
-  const initials = u.name.split(" ").map((n) => n[0]).join("").slice(0, 2);
+  const initials = (u.full_name || "?").split(" ").map((n:any) => n[0]).join("").slice(0, 2).toUpperCase();
 
   const totalSpent = payments
     .filter((p) => p.status === "Paid")
     .reduce((sum, p) => sum + p.amount, 0);
-  const totalStudentsTaught = taughtCourses.reduce((sum, c) => sum + c.students, 0);
+  const totalStudentsTaught = taughtCourses.reduce((sum:number, c:any) => sum + c?.students, 0);
 
   return (
     <>
@@ -62,24 +62,23 @@ function UserDetail() {
       <Card className="border-border/60 p-6 shadow-card">
         <div className="flex flex-wrap items-center gap-4">
           <Avatar className="h-16 w-16">
+            {u.avatar_url && <AvatarImage src={u.avatar_url} alt={u.full_name} />}
             <AvatarFallback className="bg-primary/10 text-primary text-lg">{initials}</AvatarFallback>
           </Avatar>
           <div className="min-w-0 flex-1">
-            <h2 className="text-xl font-semibold truncate">{u.name}</h2>
+            <h2 className="text-xl font-semibold truncate">{u.full_name}</h2>
             <p className="text-sm text-muted-foreground truncate">{u.email}</p>
           </div>
           <div className="flex items-center gap-2">
-            <Badge variant="outline">{u.role}</Badge>
-            <StatusPill value={u.status} />
+            <Badge variant="outline" className="capitalize">{u.role}</Badge>
           </div>
         </div>
       </Card>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <InfoTile icon={UserIcon} label="ID" value={u.id} mono />
+      <div className="grid gap-4 sm:grid-cols-3">
+        <InfoTile icon={UserIcon} label="ID" value={u.id ?? "—"} mono />
         <InfoTile icon={Mail} label="Email" value={u.email} />
-        <InfoTile icon={Shield} label="Role" value={u.role} />
-        <InfoTile icon={Calendar} label="Joined" value={u.joined} />
+        <InfoTile icon={Shield} label="Role" value={u.role ?? "—"} />
       </div>
 
       {/* ── Payment history ─────────────────────────────────────── */}
@@ -122,7 +121,7 @@ function UserDetail() {
       </Card>
 
       {/* ── Courses taught (Teacher only) ───────────────────────── */}
-      {u.role === "Teacher" && (
+      {u.role === "teacher" && (
         <>
           <div className="grid gap-4 sm:grid-cols-2">
             <StatCard label="Courses taught" value={String(taughtCourses.length)} icon={GraduationCap} />
@@ -143,7 +142,7 @@ function UserDetail() {
               </p>
             ) : (
               <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {taughtCourses.map((c) => (
+                {taughtCourses.map((c:any) => (
                   <div
                     key={c.id}
                     className="overflow-hidden rounded-xl border border-border/60 bg-card"
@@ -192,7 +191,3 @@ function InfoTile({ icon: Icon, label, value, mono }: { icon: React.ComponentTyp
     </Card>
   );
 }
-
-
-
-

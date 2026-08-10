@@ -7,6 +7,24 @@
     "contact": "Contact"
   },
   "common": {
+      "instructorFallback": "Instructor",
+    "languageDefault": "English",
+    "join": "Join",
+    "remove": "Remove",
+    "removing": "Removing…",
+    "clearFilters": "Clear filters",
+    "weekdaysShort": {
+      "mon": "Mon",
+      "tue": "Tue",
+      "wed": "Wed",
+      "thu": "Thu",
+      "fri": "Fri",
+      "sat": "Sat",
+      "sun": "Sun"
+    },
+    "saving": "Saving...",
+      "delete": "Delete",
+      "deleting": "Deleting...",
     "signIn": "Sign in",
     "signOut": "Sign out",
     "signedOut": "Signed out",
@@ -38,9 +56,25 @@
     "all": "All",
     "active": "Active",
     "pending": "Pending",
-    "completed": "Completed"
+    "completed": "Completed",
+    "exporting": "Exporting...",
+    "refresh": "Refresh",
+    "refreshing": "Refreshing...",
+    "retry": "Retry",
+    "retrying": "Retrying..."
   },
   "dashboard_common": {
+    "actions": "Actions",
+    "openRowMenu": "Open row menu",
+    "allOption": "All {{label}}",
+    "showingResults": "Showing {{shown}} of {{total}} results",
+    "previousPage": "Previous page",
+    "nextPage": "Next page",
+    "deleteConfirmTitle": "Delete this record?",
+    "deleteConfirmDescription": "This action can't be undone. The record will be permanently removed from your workspace.",
+    "deleteSuccess": "Record deleted",
+    "deleteError": "Failed to delete record",
+    "deleting": "Deleting...",
     "workspace": "Workspace",
     "overview": "Overview",
     "catalog": "Catalog",
@@ -219,6 +253,125 @@
     "copyright": "© {{year}} Lumen Learning, Inc. All rights reserved."
   },
   "admin": {
+    "subscription": {
+      "review": {
+        "title": "Review subscription request",
+        "subtitle": "{{name}} requested the",
+        "paymentProof": "Payment proof",
+        "paymentProofAlt": "Payment proof",
+        "openReceipt": "Open receipt file (PDF)",
+        "noProof": "No proof attached",
+        "accessDuration": "Access duration (days)",
+        "defaultForPlan": "days — default for {{plan}}: {{days}}",
+        "alreadyReviewed": "This request was already reviewed.",
+        "alreadyReviewedOn": "This request was already reviewed on {{date}}.",
+        "rejectButton": "Reject",
+        "approveButton": "Approve for {{days}} days",
+        "defaultStudentName": "Student",
+        "toast": {
+          "approved": "Approved — {{name}} gets {{days}} days of access.",
+          "rejected": "Subscription request rejected."
+        },
+        "errors": {
+          "approveFailed": "Failed to approve subscription.",
+          "rejectFailed": "Failed to reject subscription."
+        }
+      },
+      "title": "الاشتراكات",
+      "description": "راجع إثباتات الدفع وأدر وصول الطلاب إلى الخطط.",
+      "stats": {
+        "pending": "بانتظار المراجعة",
+        "active": "المشتركون النشطون",
+        "revenue": "الإيرادات النشطة"
+      },
+      "tabs": { "pending": "قيد الانتظار", "all": "جميع الاشتراكات" },
+      "table": {
+        "customer": "العميل",
+        "plan": "الخطة",
+        "amount": "المبلغ",
+        "status": "الحالة",
+        "submitted": "تاريخ التقديم",
+        "expires": "تاريخ الانتهاء"
+      },
+      "actions": { "review": "مراجعة", "view": "عرض" },
+      "filters": { "plan": "الخطة", "status": "الحالة" },
+      "empty": {
+        "title": "لا توجد اشتراكات",
+        "pendingHint": "ستظهر إثباتات الدفع الجديدة هنا للمراجعة.",
+        "allHint": "ستظهر الاشتراكات هنا بمجرد أن يشترك الطلاب."
+      },
+      "toast": {
+        "approved": "تمت الموافقة على الاشتراك",
+        "rejected": "تم رفض الاشتراك"
+      },
+      "errors": {
+        "loadFailed": "فشل تحميل الاشتراكات",
+        "approveFailed": "فشلت الموافقة على الاشتراك",
+        "rejectFailed": "فشل رفض الاشتراك"
+      }
+    },
+    "categorie": {
+      "title": "Categories",
+      "description": "Group courses into browsable categories.",
+      "actions": { "new": "New category" },
+      "table": { "image": "Image", "name": "Name", "slug": "Slug" },
+      "toast": {
+        "created": "Category created",
+        "updated": "Category updated",
+        "deleted": "Category deleted successfully"
+      },
+      "errors": {
+        "loadFailed": "Failed to load categories",
+        "saveFailed": "Failed to save category",
+        "deleteFailed": "Failed to delete category"
+      },
+      "deleteDialog": {
+        "title": "Delete this category?",
+        "description": "This will permanently remove \"{{name}}\". This action cannot be undone.",
+        "cancel": "Cancel",
+        "confirm": "Delete",
+        "deleting": "Deleting..."
+      },
+      "form": {
+        "editTitle": "Edit category",
+        "createTitle": "New category",
+        "editDescription": "Update category details and image.",
+        "createDescription": "Give it a clear name, slug, and image.",
+        "nameLabel": "Name",
+        "namePlaceholder": "e.g. Web Development",
+        "slugLabel": "Slug",
+        "slugPlaceholder": "auto-generated",
+        "imageLabel": "Image",
+        "imageHint": "PNG or JPG, up to 800KB.",
+        "imagePreviewAlt": "Category preview",
+        "uploadImage": "Upload",
+        "replaceImage": "Replace",
+        "removeImage": "Remove",
+        "imageTooLarge": "Image must be under 800KB",
+        "saving": "Saving...",
+        "saveButton": "Save Category",
+        "updateButton": "Update Category"
+      }},
+     "untitledCourse": "Untitled Course",
+      "loadingCourses": "Loading courses...",
+      "coursesLoadError": "Failed to load courses. Please try again.",
+      "courseDeleteError": "Failed to remove course",
+      "deleteCourseTitle": "Delete this course?",
+      "deleteCourseDesc": "\"{{title}}\" will be permanently removed. This action cannot be undone.",
+        "userManagement": {
+      "fetchError": "Failed to fetch users",
+      "fetchErrorTitle": "Couldn't load users",
+      "fetchErrorDescription": "Something went wrong while fetching the user list. Please try again.",
+      "retry": "Retry",
+      "emptyState": "No users found",
+      "unnamedUser": "Unnamed user",
+      "roleFilterLabel": "Role"
+    },
+    "roles": {
+      "admin": "Admin",
+      "teacher": "Teacher",
+      "student": "Student"
+    },
     "lumenAdmin": "Lumen Admin",
     "workspace": "Workspace",
     "overview": "Overview",
@@ -242,7 +395,6 @@
     "catalog": "Catalog",
     "categories": "Categories",
     "categoriesDesc": "Manage course categories and groupings.",
-    "billing": "Billing",
     "subscriptions": "Subscriptions",
     "payments": "Payments",
     "insights": "Insights",
@@ -327,9 +479,63 @@
     "upload": "Upload",
     "remove": "Remove",
     "color": "Color",
-    "imageUnder800": "Image must be under 800KB"
+    "totalCourses": "Total Courses",
+    "imageUnder800": "Image must be under 800KB",
+    "noRevenueData": "No revenue recorded yet.",
+    "noSignupData": "No signups recorded yet.",
+    "noPaymentsYet": "No payments yet.",
+    "noUsersYet": "No users yet.",
+    "unknownUser": "Unknown",
+    "untitledPlan": "Untitled plan",
+    "subscriptionMethod": "Subscription",
+    "loadErrorTitle": "Couldn't load dashboard data",
+    "loadErrorDesc": "Something went wrong while fetching your dashboard. Please try again."
   },
   "teacher": {
+    "courseRemoveError": "Failed to remove the course. Please try again.",
+    "coursesLoadError": "Failed to load your courses. Please try again.",
+    "coursesLoading": "Loading your courses...",
+    "untitledCourse": "Untitled Course",
+    "noCoursesTitle": "No courses yet",
+    "noCoursesDesc": "Create your first course to start teaching and reach your students.",
+    "deleteCourseTitle": "Delete this course?",
+    "deleteCourseDesc": "This will permanently delete \"{{title}}\". This action cannot be undone.",
+  
+     "overviewChart": {
+      "lessonsTitle": "Lessons completed by course",
+      "lessonsDesc": "{{students}} learners across {{courses}} courses",
+      "completionBadge": "{{rate}}% completion",
+      "noEnrollmentTitle": "No enrollment activity yet",
+      "noEnrollmentDesc": "Progress will appear here once students start lessons.",
+      "revenueTitle": "Revenue by course",
+      "revenueDesc": "Estimated gross earnings",
+      "noRevenueTitle": "No revenue recorded yet",
+      "noRevenueDesc": "Set a price on a course to start tracking earnings."
+    },
+    "topCourses": {
+      "title": "Top courses",
+      "empty": "No courses yet.",
+      "meta": "{{students}} students · {{rating}} ★"
+    },
+    "upcomingLive": {
+      "title": "Upcoming live",
+      "empty": "Nothing scheduled.",
+      "meta": "{{startsAt}} · {{attendees}} attendees"
+    },
+    "pendingAssignments": {
+      "title": "Pending assignments",
+      "manage": "Manage",
+      "empty": "No pending assignments.",
+      "meta": "{{course}} · due {{due}}"
+    },
+  "common": {
+    "allCaughtUp": "All caught up."
+  },
+     "level": {
+        "beginner": "Beginner",
+        "intermediate": "Intermediate",
+        "advanced": "Advanced"
+      },
     "workspace": "Teacher Workspace",
     "overview": "Overview",
     "overviewDesc": "Monitor course activity, student enrollment, and payouts.",
@@ -401,6 +607,29 @@
     "statementExported": "Statement exported"
   },
   "student": {
+    "quizzesTaken": "Quizzes taken",
+    "quizAverage": "Quiz average",
+    "plan": "Plan",
+    "daysLeft_one": "{{count}} day left",
+    "daysLeft_other": "{{count}} days left",
+    "continueLearning": "Continue learning",
+    "continueLearningDesc": "Pick up where you left off",
+    "allCaughtUp": "You're all caught up — every course in your plan is complete.",
+    "studyActivity": "Study activity",
+    "hoursStudiedDesc": "Hours studied — last 7 days",
+    "noLiveSessions": "Nothing scheduled.",
+    "recentQuizResults": "Recent quiz results",
+    "scoreFormat": "Score {{score}}/{{total}}",
+    "noQuizzes": "No quizzes taken yet.",
+    "noWishlist": "No courses saved yet.",
+    "toggleWishlist": "Toggle wishlist",
+    "addToWishlist": "Add to wishlist",
+    "removeFromWishlist": "Remove from wishlist",
+    "subPendingTitle": "Your subscription request is under review",
+    "subPendingDesc": "You'll get full access to every course as soon as it's approved.",
+    "unlockDashboard": "Unlock your dashboard",
+    "subscribeDesc": "Subscribe to a plan to unlock every course on the platform.",
+    "viewPlans": "View plans",
     "workspace": "Student Workspace",
     "overview": "Overview",
     "overviewDesc": "Welcome back! Continue learning where you left off.",
@@ -415,7 +644,7 @@
     "certificates": "My Certificates",
     "certificatesDesc": "View and download your earned certificates.",
     "wishlist": "Saved Wishlist",
-    "myOrders": "Order History",
+    "myOrders": "subsicription",
     "discover": "Discover Catalog",
     "profile": "Profile & Settings",
     "learner": "Learner",
@@ -466,5 +695,862 @@
     "view": "View",
     "download": "Download",
     "share": "Share"
+  },
+   "courseDetail": {
+    "backToCourses": "Back to courses",
+    "notFound": {
+      "title": "Course not found",
+      "description": "It may have been removed, or the link is out of date."
+    },
+    "unassigned": "Unassigned",
+    "untitledCourse": "Untitled Course",
+    "courseBy": "A course by",
+    "updated": "Updated {{date}}",
+    "level": {
+      "beginner": "Beginner",
+      "intermediate": "Intermediate",
+      "advanced": "Advanced"
+    },
+    "stats": {
+      "students": "Students",
+      "lessons": "Lessons",
+      "duration": "Duration",
+      "liveSessions": "Live sessions"
+    },
+    "tabs": {
+      "curriculum": "Curriculum",
+      "uploads": "Uploads",
+      "live": "Live sessions",
+      "metadata": "Metadata"
+    },
+    "curriculum": {
+      "emptyTitle": "No curriculum yet",
+      "emptyDescription": "This teacher hasn't added any modules to this course.",
+      "lessonCount_one": "{{count}} lesson",
+      "lessonCount_other": "{{count}} lessons",
+      "preview": "Preview",
+      "locked": "Locked"
+    },
+    "uploads": {
+      "emptyTitle": "No files uploaded",
+      "emptyDescription": "Videos and PDFs attached to this course will appear here.",
+      "openFile": "Open {{title}}"
+    },
+    "live": {
+      "emptyTitle": "No live sessions scheduled",
+      "emptyDescription": "Sessions this teacher hosts for the course will appear here.",
+      "attendees_one": "{{count}} attendee",
+      "attendees_other": "{{count}} attendees",
+      "hostedBy": "hosted by {{host}}",
+      "joinSession": "Join {{title}}",
+      "ended": "Ended",
+      "upcoming": "Upcoming"
+    },
+    "metadata": {
+      "slug": "Slug",
+      "courseId": "Course ID",
+      "language": "Language",
+      "created": "Created"
+    },
+    "about": {
+      "title": "About this course",
+      "noDescription": "No description provided."
+    },
+    "includes": {
+      "title": "This course includes",
+      "videos_one": "{{count}} on-demand video",
+      "videos_other": "{{count}} on-demand videos",
+      "resources_one": "{{count}} downloadable resource",
+      "resources_other": "{{count}} downloadable resources",
+      "liveSessions_one": "{{count}} live session",
+      "liveSessions_other": "{{count}} live sessions",
+      "lifetimeAccess": "Full lifetime access"
+    }
+  },
+  "builder": {
+    "backToCourses": "Courses",
+    "subtitle": "Build your course structure and details.",
+    "published": "Published",
+    "draft": "Draft",
+    "tabs": { "curriculum": "Curriculum", "details": "Details" },
+    "saveCurriculum": "Save curriculum",
+    "loadingCurriculum": "Loading curriculum...",
+    "lessonsCount_one": "{{count}} lesson",
+    "lessonsCount_other": "{{count}} lessons",
+    "addLesson": "Add lesson",
+    "addModule": "Add module",
+    "newModuleName": "New module {{count}}",
+    "newLessonName": "New lesson",
+    "untitledModule": "this module",
+    "untitledLesson": "this lesson",
+    "contentUrlPlaceholder": "Content URL",
+    "preview": "Preview",
+    "courseInformation": "Course information",
+    "percentComplete": "{{percent}}% complete",
+    "titleLabel": "Title",
+    "titlePlaceholder": "e.g. Complete Web Development Bootcamp",
+    "subtitleLabel": "Subtitle",
+    "subtitlePlaceholder": "A short, catchy one-liner about the course",
+    "categoryLabel": "Category",
+    "categoryPlaceholder": "Select a category",
+    "languageLabel": "Language",
+    "languagePlaceholder": "e.g. English",
+    "descriptionLabel": "Description",
+    "descriptionPlaceholder": "Describe what students will learn in this course...",
+    "levelStatus": "Level & status",
+    "difficultyLevel": "Difficulty level",
+    "visibility": "Visibility",
+    "saveChanges": "Save changes",
+    "coverImage": "Cover image",
+    "uploadCoverImage": "Click to upload cover image",
+    "uploadHint": "PNG, JPG up to 5MB",
+    "pricing": "Pricing",
+    "priceLabel": "Price (USD)",
+    "priceHint": "Set to 0 to publish this course for free.",
+    "tips": "Tips",
+    "tip1": "Use a clear, benefit-driven title that tells students exactly what they'll learn.",
+    "tip2": "Keep the subtitle short — one sentence that hooks the reader.",
+    "tip3": "Choose a cover image with good contrast so the title reads well as a thumbnail.",
+    "levels": { "beginner": "Beginner", "intermediate": "Intermediate", "advanced": "Advanced" },
+    "statuses": { "draft": "Draft", "published": "Published" },
+    "lessonKinds": { "video": "Video", "quiz": "Quiz", "article": "Article" },
+    "moduleDeleted": "Module deleted",
+    "moduleDeleteError": "Failed to delete module",
+    "lessonDeleted": "Lesson deleted",
+    "lessonDeleteError": "Failed to delete lesson",
+    "deleteModuleTitle": "Delete this module?",
+    "deleteModuleDesc": "This will permanently delete \"{{title}}\" and all its lessons. This action cannot be undone.",
+    "deleteLessonTitle": "Delete this lesson?",
+    "deleteLessonDesc": "This will permanently delete \"{{title}}\". This action cannot be undone.",
+    "detailsSaved": "Changes saved successfully",
+    "detailsSaveError": "Failed to save changes",
+    "curriculumSaved": "Curriculum saved successfully",
+    "curriculumSaveError": "Failed to save curriculum",
+    "categoriesLoadError": "Failed to load categories",
+    "somethingWrong": "Something went wrong",
+    "failedLoadCourse": "Failed to load course",
+    "retry": "Retry",
+    "courseNotFound": "Course not found"
+  },
+    "teacherLessons": {
+    "title": "Lessons",
+    "description": "Every lesson across your courses, in one place.",
+    "newLesson": "New lesson",
+    "freePreview": "Free preview",
+    "loading": "Loading your lessons...",
+    "kind": { "video": "Video", "quiz": "Quiz", "article": "Article" },
+    "stats": { "total": "Total lessons", "videos": "Videos", "quizzes": "Quizzes", "articles": "Articles" },
+    "table": { "lesson": "Lesson", "course": "Course", "module": "Module", "type": "Type", "duration": "Duration" },
+    "emptyCourses": {
+      "title": "No courses yet",
+      "description": "Create a course first, then add lessons to it.",
+      "cta": "Go to courses"
+    },
+    "emptyLessons": {
+      "title": "No lessons yet",
+      "description": "Add your first lesson to get started."
+    },
+    "editDialog": { "title": "Edit lesson" },
+    "newDialog": { "title": "New lesson", "description": "Pick the course and module this lesson belongs to." },
+    "deleteDialog": {
+      "title": "Delete lesson?",
+      "description": "This will permanently remove \"{{title}}\". This action cannot be undone.",
+      "cancel": "Cancel",
+      "confirm": "Delete",
+      "deleting": "Deleting..."
+    },
+    "form": {
+      "title": "Title",
+      "titlePlaceholder": "e.g. Introduction to hooks",
+      "type": "Type",
+      "duration": "Duration",
+      "durationPlaceholder": "e.g. 10 min",
+      "contentUrl": "Content URL",
+      "allowPreview": "Allow as free preview",
+      "course": "Course",
+      "module": "Module",
+      "noModules": "No modules",
+      "noModulesHint": "This course has no modules yet. Add one from the course builder first.",
+      "save": "Save",
+      "saving": "Saving...",
+      "create": "Create",
+      "creating": "Creating..."
+    },
+    "toast": {
+      "loadFailed": "Failed to load lessons",
+      "updated": "Lesson updated",
+      "updateFailed": "Failed to update lesson",
+      "removed": "Lesson removed",
+      "removeFailed": "Failed to remove lesson",
+      "created": "Lesson created — students notified",
+      "createFailed": "Failed to create lesson"
+    }
+  },
+  "teacherUploads": {
+    "title": "Uploads",
+    "description": "Manage your course videos, PDF resources, and live session recordings.",
+    "loadingCourses": "Loading...",
+    "coursePlaceholder": "Course",
+    "generalCourse": "General",
+    "uploading": "Uploading…",
+    "upload": "Upload",
+    "loading": "Loading...",
+    "loadingUploads": "Loading uploads…",
+    "ready": "Ready",
+    "uploadingPct": "Uploading {{pct}}%",
+    "destination": {
+      "heading": "Upload destination",
+      "videoOnly": "Video files only",
+      "videosOrPdfs": "Videos or PDFs",
+      "lesson": "Lesson",
+      "recording": "Live session recording",
+      "selectCourse": "Select a course",
+      "module": "Module",
+      "lessonField": "Lesson",
+      "selectModuleFirst": "Select a module first",
+      "liveSession": "Live session",
+      "willLinkLesson": "Uploads will link to this lesson",
+      "willSaveRecording": "Uploads will save as this session's recording",
+      "unlockLesson": "Select a module & lesson to unlock uploads",
+      "unlockSession": "Select a live session to unlock uploads",
+      "noModulesHint": "This course has no modules yet — files will upload without being linked to a lesson.",
+      "noSessionsHint": "This course has no live sessions yet — schedule one first from the Live sessions page.",
+      "willReplaceRecording": "This session already has a recording — uploading a new file will replace it."
+    },
+    "dropzone": {
+      "uploadingCount": "Uploading {{count}} file",
+      "uploadingCount_plural": "Uploading {{count}} files",
+      "waitHint": "Please wait for this upload to finish before adding more files.",
+      "chooseLessonFirst": "Choose a module and lesson first",
+      "chooseSessionFirst": "Choose a live session first",
+      "lockedHint": "Uploads are locked until you pick where this file belongs.",
+      "dropRecording": "Drop the session recording here",
+      "dropFiles": "Drop files here to upload",
+      "videoLimit": "Video only, up to 2 GB",
+      "mixedLimit": "Videos up to 2 GB · PDFs up to 25 MB"
+    },
+    "tabs": {
+      "videos": "Videos ({{count}})",
+      "pdfs": "PDFs ({{count}})"
+    },
+    "empty": {
+      "videosTitle": "No videos yet",
+      "videosDescription": "Upload your first course video.",
+      "pdfsTitle": "No PDFs yet",
+      "pdfsDescription": "Upload your first course resource."
+    },
+    "actions": {
+      "openVideo": "Open video",
+      "openPdf": "Open PDF",
+      "linkToLesson": "Link to lesson",
+      "deleteVideo": "Delete video",
+      "deletePdf": "Delete PDF"
+    },
+    "linkDialog": {
+      "title": "Link file to a lesson",
+      "noModulesHint": "No modules found for this course. Add one from the course builder first.",
+      "linking": "Linking...",
+      "link": "Link"
+    },
+    "deleteDialog": {
+      "title": "Delete this file?",
+      "body": "This will permanently remove \"{{title}}\". {{impact}} This action can't be undone.",
+      "impactVideo": "Students who were watching it will lose access.",
+      "impactPdf": "Students who were viewing it will lose access.",
+      "cancel": "Cancel",
+      "confirm": "Delete",
+      "deleting": "Deleting…"
+    },
+    "preview": {
+      "video": "Video preview",
+      "pdf": "PDF preview",
+      "exactView": "this is exactly what students see.",
+      "openNewTab": "Open in new tab"
+    },
+    "toast": {
+      "linked": "File linked to lesson",
+      "linkFailed": "Failed to link file",
+      "noPreviewLink": "This file has no viewable link yet",
+      "removed": "\"{{title}}\" removed",
+      "removeFailed": "Failed to remove file",
+      "selectLessonFirst": "Select a module and lesson before uploading",
+      "selectSessionFirst": "Select a live session before uploading",
+      "notVideoSingle": "\"{{name}}\" isn't a video — recordings must be video files",
+      "notVideoMultiple": "{{count}} files aren't videos — recordings must be video files",
+      "uploaded": "{{name}} uploaded — students notified",
+      "recordingLinked": "Recording linked to live session",
+      "recordingLinkFailed": "Uploaded, but couldn't link it to the live session",
+      "lessonLinked": "Linked to lesson",
+      "uploadFailed": "Failed to upload {{name}}"
+    }
+  },
+   "teacherQuizzes": {
+    "title": "Quizzes",
+    "description": "Create quizzes and manage the question bank for each course.",
+    "newQuiz": "New quiz",
+    "deleteQuiz": "Delete quiz",
+    "published": "Published",
+    "manageQuestions": "Manage questions",
+    "preview": "Preview",
+    "questionsCount": "{{count}} question",
+    "questionsCount_plural": "{{count}} questions",
+    "minutes": "{{count}} min",
+    "minutes_plural": "{{count}} min",
+    "empty": {
+      "title": "No quizzes yet",
+      "noCourses": "Create a course first, then add quizzes to it.",
+      "noQuizzes": "Create your first quiz to get started."
+    },
+    "newDialog": {
+      "title": "New quiz",
+      "titleField": "Title",
+      "titlePlaceholder": "e.g. React Hooks — Basics",
+      "course": "Course",
+      "selectCourse": "Select a course",
+      "selectCourseFirst": "Please select a course.",
+      "duration": "Duration (min)",
+      "create": "Create",
+      "creating": "Creating…"
+    },
+    "deleteDialog": {
+      "title": "Delete this quiz?",
+      "description": "This will permanently remove the quiz and all its questions. This action cannot be undone.",
+      "cancel": "Cancel",
+      "confirm": "Delete",
+      "deleting": "Deleting…"
+    },
+    "toast": {
+      "loadFailed": "Couldn't load your quizzes. Please try again.",
+      "created": "Quiz created — students notified",
+      "createFailed": "Something went wrong while creating the quiz.",
+      "removed": "Quiz removed",
+      "removeFailed": "Could not remove this quiz."
+    }
+  },
+   "teacherQuizEditor": {
+    "backToQuizzes": "Back to quizzes",
+    "notFound": {
+      "title": "Quiz not found",
+      "description": "It may have been deleted, or the link is invalid.",
+      "back": "Back to quizzes"
+    },
+    "meta": {
+      "quizTitle": "Quiz title",
+      "duration": "Duration (minutes)",
+      "save": "Save"
+    },
+    "questions": {
+      "heading": "Questions",
+      "newQuestion": "New question",
+      "emptyTitle": "No questions yet",
+      "emptyDescription": "Add your first question to build this quiz."
+    },
+    "questionDialog": {
+      "newTitle": "New question",
+      "editTitle": "Edit question"
+    },
+    "deleteDialog": {
+      "title": "Delete this question?",
+      "description": "This action cannot be undone.",
+      "cancel": "Cancel",
+      "confirm": "Delete",
+      "deleting": "Deleting…"
+    },
+    "toast": {
+      "loadFailed": "Couldn't load this quiz.",
+      "metaUpdated": "Quiz details updated",
+      "metaSaveFailed": "Couldn't save quiz details.",
+      "questionRemoved": "Question removed",
+      "questionRemoveFailed": "Couldn't remove this question.",
+      "questionUpdated": "Question updated",
+      "questionAdded": "Question added",
+      "questionSaveFailed": "Couldn't save this question."
+    }
+  },
+  "teacherLive": {
+    "title": "Live sessions",
+    "description": "Schedule and manage live classes with your students.",
+    "schedule": "Schedule",
+    "started": "Started",
+    "deleteSession": "Delete session",
+    "attendeesLine": "{{startsAt}} · {{count}} registered",
+    "starting": "Starting…",
+    "startSession": "Start session",
+    "edit": "Edit",
+    "empty": {
+      "title": "No sessions yet",
+      "description": "Schedule your first live class."
+    },
+    "dialog": {
+      "newTitle": "New session",
+      "editTitle": "Edit session"
+    },
+    "deleteDialog": {
+      "title": "Delete this session?",
+      "description": "\"{{title}}\" will be permanently removed. This can't be undone.",
+      "cancel": "Cancel",
+      "confirm": "Delete",
+      "deleting": "Deleting…"
+    },
+    "form": {
+      "title": "Title",
+      "course": "Course",
+      "host": "Host",
+      "startsAt": "Starts at",
+      "duration": "Duration",
+      "attendees": "Attendees",
+      "joinUrl": "Join URL (optional)",
+      "save": "Save",
+      "saving": "Saving…"
+    },
+    "toast": {
+      "loadFailed": "Couldn't load live sessions.",
+      "removed": "Session removed",
+      "deleteFailed": "Couldn't delete session. Please try again.",
+      "noJoinUrl": "No join URL set for this session. Edit the session to add one.",
+      "started": "{{title}} started",
+      "startFailed": "Couldn't start the session. Please try again.",
+      "updated": "Session updated",
+      "scheduled": "Session scheduled — students notified",
+      "saveFailed": "Couldn't save session. Please try again."
+    }
+  },
+   "teacherProgress": {
+    "title": "Course progress",
+    "description": "Aggregate lesson completion across your catalog.",
+    "stats": {
+      "lessonsTotal": "Lessons total",
+      "completionRate": "Completion rate",
+      "avgQuizScore": "Avg quiz score"
+    },
+    "rowSummary": "{{students}} students · {{done}}/{{total}} lessons complete",
+    "empty": {
+      "title": "No courses yet",
+      "description": "Progress will show up here once students start completing lessons."
+    },
+    "error": {
+      "title": "Couldn't load progress",
+      "description": "Something went wrong while fetching this data. Please try again."
+    }
+  },
+   "catalog": {
+    "title": "Browse the catalog",
+    "description": "Every published course in Lumen, open to your membership.",
+    "descriptionLocked": "Every published course in Lumen.",
+    "searchPlaceholder": "Search the catalog",
+    "level": "Level",
+    "allLevels": "All levels",
+    "levels": {
+      "beginner": "Beginner",
+      "intermediate": "Intermediate",
+      "advanced": "Advanced"
+    },
+    "category": "Category",
+    "allCategories": "All categories",
+    "defaultCategory": "General",
+    "defaultInstructor": "Lumen instructor",
+    "membershipActive": "Membership active",
+    "accessThrough": "access through {{date}}",
+    "noWishlisted": "No wishlisted courses",
+    "noWishlistedDesc": "Tap the heart on a course card to save it here.",
+    "noMatch": "No courses match",
+    "noMatchDesc": "Try a different search term, level, or category.",
+    "viewCourse": "View course",
+    "locked": {
+      "pendingTitle": "Your membership is under review",
+      "pendingDesc": "We're confirming your payment proof. This usually takes less than a day — you'll be notified the moment it's approved.",
+      "expiredTitle": "Your membership has expired",
+      "expiredDesc": "Renew to get back into every course, live session, and certificate track.",
+      "title": "The full catalog is members-only",
+      "defaultDesc": "Subscribe once to unlock every course in Lumen — no per-course purchases, no limits on how many you start.",
+      "renew": "Renew membership",
+      "viewPlans": "View membership plans"
+    }
+  },
+    "coursePlayer": {
+    "myCourses": "My Courses",
+    "loadingCourse": "Loading course…",
+    "notFound": {
+      "title": "Course not found",
+      "backToCourses": "Back to my courses"
+    },
+    "noLessons": {
+      "title": "No lessons published yet",
+      "subtitle": "Check back once the instructor adds content to this course."
+    },
+    "lessonOf": "Lesson {{current}} of {{total}}",
+    "downloadDisabled": "Download disabled",
+    "completed": "Completed",
+    "videoUnsupported": "Your browser doesn't support embedded video.",
+    "openReadingMaterial": "Open reading material",
+    "previous": "Previous",
+    "saving": "Saving…",
+    "markComplete": "Mark complete",
+    "markCompleteAndContinue": "Mark complete & continue",
+    "markAsNotDone": "Mark as not done",
+    "takeQuiz": "Take quiz",
+    "quizNotAvailable": "Quiz not available yet",
+    "attachmentsForLesson": "Attachments for this lesson ({{count}})",
+    "courseContent": "Course content",
+    "lessonsCompleted": "{{done}} of {{total}} lessons",
+    "lessonKind": {
+      "video": "video",
+      "pdf": "document",
+      "quiz": "quiz",
+      "text": "reading"
+    },
+    "playing": "Playing",
+    "video": "Video",
+    "pdf": "PDF",
+    "play": "Play",
+    "get": "Get",
+    "pdfBadge": "PDF",
+    "pdfDocument": "PDF Document",
+    "lessonDocuments": "Lesson Documents",
+    "progress": "Progress"
+  },
+   "studentQuizzes": {
+    "loading": "Loading…",
+    "title": "Quizzes",
+    "description": "Test what you've learned and review past attempts.",
+    "membershipActive": "Membership active",
+    "accessThrough": "access through {{date}}",
+    "filterBy": "Filter by:",
+    "allCategories": "All categories",
+    "allCourses": "All courses",
+    "resetFilters": "Reset filters",
+    "clearFilters": "Clear filters",
+    "notTaken": "Not taken",
+    "questionsCount": "{{count}} questions",
+    "minutes": "{{count}} min",
+    "reviewOrRetake": "Review Results / Retake",
+    "startQuiz": "Start quiz",
+    "stats": {
+      "available": "Available",
+      "attempts": "Attempts",
+      "averageScore": "Average score"
+    },
+    "empty": {
+      "title": "No quizzes available",
+      "filteredDescription": "No quizzes found matching your category/course filter.",
+      "defaultDescription": "There are no quizzes published for your courses yet."
+    },
+    "locked": {
+      "pendingTitle": "Your membership is under review",
+      "expiredTitle": "Your membership has expired",
+      "defaultTitle": "Quizzes are members-only",
+      "pendingDescription": "We're confirming your payment proof. This usually takes less than a day.",
+      "expiredDescription": "Renew your membership to access quizzes and track your progress.",
+      "defaultDescription": "Subscribe to unlock all quizzes, courses, and interactive features in Lumen.",
+      "renew": "Renew membership",
+      "viewPlans": "View membership plans"
+    }
+  },
+   "quizPage": {
+    "quizzes": "Quizzes",
+    "notFound": "Quiz not found",
+    "backToQuizzes": "Back to quizzes",
+    "noQuestions": "No questions available in this quiz.",
+    "questionOf": "Question {{current}} of {{total}}",
+    "percentAnswered": "{{pct}}% answered",
+    "previous": "Previous",
+    "next": "Next",
+    "submitQuiz": "Submit quiz",
+    "submitting": "Submitting…",
+    "multiSelectHint": "You can select more than one option if applicable.",
+    "true": "True",
+    "false": "False",
+    "chooseMatch": "Choose a match…",
+    "toast": {
+      "loadError": "Couldn't load this quiz.",
+      "timeUp": "Time's up — submitting your answers automatically.",
+      "submitSuccess": "You scored {{score}}/{{total}} in {{duration}}",
+      "submitError": "Couldn't submit your quiz. Please try again."
+    },
+    "results": {
+      "heading": "{{title}} · Results",
+      "scoreLabel": "Score {{score}} / {{total}}",
+      "timeTaken": "Time taken",
+      "passed": "Passed",
+      "tryAgain": "Try again",
+      "retake": "Retake",
+      "retakeConfirm": {
+        "title": "Retake this quiz?",
+        "description": "Your current results and answers for this attempt will be replaced once you submit a new one.",
+        "cancel": "Cancel",
+        "confirm": "Yes, retake"
+      },
+      "allQuizzes": "All quizzes",
+      "review": "Review",
+      "correctAnswer": "Correct answer",
+      "youAnswered": "You answered: {{value}}",
+      "noAnswer": "No answer",
+      "correctValue": "Correct: {{value}}"
+    }
+  },
+  "liveClasses": {
+    "loading": "Loading…",
+    "title": "Live classes",
+    "description": "Join interactive sessions with instructors and classmates.",
+    "membershipActive": "Membership active",
+    "accessThrough": "access through {{date}}",
+    "filterBy": "Filter by:",
+    "allCategories": "All categories",
+    "allCourses": "All courses",
+    "resetFilters": "Reset filters",
+    "clearFilters": "Clear filters",
+    "defaultDuration": "60 min",
+    "live": "Live",
+    "untitledSession": "Untitled Session",
+    "defaultHost": "Instructor",
+    "hostedBy": "Hosted by {{host}} · {{count}} registered",
+    "opening": "Opening…",
+    "joinLiveNow": "Join live now",
+    "joinSession": "Join session",
+    "viewRecording": "View recording",
+    "noRecording": "No recording",
+    "tabs": {
+      "upcoming": "Upcoming ({{count}})",
+      "past": "Past ({{count}})"
+    },
+    "empty": {
+      "upcomingTitle": "No upcoming sessions",
+      "upcomingDescription": "Sessions scheduled by instructors will appear here.",
+      "pastTitle": "No past sessions",
+      "pastDescription": "Your session history will appear here."
+    },
+    "recording": {
+      "defaultTitle": "Session Recording",
+      "unavailable": "No recording available for this session."
+    },
+    "toast": {
+      "noJoinUrl": "No join URL provided for this session yet.",
+      "joining": "Joining {{title}}",
+      "openLinkError": "Couldn't open the session link. Please try again."
+    },
+    "locked": {
+      "pendingTitle": "Your membership is under review",
+      "expiredTitle": "Your membership has expired",
+      "defaultTitle": "Live classes are members-only",
+      "pendingDescription": "We're confirming your payment proof. This usually takes less than a day.",
+      "expiredDescription": "Renew your membership to access live classes and interactive sessions.",
+      "defaultDescription": "Subscribe to unlock all live sessions, courses, and interactive features in Lumen.",
+      "renew": "Renew membership",
+      "viewPlans": "View membership plans"
+    }
+  },
+  "progressPage": {
+    "title": "Progress",
+    "description": "Track how you're moving through every course in your plan.",
+    "planDaysLeft": "{{plan}} · {{days}}d left",
+    "progressByCourse": "Progress by course",
+    "courseProgress": "Course progress",
+    "courseProgressHint": "Every course in your plan is included — quiz stats expand per course.",
+    "courseRowSummary": "{{teacher}} · {{done}}/{{total}} lessons · {{quizCount}} quizzes",
+    "noAttemptsYet": "No quiz attempts yet for this course.",
+    "noCourses": "No courses available yet.",
+    "stats": {
+      "averageProgress": "Average progress",
+      "lessonsCompleted": "Lessons completed",
+      "quizAverage": "Quiz average",
+      "quizzesTaken": "Quizzes taken"
+    },
+    "noSubscription": {
+      "pendingTitle": "Your subscription request is under review",
+      "expiredTitle": "Your subscription has expired",
+      "rejectedTitle": "Your last subscription request was rejected",
+      "defaultTitle": "Unlock progress tracking",
+      "pendingDescription": "You'll get full access to every course and progress tracking as soon as it's approved.",
+      "defaultDescription": "Subscribe to a plan to unlock every course on the platform and start tracking your progress here.",
+      "viewPlans": "View plans"
+    }
+  },
+  "subscriptionPage": {
+    "title": "My Subscription",
+    "description": "Subscribe to a plan to unlock every course on the platform.",
+    "history": "Subscription history",
+    "choosePlan": "Choose {{plan}}",
+    "status": {
+      "active": "Active",
+      "pending": "Under review",
+      "expired": "Expired",
+      "rejected": "Rejected",
+      "cancelled": "Cancelled"
+    },
+    "stats": {
+      "currentPlan": "Current plan",
+      "daysRemaining": "Days remaining",
+      "status": "Status"
+    },
+    "pending": {
+      "title": "Your request for {{plan}} is under review",
+      "description": "We'll notify you once an admin verifies your payment. This usually takes less than 24 hours."
+    },
+    "noActive": {
+      "title": "You don't have an active subscription",
+      "description": "Choose a plan below to get full access to all courses."
+    },
+    "table": {
+      "plan": "Plan",
+      "amount": "Amount",
+      "status": "Status",
+      "submitted": "Submitted",
+      "expires": "Expires"
+    },
+    "empty": {
+      "title": "No subscriptions yet",
+      "description": "Once you subscribe to a plan, your requests will appear here."
+    },
+    "badges": {
+      "save14": "Save 14%",
+      "bestValue": "Best value"
+    },
+    "plans": {
+      "monthly": {
+        "name": "Monthly",
+        "period": "month",
+        "features": {
+          "0": "Full access to all courses",
+          "1": "Live sessions & Q&A",
+          "2": "Certificates on completion"
+        }
+      },
+      "quarterly": {
+        "name": "Quarterly",
+        "period": "3 months",
+        "features": {
+          "0": "Everything in Monthly",
+          "1": "Priority support",
+          "2": "Downloadable resources"
+        }
+      },
+      "yearly": {
+        "name": "Yearly",
+        "period": "year",
+        "features": {
+          "0": "Everything in Quarterly",
+          "1": "Early access to new courses",
+          "2": "1-on-1 mentorship session"
+        }
+      }
+    },
+    "toast": {
+      "invalidFileType": "Please upload an image or PDF of your payment receipt.",
+      "fileTooLarge": "File is too large. Max 5MB.",
+      "missingProof": "Please attach your payment proof to continue.",
+      "submitSuccess": "Subscription request submitted — awaiting admin approval.",
+      "submitError": "Failed to submit subscription request."
+    },
+    "dialog": {
+      "title": "Subscribe to {{plan}}",
+      "descriptionPrefix": "Transfer",
+      "descriptionSuffix": "and upload your payment receipt (check/transfer proof) below. Our team will review and activate your access.",
+      "uploadPrompt": "Click to upload receipt",
+      "uploadHint": "PNG, JPG or PDF · up to 5MB",
+      "proofAlt": "Payment proof",
+      "cancel": "Cancel",
+      "submit": "Submit request",
+      "submitting": "Submitting…"
+    }
+  },
+    "coursesPage": {
+    "title": "Course catalog",
+    "subtitle": "Browse {{count}}+ premium courses. Filter by category, level, and rating.",
+    "searchPlaceholder": "Search for a topic, e.g. TypeScript",
+    "clearFilters": "Clear filters",
+    "resetFilters": "Reset filters",
+    "generalCategory": "General",
+    "newBadge": "New",
+    "byInstructor": "by {{name}}",
+    "defaultInstructor": "Instructor",
+    "filters": {
+      "category": "Category",
+      "allCategories": "All categories",
+      "level": "Level",
+      "allLevels": "All levels",
+      "rating": "Rating",
+      "sort": "Sort"
+    },
+    "levels": {
+      "beginner": "Beginner",
+      "intermediate": "Intermediate",
+      "advanced": "Advanced"
+    },
+    "ratings": {
+      "any": "Any rating",
+      "upFrom": "{{value}} & up"
+    },
+    "sort": {
+      "popular": "Most popular",
+      "rating": "Top rated",
+      "newest": "Newest"
+    },
+    "empty": {
+      "title": "No courses match your filters",
+      "description": "Try clearing search or picking a different category."
+    },
+    "toast": {
+      "categoriesError": "Failed to load categories",
+      "coursesError": "Failed to load courses"
+    }
+  },
+   "courseDetails": {
+    "backToCourses": "All courses",
+    "newCourse": "New course",
+    "selfPaced": "Self-paced",
+    "levelDefault": "Beginner",
+    "categoryDefault": "General",
+    "enrolledBadge": "Enrolled",
+    "previewBadge": "Preview",
+    "lessonCount_one": "{{count}} lesson",
+    "lessonCount_other": "{{count}} lessons",
+    "learners_one": "{{count}} learner",
+    "learners_other": "{{count}} learners",
+    "tabs": {
+      "overview": "Overview",
+      "curriculum": "Curriculum",
+      "instructor": "Instructor"
+    },
+    "about": {
+      "title": "About this course",
+      "empty": "The instructor hasn't added a course overview yet."
+    },
+    "curriculum": {
+      "empty": "This course doesn't have any published content yet."
+    },
+    "instructor": {
+      "role": "Instructor",
+      "taughtBy": "This course is taught by {{name}}."
+    },
+    "cta": {
+      "goToCourse": "Go to my course",
+      "enrollFree": "Enroll for free",
+      "enrollingFree": "Enrolling...",
+      "buyCourse": "Buy course",
+      "redirecting": "Redirecting..."
+    },
+    "sidebar": {
+      "onDemand": "{{duration}} on-demand"
+    },
+    "notFound": {
+      "title": "Course not found",
+      "description": "The course you're looking for doesn't exist.",
+      "backButton": "Back to courses"
+    }
+  },
+  "sidebar": {
+    "teacher": {
+      "overview": "Overview",
+      "contentManagement": "Content Management",
+      "mediaAndUploads": "Media & Uploads",
+      "engagement": "Live & Performance"
+    },
+    "student": {
+      "overview": "Overview",
+      "learningActivity": "Learning & Quizzes",
+      "trackingAndOrders": "Progress & Orders",
+      "explore": "Discovery"
+    }
   }
+
 }

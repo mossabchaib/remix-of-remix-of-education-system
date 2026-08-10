@@ -6,7 +6,8 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useState } from "react";
-import { dashboardPathForRole, setSession, type SessionRole } from "@/lib/auth";
+import { dashboardPathForRole, type SessionRole } from "@/lib/auth";
+import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { AuthShell } from "./login";
 
@@ -23,8 +24,8 @@ export const Route = createFileRoute("/register")({
 function Register() {
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const { register, loading } = useAuth();
   const [role, setRole] = useState<SessionRole>("student");
-  const [loading, setLoading] = useState(false);
 
   return (
     <AuthShell>
@@ -32,17 +33,27 @@ function Register() {
       <h1 className="mt-1 text-2xl font-semibold tracking-tight">{t("register.createAccount")}</h1>
       <form
         className="mt-6 space-y-4"
-        onSubmit={(e) => {
+        onSubmit={async (e) => {
           e.preventDefault();
           const fd = new FormData(e.currentTarget);
           const email = String(fd.get("email") || "");
           const name = String(fd.get("name") || "");
-          setLoading(true);
-          setTimeout(() => {
-            setSession({ email, name, role });
+          const password = String(fd.get("pw") || "");
+          try {
+            const outcome = await register({ name, email, password, role });
+
+            if (outcome.status === "confirm_email") {
+              // No session yet — Supabase email confirmation is enabled.
+              // Don't navigate; tell the user to check their inbox.
+              toast.success(outcome.message || t("register.checkEmail"));
+              return;
+            }
+
             toast.success(t("register.accountCreated"));
-            navigate({ to: dashboardPathForRole(role) });
-          }, 600);
+            navigate({ to: dashboardPathForRole(outcome.session.role) });
+          } catch (err) {
+            toast.error(err instanceof Error ? err.message : t("register.errorGeneric"));
+          }
         }}
       >
         <div className="grid grid-cols-2 gap-4">
@@ -57,7 +68,7 @@ function Register() {
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="pw">{t("register.passwordLabel")}</Label>
-          <Input id="pw" name="pw" type="password" required minLength={6} placeholder={t("register.passwordPlaceholder")} />
+          <Input id="pw" name="pw" type="password" required minLength={6} autoComplete="new-password" placeholder={t("register.passwordPlaceholder")} />
         </div>
         <div className="space-y-2">
           <Label>{t("register.joiningAs")}</Label>

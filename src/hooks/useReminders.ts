@@ -7,8 +7,10 @@ import { runReminderSweep } from "@/lib/notification-events";
  */
 export function useReminders() {
   useEffect(() => {
-    runReminderSweep();
-    const id = window.setInterval(runReminderSweep, 60 * 1000);
+    void runReminderSweep();
+    const id = window.setInterval(() => {
+      void runReminderSweep();
+    }, 60 * 1000);
     return () => window.clearInterval(id);
   }, []);
 }

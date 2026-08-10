@@ -1,6 +1,6 @@
 // Frontend-only LMS persistence + rich mock data. Everything lives in localStorage.
 import { courses as baseCourses, students as baseStudents, categories as baseCategories, users as baseUsers, type Category, type Course, type User } from "./mock-data";
-
+import { lmsApi,api } from "@/services/api-client";
 const K = {
   enrollments: "lms.enrollments",
   progress: "lms.progress",
@@ -24,6 +24,8 @@ const K = {
   submissions: "lms.submissions",
   certificates: "lms.certificates",
   activity: "lms.activity",
+  subscriptions: "lms.subscriptions",
+   adminCourses: "lms.admin.courses",
     studentLiveReminders: "lms.student.liveReminders"
 };
 
@@ -65,58 +67,179 @@ export function toggleEnrollment(id: string) {
   }
   return next;
 }
-
 /* ============ Wishlist ============ */
 export function getWishlist(): string[] {
-  return readJSON(K.wishlist, baseCourses.slice(6, 10).map((c) => c.id));
+  return readJSON(K.wishlist, [] as string[]);
 }
 export function setWishlist(ids: string[]) { writeJSON(K.wishlist, ids); emit(K.wishlist); }
 export function toggleWishlist(id: string) {
   const cur = getWishlist();
-  const next = cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id];
+  const wasWished = cur.includes(id);
+  const next = wasWished ? cur.filter((x) => x !== id) : [...cur, id];
   setWishlist(next);
+  if (!wasWished) {
+    logActivity({ kind: "enroll", label: "Added a course to wishlist", refId: id });
+  }
   return next;
 }
-
-/* ============ Progress ============ */
-export type Progress = Record<string, Record<string, boolean>>;
-export function getProgress(): Progress { return readJSON(K.progress, {}); }
-export function setLessonComplete(courseId: string, lessonId: string, done: boolean) {
-  const p = getProgress();
-  const before = p[courseId]?.[lessonId];
-  p[courseId] = p[courseId] ?? {};
-  if (done) p[courseId][lessonId] = true;
-  else delete p[courseId][lessonId];
-  writeJSON(K.progress, p);
-  emit(K.progress);
-  if (done && !before) logActivity({ kind: "lesson", label: "Completed a lesson", refId: `${courseId}/${lessonId}` });
+export function isWishlisted(id: string): boolean {
+  return getWishlist().includes(id);
 }
-export function courseProgress(courseId: string, totalLessons: number) {
-  const p = getProgress()[courseId] ?? {};
-  const done = Object.values(p).filter(Boolean).length;
-  return { done, total: totalLessons, pct: totalLessons ? Math.round((done / totalLessons) * 100) : 0 };
-}
+/* ============ Wishlist ============ */
 
-/* ============ Quiz attempts ============ */
-/* ============ Quiz attempts ============ */
+
+/* ============ Quizzes (API-backed) ============ */
+export type QuestionType = "qcm" | "true_false" | "matching";
+
+/** زوج يسار/يمين لسؤال المطابقة. */
+export type MatchingPair = { id: string; left: string; right: string };
+
+export type Question = {
+  id: string;
+  type: QuestionType;
+  text: string;
+
+  // --- qcm ---
+  options?: string[];
+  correctOptionIndexes?: number[];
+
+  // --- true_false ---
+  correctBoolean?: boolean;
+
+  // --- matching ---
+  pairs?: MatchingPair[];
+};
+
+export type Quiz = {
+  id: string;
+  title: string;
+  course: string;
+  courseId?: string;
+  questions: Question[];
+  minutes: number;
+};
+
 export type QuestionAnswer =
   | { type: "qcm"; selected: number[] }
   | { type: "true_false"; selected: boolean }
-  | { type: "matching"; selected: Record<string, string> }; // pairId -> right المختار
+  | { type: "matching"; selected: Record<string, string> };
 
 export type QuizAttempt = {
+  id?: string;
   score: number;
   total: number;
   at: string;
-  answers: Record<string, QuestionAnswer>; // key = questionId
+  answers: Record<string, QuestionAnswer>;
 };
+
+/** جلب كل الكويزات الخاصة بكورس معيّن. */
+export async function getQuizzesByCourse(courseId: string): Promise<Quiz[]> {
+  try {
+    const res: any = await lmsApi.quizzes.listByCourse(courseId);
+    return Array.isArray(res) ? res : res?.data || [];
+  } catch (err) {
+    console.error("Failed to fetch quizzes:", err);
+    return [];
+  }
+}
+
+/** جلب كويز واحد بالتفاصيل (أسئلة + خيارات). */
+export async function getQuiz(id: string): Promise<Quiz | null> {
+  try {
+    const res: any = await lmsApi.quizzes.get(id);
+    return res?.data || res || null;
+  } catch (err) {
+    console.error(`Failed to fetch quiz ${id}:`, err);
+    return null;
+  }
+}
+
+/** إنشاء أو تحديث كويز (id موجود = update، غير موجود = create). */
+export async function upsertQuiz(q: Partial<Quiz>) {
+  try {
+    if (q.id) {
+      const res: any = await lmsApi.quizzes.update(q.id, q);
+      emit(K.teacherQuizzes);
+      return res?.data || res;
+    } else {
+      console.log("q:", q);
+      const res: any = await lmsApi.quizzes.create(q);
+      emit(K.teacherQuizzes);
+      return res?.data || res;
+    }
+  } catch (err) {
+    console.error("Failed to save quiz:", err);
+    throw err;
+  }
+}
+export async function addQuizQuestion(quizId: string, question: Omit<Question, "id">) {
+  const res: any = await lmsApi.quizzes.addQuestion(quizId, question);
+  emit(K.teacherQuizzes);
+  return res?.data || res;
+}
+export async function updateQuizQuestion(quizId: string, question: Question) {
+  const res: any = await lmsApi.quizzes.updateQuestion(quizId, question.id, question);
+  emit(K.teacherQuizzes);
+  return res?.data || res;
+}
+export async function removeQuizQuestion(quizId: string, questionId: string) {
+  const res = await lmsApi.quizzes.removeQuestion(quizId, questionId);
+  emit(K.teacherQuizzes);
+  return res;
+}
+/** حذف كويز. */
+export async function deleteQuiz(id: string) {
+  try {
+    const res = await lmsApi.quizzes.remove(id);
+    emit(K.teacherQuizzes);
+    return res;
+  } catch (err) {
+    console.error(`Failed to delete quiz ${id}:`, err);
+    throw err;
+  }
+}
+
+/** حفظ محاولة الطالب فـ الكويز. */
+export async function saveAttempt(
+  quizId: string,
+  attempt: { score: number; total: number; answers: Record<string, QuestionAnswer> }
+) {
+  try {
+    const res: any = await lmsApi.quizzes.saveAttempt(quizId, attempt);
+    emit(K.quizAttempts);
+    logActivity({ kind: "quiz", label: `Quiz submitted · ${attempt.score}/${attempt.total}`, refId: quizId });
+    return res?.data || res;
+  } catch (err) {
+    console.error(`Failed to save attempt for quiz ${quizId}:`, err);
+    throw err;
+  }
+}
+
+/** جلب كل محاولات الطالب الحالي. */
+export async function getMyAttempts(): Promise<QuizAttempt[]> {
+  try {
+    const res: any = await lmsApi.quizzes.getMyAttempts();
+    return Array.isArray(res) ? res : res?.data || [];
+  } catch (err) {
+    console.error("Failed to fetch attempts:", err);
+    return [];
+  }
+}
+
+/* ============ Quiz attempts ============ */
+/* ============ Quiz attempts ============ */
+
 export function getAttempts(): Record<string, QuizAttempt> { return readJSON(K.quizAttempts, {}); }
-export function saveAttempt(id: string, a: QuizAttempt) {
-  const all = getAttempts();
-  all[id] = a;
-  writeJSON(K.quizAttempts, all);
-  emit(K.quizAttempts);
-  logActivity({ kind: "quiz", label: `Quiz submitted · ${a.score}/${a.total}`, refId: id });
+/* ============ Admin: All Courses ============ */
+export async function getAllCourses() {
+  try {
+    const res: any = await lmsApi.getallteachers(); // GET /api/courses/ — عام، كل الكورسات
+    if (Array.isArray(res)) return res;
+    return res?.data || res?.courses || [];
+  } catch (err) {
+    console.error("Failed to fetch all courses:", err);
+    return [];
+  }
 }
 
 /* ============ Notifications ============ */
@@ -195,8 +318,119 @@ export function notificationsFor(ctx: {
 }
 
 /* ============ Course structure (lessons/modules) ============ */
-export type Lesson = { id: string; title: string; duration: string; kind: "video" | "reading" | "quiz" };
-export type Module = { id: string; title: string; lessons: Lesson[] };
+export interface Lesson {
+  title: string;
+  kind: "video" | "quiz" | "article";
+  duration?: string;
+  content_url?: string;
+  order_index: number;
+  is_preview?: boolean;
+}
+
+export interface Module {
+  title: string;
+  order_index: number;
+  lessons: Lesson[];
+}
+
+export interface Lesson {
+  id: string;
+  title: string;
+  kind: "video" | "quiz" | "article";
+  duration?: string;
+  content_url?: string;
+  order_index: number;
+  is_preview?: boolean;
+}
+
+export interface Module {
+  id: string;
+  title: string;
+  order_index: number;
+  lessons: Lesson[];
+}
+
+// --- Modules ---
+export async function getStoredModules(courseId: string): Promise<Module[] | null> {
+  try {
+    const res: any = await lmsApi.getCourseModules(courseId);
+    return Array.isArray(res) ? res : res?.data || res?.modules || [];
+  } catch (err) {
+    console.error("Failed to fetch modules:", err);
+    return null;
+  }
+}
+
+export async function setStoredModules(courseId: string, mods: Module[]) {
+  try {
+    const res = await lmsApi.syncCourseModules(courseId, mods);
+    emit(K.teacherModules);
+    return res;
+  } catch (err) {
+    console.error("Failed to sync modules:", err);
+    throw err;
+  }
+}
+
+export async function resolvedModules(courseId: string): Promise<Module[]> {
+  const stored = await getStoredModules(courseId);
+  return stored ?? [];
+}
+
+export async function deleteStoredModule(moduleId: string) {
+  try {
+    const res = await lmsApi.deleteModule(moduleId);
+    emit(K.teacherModules);
+    return res;
+  } catch (err) {
+    console.error("Failed to delete module:", err);
+    throw err;
+  }
+}
+
+// --- Lessons ---
+export async function getStoredLessons(courseId: string): Promise<Lesson[]> {
+  try {
+    const res: any = await lmsApi.getCourseLessons(courseId);
+    return Array.isArray(res) ? res : res?.data || res?.lessons || [];
+  } catch (err) {
+    console.error("Failed to fetch lessons:", err);
+    return [];
+  }
+}
+
+export async function addStoredLesson(moduleId: string, data: Partial<Lesson>) {
+  try {
+    const res = await lmsApi.addLesson(moduleId, data);
+    emit(K.teacherModules);
+    return res;
+  } catch (err) {
+    console.error("Failed to add lesson:", err);
+    throw err;
+  }
+}
+
+export async function updateStoredLesson(lessonId: string, data: Partial<Lesson>) {
+  try {
+    const res = await lmsApi.updateLesson(lessonId, data);
+    emit(K.teacherModules);
+    return res;
+  } catch (err) {
+    console.error("Failed to update lesson:", err);
+    throw err;
+  }
+}
+
+export async function deleteStoredLesson(lessonId: string) {
+  try {
+    const res = await lmsApi.deleteLesson(lessonId);
+    emit(K.teacherModules);
+    return res;
+  } catch (err) {
+    console.error("Failed to delete lesson:", err);
+    throw err;
+  }
+}
 const lessonNames = [
   "Introduction & setup", "Core concepts", "Hands-on workshop", "Deep dive walkthrough",
   "Common pitfalls", "Best practices", "Real-world case study", "Wrap-up & next steps",
@@ -231,32 +465,97 @@ export const pdfResources = [
   { id: "r5", title: "Kubernetes Deployment Recipes", course: "Docker & Kubernetes", size: "1.8 MB", pages: 12, updatedAt: "2026-05-14" },
   { id: "r6", title: "ML Model Evaluation", course: "Machine Learning Foundations", size: "1.1 MB", pages: 9, updatedAt: "2026-05-02" },
 ];
-
-/* ============ Quizzes ============ */
-/* ============ Quizzes ============ */
-export type QuestionType = "qcm" | "true_false" | "matching";
-
-/** زوج يسار/يمين لسؤال المطابقة. */
-export type MatchingPair = { id: string; left: string; right: string };
-
-export type Question = {
+/* ============ Live sessions (API-backed) ============ */
+export type LiveSession = {
   id: string;
-  type: QuestionType;
-  text: string;
-
-  // --- qcm ---
-  options?: string[];
-  /** indices فـ options اللي هوما صحاح (كيدعم جواب واحد أو بزاف). */
-  correctOptionIndexes?: number[];
-
-  // --- true_false ---
-  correctBoolean?: boolean;
-
-  // --- matching ---
-  pairs?: MatchingPair[];
+  title: string;
+  course_id: string;
+  host: string;
+  startsAt: string;
+  joinUrl?: string;
+  duration: string;       // e.g. "60 min"
+  attendees: number;
+  recording_url?: string;   // رابط التسجيل (اختياري)
+  join_url?: string;        // رابط الانضمام (اختياري)
+  status: boolean;         // false = لم تنتهِ بعد, true = انتهت
 };
 
-export type Quiz = { id: string; title: string; course: string; questions: Question[]; minutes: number };
+/** جلب كل الجلسات (فلترة اختيارية عبر courseId/status). */
+export async function getLiveSessions(params?: { courseId?: string; status?: boolean }): Promise<LiveSession[]> {
+  try {
+    const res: any = await lmsApi.live.list(params);
+    return Array.isArray(res) ? res : res?.data || [];
+  } catch (err) {
+    console.error("Failed to fetch live sessions:", err);
+    return [];
+  }
+}
+
+/** جلب جلسات كورس معيّن. */
+export async function getLiveSessionsByCourse(courseId: string): Promise<LiveSession[]> {
+  try {
+    const res: any = await lmsApi.live.listByCourse(courseId);
+    return Array.isArray(res) ? res : res?.data || [];
+  } catch (err) {
+    console.error("Failed to fetch live sessions for course:", err);
+    return [];
+  }
+}
+
+/** جلب جلسة واحدة بالتفصيل. */
+export async function getLiveSession(id: string): Promise<LiveSession | null> {
+  try {
+    const res: any = await lmsApi.live.get(id);
+    return res?.data || res || null;
+  } catch (err) {
+    console.error(`Failed to fetch live session ${id}:`, err);
+    return null;
+  }
+}
+
+/** إنشاء أو تحديث جلسة (id موجود = update، غير موجود = create). */
+export async function upsertLiveSession(l: Partial<LiveSession>) {
+  try {
+    if (l.id) {
+      const res: any = await lmsApi.live.update(l.id, l);
+      emit(K.teacherLive);
+      return res?.data || res;
+    } else {
+      const res: any = await lmsApi.live.create(l);
+      emit(K.teacherLive);
+      return res?.data || res;
+    }
+  } catch (err) {
+    console.error("Failed to save live session:", err);
+    throw err;
+  }
+}
+
+/** تعليم الجلسة كمنتهية. */
+export async function endLiveSession(id: string) {
+  try {
+    const res: any = await lmsApi.live.end(id);
+    emit(K.teacherLive);
+    return res?.data || res;
+  } catch (err) {
+    console.error(`Failed to end live session ${id}:`, err);
+    throw err;
+  }
+}
+
+/** حذف جلسة. */
+export async function deleteLiveSession(id: string) {
+  try {
+    const res = await lmsApi.live.remove(id);
+    emit(K.teacherLive);
+    return res;
+  } catch (err) {
+    console.error(`Failed to delete live session ${id}:`, err);
+    throw err;
+  }
+}
+/* ============ Quizzes ============ */
+/* ============ Quizzes ============ */
 
 const defaultQuizzes: Quiz[] = [
   {
@@ -294,16 +593,6 @@ const defaultQuizzes: Quiz[] = [
 
 export function getQuizzes(): Quiz[] { return readJSON(K.teacherQuizzes, defaultQuizzes); }
 export function setQuizzes(q: Quiz[]) { writeJSON(K.teacherQuizzes, q); emit(K.teacherQuizzes); }
-export function getQuiz(id: string): Quiz | undefined { return getQuizzes().find((q) => q.id === id); }
-export function upsertQuiz(q: Quiz) {
-  const all = getQuizzes();
-  const idx = all.findIndex((x) => x.id === q.id);
-  if (idx === -1) all.unshift(q); else all[idx] = q;
-  setQuizzes(all);
-}
-export function deleteQuiz(id: string) { setQuizzes(getQuizzes().filter((q) => q.id !== id)); }
-export const quizzes = defaultQuizzes;
-
 /* ============ Assignments ============ */
 export type Assignment = { id: string; title: string; course: string; due: string; status: "Pending" | "Submitted" | "Graded"; grade?: string };
 const defaultAssignments: Assignment[] = [
@@ -327,58 +616,180 @@ export const assignments = defaultAssignments;
 
 /* ============ Live sessions ============ */
 // عدّل تعريف LiveSession فقط، الباقي يبقى كما هو
-export type LiveSession = {
-  id: string;
-  title: string;
-  course: string;
-  host: string;
-  startsAt: string;
-  duration: string; // e.g. "60 min"
-  attendees: number;
-  joinUrl?: string;       // جديد: رابط الانضمام (اختياري)
-  recordingUrl?: string;  // جديد: رابط التسجيل بعد الانتهاء (اختياري)
-};const defaultLive: LiveSession[] = [
-  { id: "l1", title: "Office hours — React", course: "Modern React Patterns", host: "Amelia Carter", startsAt: "2026-07-27 18:00", duration: "60 min", attendees: 84 },
-  { id: "l2", title: "Design critique workshop", course: "Design Systems Mastery", host: "Olivia Reyes", startsAt: "2026-07-28 16:30", duration: "90 min", attendees: 42 },
-  { id: "l3", title: "SQL Q&A", course: "SQL for Analysts", host: "Mateo Alvarez", startsAt: "2026-07-30 19:00", duration: "45 min", attendees: 61 },
-  { id: "l4", title: "K8s hands-on lab", course: "Docker & Kubernetes", host: "Henry Larsen", startsAt: "2026-08-02 17:00", duration: "120 min", attendees: 118 },
-  { id: "l5", title: "ML paper reading club", course: "Machine Learning Foundations", host: "Sofia Patel", startsAt: "2026-08-05 20:00", duration: "60 min", attendees: 37 },
-];
 
-export function getLiveSessions(): LiveSession[] { return readJSON(K.teacherLive, defaultLive); }
-export function setLiveSessionsList(l: LiveSession[]) { writeJSON(K.teacherLive, l); emit(K.teacherLive); }
-export function upsertLiveSession(l: LiveSession) {
-  const all = getLiveSessions();
-  const idx = all.findIndex((x) => x.id === l.id);
-  if (idx === -1) all.unshift(l); else all[idx] = l;
-  setLiveSessionsList(all);
-}
-export function deleteLiveSession(id: string) { setLiveSessionsList(getLiveSessions().filter((l) => l.id !== id)); }
-export const liveSessions = defaultLive;
 
 
 /* ============ Certificates (see Issued certificates section below) ============ */
-
-/* ============ Profile / preferences ============ */
+/* ============ Profile / preferences (API-backed) ============ */
 export type ProfileData = {
-  name: string;
+  id?: string;
+  full_name: string;
   email: string;
-  bio: string;
-  timezone: string;
-  language: string;
-  avatarInitials: string;
+  role?: "admin" | "teacher" | "student";
+  avatar_url?: string;
 };
-export function getProfile(): ProfileData {
-  return readJSON(K.profile, {
-    name: "Alex Morgan",
-    email: "alex@example.com",
-    bio: "Curious learner building products at the intersection of design and code.",
-    timezone: "GMT+1 · Amsterdam",
-    language: "English",
-    avatarInitials: "AM",
-  });
+
+/** جلب بروفايل المستخدم الحالي من الباك اند. */
+export async function getProfile(): Promise<ProfileData> {
+  try {
+    const res: any = await lmsApi.users.getMe();
+    return res?.profile ?? res ?? { full_name: "", email: "" };
+  } catch (err) {
+    console.error("Failed to fetch profile:", err);
+    return { full_name: "", email: "" };
+  }
 }
-export function setProfile(p: ProfileData) { writeJSON(K.profile, p); }
+
+export async function setProfile(p: Partial<ProfileData>) {
+  try {
+    const res: any = await lmsApi.users.updateMe(p);
+    emit(K.profile);
+    return res?.profile ?? res;
+  } catch (err) {
+    console.error("Failed to update profile:", err);
+    throw err;
+  }
+}
+
+/* ============ Admin Users (API-backed) ============ */
+
+/** جلب كل المستخدمين (admin فقط). */
+export async function getAdminUsers(): Promise<ProfileData[]> {
+  try {
+    const res: any = await lmsApi.users.list();
+    console.log("getAdminUsers response:", res);
+    if (Array.isArray(res)) return res;
+    return res?.data ?? [];
+  } catch (err) {
+    console.error("Failed to fetch admin users:", err);
+    return [];
+  }
+}
+
+/** جلب مستخدم واحد بالـ id (من اللائحة الكاملة، الباك اند ماعندوش GET /:id حالياً). */
+export async function getAdminUser(id: string): Promise<User | undefined> {
+  const all = await getAdminUsers();
+  return all.find((u: any) => u.id === id);
+}
+
+/** تغيير role مستخدم معيّن (admin فقط). */
+export async function upsertAdminUser(u: { id: string; role: "admin" | "teacher" | "student" }) {
+  try {
+    const res: any = await lmsApi.users.changeRole(u.id, u.role);
+    emit(K.adminUsers);
+    return res?.profile ?? res;
+  } catch (err) {
+    console.error(`Failed to update role for user ${u.id}:`, err);
+    throw err;
+  }
+}
+
+// ⚠️ لا يوجد حالياً DELETE /api/users/:id فـ الباك اند (user.routes.js)
+// إيلا حبيت هاذ الوظيفة، خاصنا نزيدو route + controller + service جدد.
+export async function deleteAdminUser(id: string) {
+  console.warn("deleteAdminUser: لا يوجد endpoint DELETE فـ user.routes.js حالياً.");
+  throw new Error("Delete user endpoint not implemented on backend.");
+}
+/* ============ Subscriptions (API-backed) ============ */
+export type SubscriptionStatus = "pending" | "active" | "expired" | "cancelled" | "rejected";
+
+export type Subscription = {
+  id: string;
+  user_id?: string;
+  plan_name: string;
+  amount: number;
+  status: SubscriptionStatus;
+  starts_at?: string | null;
+  ends_at?: string | null;
+  payment_proof_url?: string;
+  reviewed_by?: string;
+  reviewed_at?: string;
+  created_at?: string;
+  profiles?: { full_name: string; email: string }; // مرفقة عند جلب admin
+};
+
+/** الطالب: إرسال طلب اشتراك مع إثبات الدفع (صورة الشيك base64). */
+export async function submitSubscription(data: {
+  plan_name: string;
+  amount: number;
+  payment_proof: string;
+}): Promise<Subscription | null> {
+  try {
+    const res: any = await lmsApi.subscriptions.submit(data);
+    emit(K.subscriptions);
+    logActivity({ kind: "purchase", label: `Subscription requested · ${data.plan_name}`, refId: res?.subscription?.id });
+    return res?.subscription ?? res;
+  } catch (err) {
+    console.error("Failed to submit subscription:", err);
+    throw err;
+  }
+}
+
+/** جلب اشتراك المستخدم الحالي. */
+export async function getMySubscription(): Promise<Subscription | null> {
+  try {
+    const res: any = await lmsApi.subscriptions.getMine();
+    return res?.subscription ?? null;
+  } catch (err) {
+    console.error("Failed to fetch my subscription:", err);
+    return null;
+  }
+}
+
+/** التحقق هل عند المستخدم وصول نشط (اشتراك active وما فاتش أجله). */
+export async function hasActiveAccess(): Promise<boolean> {
+  const sub = await getMySubscription();
+  if (!sub || sub.status !== "active" || !sub.ends_at) return false;
+  return new Date(sub.ends_at) > new Date();
+}
+
+/** admin: جلب الطلبات المعلّقة فقط. */
+export async function getPendingSubscriptions(): Promise<Subscription[]> {
+  try {
+    const res: any = await lmsApi.subscriptions.listPending();
+    return Array.isArray(res) ? res : res?.subscriptions || [];
+  } catch (err) {
+    console.error("Failed to fetch pending subscriptions:", err);
+    return [];
+  }
+}
+
+/** admin: جلب كل الاشتراكات. */
+export async function getAllSubscriptions(): Promise<Subscription[]> {
+  try {
+    const res: any = await lmsApi.subscriptions.listAll();
+    return Array.isArray(res) ? res : res?.subscriptions || [];
+  } catch (err) {
+    console.error("Failed to fetch subscriptions:", err);
+    return [];
+  }
+}
+
+/** admin: قبول الاشتراك. */
+/** admin: قبول الاشتراك مع تحديد عدد أيام الوصول. */
+export async function approveSubscription(id: string, days: number): Promise<Subscription | null> {
+  try {
+    const res: any = await lmsApi.subscriptions.approve(id, days);
+    emit(K.subscriptions);
+    return res?.subscription ?? res;
+  } catch (err) {
+    console.error(`Failed to approve subscription ${id}:`, err);
+    throw err;
+  }
+}
+
+/** admin: رفض الاشتراك. */
+export async function rejectSubscription(id: string): Promise<Subscription | null> {
+  try {
+    const res: any = await lmsApi.subscriptions.reject(id);
+    emit(K.subscriptions);
+    return res?.subscription ?? res;
+  } catch (err) {
+    console.error(`Failed to reject subscription ${id}:`, err);
+    throw err;
+  }
+}
+/* ============ Profile / preferences ============ */
 
 export type PreferencesData = {
   emailUpdates: boolean;
@@ -398,13 +809,23 @@ export function setPreferences(p: PreferencesData) { writeJSON(K.settings, p); }
 export { baseCourses, baseStudents };
 
 /* ============ Admin: categories with images (persisted) ============ */
-export function getAdminCategories(): Category[] {
-  return readJSON(K.adminCategories, baseCategories);
+export async function getAdminCategories() {
+  return await lmsApi.getCategories();
 }
 export function setAdminCategories(list: Category[]) {
   writeJSON(K.adminCategories, list);
 }
+export async function upsertCategory(categoryData: any) {
+  console.log("categoryData:",categoryData)
+  if (categoryData.id) {
+    return await lmsApi.updateCategory(categoryData.id, categoryData);
+  }
+  return await lmsApi.createCategory(categoryData);
+}
 
+export async function deleteAdminCategory(id: string) {
+  return await lmsApi.deleteCategory(id);
+}
 /* ============ Orders / purchase flow ============ */
 export type Order = {
   id: string;
@@ -466,93 +887,195 @@ export function generateTxId() {
 }
 
 /* ============ Admin Users (persisted, single source of truth) ============ */
-export function getAdminUsers(): User[] {
-  return readJSON(K.adminUsers, baseUsers);
-}
+
 export function setAdminUsers(list: User[]) { writeJSON(K.adminUsers, list); emit(K.adminUsers); }
-export function getAdminUser(id: string): User | undefined {
-  return getAdminUsers().find((u) => u.id === id);
-}
-export function upsertAdminUser(u: User) {
-  const all = getAdminUsers();
-  const idx = all.findIndex((x) => x.id === u.id);
-  if (idx === -1) all.unshift(u); else all[idx] = { ...all[idx], ...u };
-  setAdminUsers(all);
-}
-export function deleteAdminUser(id: string) {
-  setAdminUsers(getAdminUsers().filter((u) => u.id !== id));
-}
+
+
+
 
 /* ============ Teacher Courses (persisted) ============ */
-export function getTeacherCourses(): Course[] {
-  return readJSON(K.teacherCourses, baseCourses.slice(0, 12));
-}
-export function setTeacherCourses(list: Course[]) { writeJSON(K.teacherCourses, list); emit(K.teacherCourses); }
-export function getTeacherCourse(id: string): Course | undefined {
-  return getTeacherCourses().find((c) => c.id === id);
-}
-export function upsertTeacherCourse(c: Course) {
-  const all = getTeacherCourses();
-  const idx = all.findIndex((x) => x.id === c.id);
-  if (idx === -1) all.unshift(c); else all[idx] = { ...all[idx], ...c };
-  setTeacherCourses(all);
-}
-export function deleteTeacherCourse(id: string) {
-  setTeacherCourses(getTeacherCourses().filter((c) => c.id !== id));
+export async function getTeacherCourses() {
+  try {
+    const res: any = await lmsApi.getTeacherCourses();
+    if (Array.isArray(res)) return res;
+    return res?.data || res?.courses || [];
+  } catch (err) {
+    console.error("Failed to fetch teacher courses:", err);
+    return []; // إرجاع مصفوفة فارغة لتجنب انهيار التطبيق
+  }
 }
 
-/* ============ Teacher Modules override (persisted per course) ============ */
-export function getStoredModules(courseId: string): Module[] | null {
-  const all = readJSON<Record<string, Module[]>>(K.teacherModules, {});
-  return all[courseId] ?? null;
+export async function getTeacherCourse(id: string) {
+  try {
+    const res: any = await lmsApi.getTeacherCourse(id);
+    return res?.data || res;
+  } catch (err) {
+    console.error(`Failed to fetch course ${id}:`, err);
+    return null;
+  }
 }
-export function setStoredModules(courseId: string, mods: Module[]) {
-  const all = readJSON<Record<string, Module[]>>(K.teacherModules, {});
-  all[courseId] = mods;
-  writeJSON(K.teacherModules, all);
-  emit(K.teacherModules);
+export async function getTeacherCourseById(id: string) {
+  try {
+    const res: any = await lmsApi.getTeacherCourse(id);
+    return res?.data || res;
+  } catch (err) {
+    console.error(`Failed to fetch course ${id}:`, err);
+    return null;
+  }
 }
-export function resolvedModules(courseId: string): Module[] {
-  return getStoredModules(courseId) ?? modulesForCourse(courseId);
+export async function upsertTeacherCourse(data: any) {
+  try {
+    if (data.id) {
+      const res: any = await lmsApi.updateCourse(data.id, data);
+      return res?.data || res;
+    } else {
+      const res: any = await lmsApi.createCourse(data);
+      return res?.data || res;
+    }
+  } catch (err) {
+    console.error("Failed to upsert course:", err);
+    throw err;
+  }
 }
 
-/* ============ Teacher Uploads (persisted) ============ */
-export type UploadKind = "video" | "pdf" | "code" | "document" | "archive";
+export async function deleteTeacherCourse(id: string) {
+  try {
+    return await lmsApi.deleteCourse(id);
+  } catch (err) {
+    console.error(`Failed to delete course ${id}:`, err);
+    throw err;
+  }
+}
+
+// /* ============ Teacher Modules override (persisted per course) ============ */
+// export function getStoredModules(courseId: string): Module[] | null {
+//   const all = readJSON<Record<string, Module[]>>(K.teacherModules, {});
+//   return all[courseId] ?? null;
+// }
+// export function setStoredModules(courseId: string, mods: Module[]) {
+//   const all = readJSON<Record<string, Module[]>>(K.teacherModules, {});
+//   all[courseId] = mods;
+//   writeJSON(K.teacherModules, all);
+//   emit(K.teacherModules);
+// }
+// export function resolvedModules(courseId: string): Module[] {
+//   return getStoredModules(courseId) ?? modulesForCourse(courseId);
+// }
+
+/* ============ Teacher Uploads (API-backed) ============ */
+// Mirrors the `uploads` table columns:
+// id, file_url, file_key, file_name, mime_type, file_size, kind, lesson_id, teacher_id, upload_date.
+export type UploadKind = "video" | "pdf";
 
 export type Upload = {
   id: string;
-  title: string;
-  course: string;       // اسم الكورس المعروض
-  courseId?: string;    // معرف الكورس — يُستعمل للربط مع lms.enrollments
-  size: string;
-  uploaded: string;
+  title: string;        // file_name
+  course: string;        // resolved course title — falls back to courseId or "General"
+  course_id?: string;
+  lesson_id?: string;     // lesson_id
+  fileKey?: string;      // file_key (storage path/key)
+  mimeType?: string;     // mime_type
+  size: string;          // human-readable, derived from file_size
+  uploaded: string;      // upload_date, sliced to YYYY-MM-DD
   kind: UploadKind;
-  progress: number;
-  description?: string;
-  url?: string;         // رابط الملف الفعلي (أو placeholder)
+  progress: number;      // always 100 for records fetched from the backend
+  url: string;           // file_url
 };
 
-const defaultUploads: Upload[] = [
-  { id: "v1", title: "Intro to hooks.mp4", course: "Modern React Patterns", courseId: "co1", size: "128 MB", uploaded: "2026-06-11", progress: 100, kind: "video", description: "شرح أساسيات React Hooks." },
-  { id: "v2", title: "State machines.mp4", course: "Modern React Patterns", courseId: "co1", size: "212 MB", uploaded: "2026-06-08", progress: 100, kind: "video", description: "بناء آلات الحالة في React." },
-  { id: "v3", title: "SQL joins deep dive.mp4", course: "SQL for Analysts", courseId: "co16", size: "185 MB", uploaded: "2026-06-04", progress: 100, kind: "video", description: "دروس متقدمة في JOINS." },
-  { id: "r1", title: "React Hooks Cheat Sheet.pdf", course: "Modern React Patterns", courseId: "co1", size: "1.2 MB", uploaded: "2026-06-12", progress: 100, kind: "pdf", description: "ورقة مرجعية سريعة." },
-  { id: "r2", title: "TypeScript Generics Guide.pdf", course: "TypeScript from Zero to Hero", courseId: "co2", size: "820 KB", uploaded: "2026-06-08", progress: 100, kind: "pdf", description: "دليل الـ Generics." },
-  { id: "c1", title: "hooks-starter-kit.zip", course: "Modern React Patterns", courseId: "co1", size: "4.6 MB", uploaded: "2026-06-10", progress: 100, kind: "archive", description: "كود ابتدائي للتمارين." },
-  { id: "c2", title: "design-tokens.tsx", course: "Design Systems Mastery", courseId: "co3", size: "18 KB", uploaded: "2026-05-30", progress: 100, kind: "code", description: "أمثلة Source Code لتوكنز التصميم." },
-  { id: "d1", title: "Design Tokens Reference.pdf", course: "Design Systems Mastery", courseId: "co3", size: "2.4 MB", uploaded: "2026-05-30", progress: 100, kind: "document", description: "شرائح تعريفية Presentation." },
-];
-
-export function getUploads(): Upload[] { return readJSON(K.teacherUploads, defaultUploads); }
-export function setUploads(list: Upload[]) { writeJSON(K.teacherUploads, list); emit(K.teacherUploads); }
-export function addUpload(u: Omit<Upload, "id" | "uploaded">) {
-  const up: Upload = { id: `up${Date.now()}`, uploaded: new Date().toISOString().slice(0, 10), ...u };
-  setUploads([up, ...getUploads()]);
-  emit(K.teacherUploads);
-  return up;
+function humanFileSize(bytes: number): string {
+  if (typeof bytes !== "number" || Number.isNaN(bytes)) return "";
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
+  return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
 }
-export function deleteUpload(id: string) {
-  setUploads(getUploads().filter((u) => u.id !== id));
+
+function toUpload(row: any, courseTitle?: string): Upload {
+  return {
+    id: row.id,
+    title: row.file_name,
+    course: courseTitle ?? row.course_id ?? "General",
+    course_id: row.course_id ?? undefined,
+    lesson_id: row.lesson_id ?? undefined,
+    fileKey: row.file_key ?? undefined,
+    mimeType: row.mime_type ?? undefined,
+    size: humanFileSize(row.file_size),
+    uploaded: (row.upload_date ?? "").slice(0, 10),
+    kind: row.kind,
+    progress: 100,
+    url: row.file_url,
+  };
+}
+
+/** Fetch uploads for a course (optionally filtered by lesson). */
+export async function getStoredUploads(params?: {
+  courseId?: string;
+  courseTitle?: string;
+  lessonId?: string;
+}): Promise<Upload[]> {
+  try {
+    const res: any = await lmsApi.uploads.list({ courseId: params?.courseId, lessonId: params?.lessonId });
+    const rows = Array.isArray(res) ? res : res?.data || [];
+    return rows.map((row: any) => toUpload(row, params?.courseTitle));
+  } catch (err) {
+    console.error("Failed to fetch uploads:", err);
+    return [];
+  }
+}
+
+/** Upload a file (with progress) and store it against an optional course/lesson. */
+export async function addStoredUpload(
+  file: File,
+  options?: {
+    course_id?: string;
+    courseTitle?: string;
+    lesson_id?: string;
+    onProgress?: (pct: number) => void;
+  }
+): Promise<Upload> {
+  const isVideo = file.type.startsWith("video/") || /\.(mp4|mov|webm|mkv)$/i.test(file.name);
+  const kind: "video" | "pdf" = isVideo ? "video" : "pdf";
+
+  try {
+    console.log("Uploading file:", file,options);
+    // 1) اطلب من الباك اند رابط رفع موقّع (بدون إرسال أي بايت من الملف)
+    const signRes: any = await lmsApi.uploads.sign({
+      fileName: file.name,
+      kind,
+      courseId: options?.course_id,
+    });
+    const { path, signedUrl } = signRes?.data ?? signRes;
+
+    // 2) ارفع الملف مباشرة إلى Supabase — هنا يُقاس الـ progress الحقيقي بالكامل
+    await api.uploadToSignedUrl(signedUrl, file, options?.onProgress);
+console.log("File uploaded to signed URL:", file, options);
+    // 3) بلّغ الباك اند بالاكتمال ليسجّل الميتاداتا فقط
+    const confirmRes: any = await lmsApi.uploads.confirm({
+      key: path,
+      fileName: file.name,
+      mimeType: file.type,
+      fileSize: file.size,
+      kind,
+      course_id: options?.course_id,
+      lesson_id: options?.lesson_id,
+    });
+
+    emit(K.teacherUploads);
+    return toUpload(confirmRes?.data ?? confirmRes, options?.courseTitle);
+  } catch (err) {
+    console.error("Failed to upload file:", err);
+    throw err;
+  }
+}
+
+export async function deleteStoredUpload(id: string) {
+  try {
+    const res = await lmsApi.uploads.remove(id);
+    emit(K.teacherUploads);
+    return res;
+  } catch (err) {
+    console.error("Failed to delete upload:", err);
+    throw err;
+  }
 }
 
 
@@ -663,4 +1186,56 @@ export function issueCertificate(course: { id: string; title: string; teacher?: 
     sourceId: `cert:${course.id}`,
   });
   return cert;
+}
+export type Progress = Record<string, Record<string, boolean>>;
+
+/** جلب كل تقدّم المستخدم الحالي (كل الكورسات مجمّعة). */
+export async function getProgress(): Promise<Progress> {
+  try {
+    const res: any = await lmsApi.progress.getMine();
+    return res?.data || {};
+  } catch (err) {
+    console.error("Failed to fetch progress:", err);
+    return {};
+  }
+}
+
+/** تحديد/إلغاء إكمال درس. */
+export async function setLessonComplete(courseId: string, lessonId: string, done: boolean) {
+  try {
+    const res: any = await lmsApi.progress.setLessonComplete({
+      courseId,
+      lessonId,
+      completed: done,
+    });
+    emit(K.progress);
+    if (done) {
+      logActivity({ kind: "lesson", label: "Completed a lesson", refId: `${courseId}/${lessonId}` });
+    }
+    return res?.data;
+  } catch (err) {
+    console.error("Failed to update lesson progress:", err);
+    throw err;
+  }
+}
+
+/** ملخص رقمي لكورس واحد: done/total/pct (مباشرة من الباك اند). */
+export async function courseProgress(courseId: string, totalLessons?: number) {
+  try {
+    const res: any = await lmsApi.progress.getCourseSummary(courseId);
+    return res?.data || { done: 0, total: totalLessons ?? 0, pct: 0 };
+  } catch (err) {
+    console.error(`Failed to fetch progress summary for course ${courseId}:`, err);
+    return { done: 0, total: totalLessons ?? 0, pct: 0 };
+  }
+}
+/** الأستاذ: ملخص تقدّم الطلبة عبر كل كورساته. */
+export async function getTeacherProgressRollup() {
+  try {
+    const res: any = await lmsApi.progress.getTeacherRollup();
+    return Array.isArray(res) ? res : res?.data || [];
+  } catch (err) {
+    console.error("Failed to fetch teacher progress rollup:", err);
+    return [];
+  }
 }

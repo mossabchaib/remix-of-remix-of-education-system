@@ -7,7 +7,7 @@ import {
   type Assignment,
   getLiveSessions,
   type LiveSession,
-  getUploads,
+  getStoredUploads,
   type Upload,
 } from "@/lib/lms-storage";
 import { QuizService } from "@/services/quizService";
@@ -41,5 +41,5 @@ export function useLiveReminders(): string[] {
 
 /* ============ Uploads ============ */
 export function useUploads(): Upload[] {
-  return useKeyedStorage(storageKeys.teacherUploads, getUploads);
+  return useKeyedStorage(storageKeys.teacherUploads, getStoredUploads);
 }

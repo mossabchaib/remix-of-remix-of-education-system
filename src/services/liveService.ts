@@ -1,8 +1,8 @@
 import {
   getLiveSessions,
-  setLiveSessionsList,
   upsertLiveSession,
   deleteLiveSession,
+  endLiveSession,
   logActivity,
   addNotification,
   readJSON,
@@ -10,14 +10,17 @@ import {
   type LiveSession,
 } from "@/lib/lms-storage";
 
-export const list = getLiveSessions;
-export const replaceAll = setLiveSessionsList;
-export const save = upsertLiveSession;
-export const remove = deleteLiveSession;
-export function create(l: Omit<LiveSession, "id">): LiveSession {
-  const withId: LiveSession = { ...l, id: `l${Date.now()}` };
-  upsertLiveSession(withId);
-  return withId;
+export const list = getLiveSessions;      // async — الآن لازم await list()
+export const save = upsertLiveSession;    // async
+export const remove = deleteLiveSession;  // async
+export const end = endLiveSession;        // async — جديد: تعليم الجلسة كمنتهية
+
+/**
+ * ينشئ جلسة جديدة عبر الـ API ويرجّع الكائن اللي رجعه السيرفر (بمعرّف حقيقي
+ * من قاعدة البيانات — بعد ما كان يولّد id يدويًا بـ `l${Date.now()}`).
+ */
+export async function create(l: Omit<LiveSession, "id" | "status">): Promise<LiveSession> {
+  return await upsertLiveSession(l);
 }
 
 /* ---- Student-side: join a live session ---- */
@@ -35,11 +38,10 @@ export function hasJoined(sessionId: string): boolean {
  * يسجّل انضمام الطالب لجلسة Live: يزيد attendees عبر save()،
  * يسجّل Activity، ويبعث إشعار تأكيد. Idempotent per session.
  */
-export function join(session: LiveSession): LiveSession {
+export async function join(session: LiveSession): Promise<LiveSession> {
   if (hasJoined(session.id)) return session;
 
-  const updated: LiveSession = { ...session, attendees: session.attendees + 1 };
-  save(updated);
+  const updated = await save({ ...session, attendees: session.attendees + 1 });
   writeJSON(JOINED_KEY, [...getJoinedIds(), session.id]);
 
   logActivity({

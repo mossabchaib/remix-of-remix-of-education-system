@@ -24,8 +24,8 @@ export function AdminSidebar() {
   const main = [
     { to: "/admin", label: t("dashboard_common.overview"), icon: LayoutDashboard, exact: true },
     { to: "/admin/users", label: t("admin.users"), icon: UserCog },
-    { to: "/admin/students", label: t("admin.students"), icon: Users },
-    { to: "/admin/teachers", label: t("admin.teachers"), icon: GraduationCap },
+    // { to: "/admin/students", label: t("admin.students"), icon: Users },
+    // { to: "/admin/teachers", label: t("admin.teachers"), icon: GraduationCap },
   ];
   const catalog = [
     { to: "/admin/courses", label: t("admin.courses"), icon: BookOpen },
@@ -33,13 +33,13 @@ export function AdminSidebar() {
   ];
   const billing = [
     { to: "/admin/subscriptions", label: t("admin.subscriptions"), icon: CreditCard },
-    { to: "/admin/payments", label: t("admin.payments"), icon: Receipt },
+    // { to: "/admin/payments", label: t("admin.payments"), icon: Receipt },
   ];
-  const insights = [
-    { to: "/admin/reports", label: t("admin.reports"), icon: BarChart3 },
-    { to: "/admin/announcements", label: t("admin.announcements"), icon: Megaphone },
-    // { to: "/admin/settings", label: t("admin.settings"), icon: SettingsIcon },
-  ];
+  // const insights = [
+  //   // { to: "/admin/reports", label: t("admin.reports"), icon: BarChart3 },
+  //   // { to: "/admin/announcements", label: t("admin.announcements"), icon: Megaphone },
+  //   // { to: "/admin/settings", label: t("admin.settings"), icon: SettingsIcon },
+  // ];
 
   const isActive = (to: string, exact?: boolean) =>
     exact ? pathname === to : pathname === to || pathname.startsWith(to + "/");
@@ -81,7 +81,7 @@ export function AdminSidebar() {
         <Section label={t("dashboard_common.overview")} items={main} />
         <Section label={t("dashboard_common.catalog")} items={catalog} />
         <Section label={t("dashboard_common.billing")} items={billing} />
-        <Section label={t("dashboard_common.insights")} items={insights} />
+        {/* <Section label={t("dashboard_common.insights")} items={insights} /> */}
       </SidebarContent>
       <SidebarFooter>
         <SidebarMenu>

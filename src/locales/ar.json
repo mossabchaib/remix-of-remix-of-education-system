@@ -7,6 +7,24 @@
     "contact": "تواصل معنا"
   },
   "common": {
+     "instructorFallback": "المدرّس",
+    "languageDefault": "الإنجليزية",
+    "join": "انضمام",
+    "remove": "إزالة",
+    "removing": "جارٍ الإزالة…",
+    "clearFilters": "مسح الفلاتر",
+    "weekdaysShort": {
+      "mon": "إثن",
+      "tue": "ثلا",
+      "wed": "أرب",
+      "thu": "خمي",
+      "fri": "جمع",
+      "sat": "سبت",
+      "sun": "أحد"
+    },
+       "saving": "جارٍ الحفظ...",
+      "delete": "حذف",
+      "deleting": "جارٍ الحذف...",
     "signIn": "تسجيل الدخول",
     "signOut": "تسجيل الخروج",
     "signedOut": "تم تسجيل الخروج",
@@ -41,6 +59,17 @@
     "completed": "مكتمل"
   },
   "dashboard_common": {
+    "actions": "الإجراءات",
+    "openRowMenu": "فتح قائمة الصف",
+    "allOption": "الكل - {{label}}",
+    "showingResults": "عرض {{shown}} من {{total}} نتيجة",
+    "previousPage": "الصفحة السابقة",
+    "nextPage": "الصفحة التالية",
+    "deleteConfirmTitle": "هل تريد حذف هذا السجل؟",
+    "deleteConfirmDescription": "لا يمكن التراجع عن هذا الإجراء. سيتم حذف السجل نهائيًا من مساحة العمل.",
+    "deleteSuccess": "تم حذف السجل",
+    "deleteError": "فشل حذف السجل",
+    "deleting": "جارٍ الحذف...",
     "workspace": "مساحة العمل",
     "overview": "نظرة عامة",
     "catalog": "الكتالوج",
@@ -219,6 +248,126 @@
     "copyright": "© {{year}} لومِن للتعلم. جميع الحقوق محفوظة."
   },
   "admin": {
+    "subscription": {
+       "review": {
+        "title": "مراجعة طلب الاشتراك",
+        "subtitle": "طلب {{name}} خطة",
+        "paymentProof": "إثبات الدفع",
+        "paymentProofAlt": "إثبات الدفع",
+        "openReceipt": "فتح ملف الإيصال (PDF)",
+        "noProof": "لا يوجد إثبات مرفق",
+        "accessDuration": "مدة الوصول (أيام)",
+        "defaultForPlan": "يومًا — الافتراضي لخطة {{plan}}: {{days}}",
+        "alreadyReviewed": "تمت مراجعة هذا الطلب مسبقًا.",
+        "alreadyReviewedOn": "تمت مراجعة هذا الطلب في {{date}}.",
+        "rejectButton": "رفض",
+        "approveButton": "الموافقة لمدة {{days}} يومًا",
+        "defaultStudentName": "الطالب",
+        "toast": {
+          "approved": "تمت الموافقة — سيحصل {{name}} على {{days}} يومًا من الوصول.",
+          "rejected": "تم رفض طلب الاشتراك."
+        },
+        "errors": {
+          "approveFailed": "فشلت الموافقة على الاشتراك.",
+          "rejectFailed": "فشل رفض الاشتراك."
+        }
+      },
+      "title": "الاشتراكات",
+      "description": "راجع إثباتات الدفع وأدر وصول الطلاب إلى الخطط.",
+      "stats": {
+        "pending": "بانتظار المراجعة",
+        "active": "المشتركون النشطون",
+        "revenue": "الإيرادات النشطة"
+      },
+      "tabs": { "pending": "قيد الانتظار", "all": "جميع الاشتراكات" },
+      "table": {
+        "customer": "العميل",
+        "plan": "الخطة",
+        "amount": "المبلغ",
+        "status": "الحالة",
+        "submitted": "تاريخ التقديم",
+        "expires": "تاريخ الانتهاء"
+      },
+      "actions": { "review": "مراجعة", "view": "عرض" },
+      "filters": { "plan": "الخطة", "status": "الحالة" },
+      "empty": {
+        "title": "لا توجد اشتراكات",
+        "pendingHint": "ستظهر إثباتات الدفع الجديدة هنا للمراجعة.",
+        "allHint": "ستظهر الاشتراكات هنا بمجرد أن يشترك الطلاب."
+      },
+      "toast": {
+        "approved": "تمت الموافقة على الاشتراك",
+        "rejected": "تم رفض الاشتراك"
+      },
+      "errors": {
+        "loadFailed": "فشل تحميل الاشتراكات",
+        "approveFailed": "فشلت الموافقة على الاشتراك",
+        "rejectFailed": "فشل رفض الاشتراك"
+      }
+    },
+    "categorie": {
+      "title": "التصنيفات",
+      "description": "قم بتجميع الدورات في تصنيفات يسهل تصفحها.",
+      "actions": { "new": "تصنيف جديد" },
+      "table": { "image": "الصورة", "name": "الاسم", "slug": "المعرف" },
+      "toast": {
+        "created": "تم إنشاء التصنيف",
+        "updated": "تم تحديث التصنيف",
+        "deleted": "تم حذف التصنيف بنجاح"
+      },
+      "errors": {
+        "loadFailed": "فشل تحميل التصنيفات",
+        "saveFailed": "فشل حفظ التصنيف",
+        "deleteFailed": "فشل حذف التصنيف"
+      },
+      "deleteDialog": {
+        "title": "هل تريد حذف هذا التصنيف؟",
+        "description": "سيتم حذف \"{{name}}\" نهائيًا. لا يمكن التراجع عن هذا الإجراء.",
+        "cancel": "إلغاء",
+        "confirm": "حذف",
+        "deleting": "جارٍ الحذف..."
+      },
+      "form": {
+        "editTitle": "تعديل التصنيف",
+        "createTitle": "تصنيف جديد",
+        "editDescription": "قم بتحديث تفاصيل التصنيف وصورته.",
+        "createDescription": "أضف اسمًا ومعرفًا وصورة واضحة.",
+        "nameLabel": "الاسم",
+        "namePlaceholder": "مثال: تطوير الويب",
+        "slugLabel": "المعرف",
+        "slugPlaceholder": "يُنشأ تلقائيًا",
+        "imageLabel": "الصورة",
+        "imageHint": "PNG أو JPG، بحجم أقصى 800 كيلوبايت.",
+        "imagePreviewAlt": "معاينة التصنيف",
+        "uploadImage": "رفع",
+        "replaceImage": "استبدال",
+        "removeImage": "إزالة",
+        "imageTooLarge": "يجب أن يكون حجم الصورة أقل من 800 كيلوبايت",
+        "saving": "جارٍ الحفظ...",
+        "saveButton": "حفظ التصنيف",
+        "updateButton": "تحديث التصنيف"
+      }
+    },
+     "untitledCourse": "دورة بدون عنوان",
+      "loadingCourses": "جارٍ تحميل الدورات...",
+      "coursesLoadError": "فشل تحميل الدورات. يرجى المحاولة مرة أخرى.",
+      "courseDeleteError": "فشل حذف الدورة",
+      "deleteCourseTitle": "هل تريد حذف هذه الدورة؟",
+      "deleteCourseDesc": "سيتم حذف \"{{title}}\" نهائيًا. لا يمكن التراجع عن هذا الإجراء.",
+     "userManagement": {
+      "fetchError": "فشل في جلب المستخدمين",
+      "fetchErrorTitle": "تعذّر تحميل المستخدمين",
+      "fetchErrorDescription": "حدث خطأ أثناء جلب قائمة المستخدمين. يرجى المحاولة مرة أخرى.",
+      "retry": "إعادة المحاولة",
+      "emptyState": "لا يوجد مستخدمون",
+      "unnamedUser": "مستخدم بدون اسم",
+      "roleFilterLabel": "الدور"
+    },
+    "roles": {
+      "admin": "مدير",
+      "teacher": "معلم",
+      "student": "طالب"
+    },
     "lumenAdmin": "إدارة لومِن",
     "workspace": "مساحة العمل",
     "overview": "نظرة عامة",
@@ -231,6 +380,7 @@
     "mrr": "الإيرادات الشهرية المتكررة",
     "newSignups": "التسجيلات الجديدة",
     "last12Months": "آخر 12 شهراً",
+     "totalCourses": "إجمالي الدورات",
     "recentPayments": "أحدث المدفوعات",
     "latestTransactions": "آخر المعاملات المالية",
     "newUsers": "المستخدمون الجدد",
@@ -312,7 +462,6 @@
     "productUpdates": "تحديثات المنتج",
     "general": "عام",
     "branding": "الهوية",
-    "billing": "الفوترة",
     "notifications": "الإشعارات",
     "categoriesPageTitle": "الفئات",
     "categoriesPageDesc": "جمع الدورات في فئات يمكن تصفحها.",
@@ -327,9 +476,61 @@
     "upload": "رفع",
     "remove": "إزالة",
     "color": "اللون",
-    "imageUnder800": "يجب أن تكون الصورة أقل من 800 كيلوبايت"
+    "noRevenueData": "لا توجد إيرادات مسجلة بعد.",
+    "noSignupData": "لا توجد تسجيلات جديدة بعد.",
+    "noPaymentsYet": "لا توجد مدفوعات بعد.",
+    "noUsersYet": "لا يوجد مستخدمون بعد.",
+    "unknownUser": "غير معروف",
+    "untitledPlan": "خطة بدون عنوان",
+    "subscriptionMethod": "اشتراك",
+    "loadErrorTitle": "تعذر تحميل بيانات لوحة التحكم",
+    "loadErrorDesc": "حدث خطأ أثناء جلب بيانات لوحتك. يرجى المحاولة مرة أخرى."
+
   },
   "teacher": {
+    "courseRemoveError": "فشل حذف الدورة. يرجى المحاولة مرة أخرى.",
+    "coursesLoadError": "فشل تحميل دوراتك. يرجى المحاولة مرة أخرى.",
+    "coursesLoading": "جارٍ تحميل دوراتك...",
+    "untitledCourse": "دورة بدون عنوان",
+    "noCoursesTitle": "لا توجد دورات بعد",
+    "noCoursesDesc": "أنشئ دورتك الأولى لتبدأ التدريس والوصول إلى طلابك.",
+    "deleteCourseTitle": "حذف هذه الدورة؟",
+    "deleteCourseDesc": "سيتم حذف \"{{title}}\" نهائيًا. لا يمكن التراجع عن هذا الإجراء.",
+    "overviewChart": {
+      "lessonsTitle": "الدروس المكتملة حسب الدورة",
+      "lessonsDesc": "{{students}} متعلمًا عبر {{courses}} دورة",
+      "completionBadge": "نسبة الإنجاز {{rate}}%",
+      "noEnrollmentTitle": "لا يوجد نشاط تسجيل بعد",
+      "noEnrollmentDesc": "سيظهر التقدم هنا بمجرد أن يبدأ الطلاب الدروس.",
+      "revenueTitle": "الإيرادات حسب الدورة",
+      "revenueDesc": "الأرباح الإجمالية المقدّرة",
+      "noRevenueTitle": "لا توجد إيرادات مسجّلة بعد",
+      "noRevenueDesc": "حدّد سعرًا لدورة لبدء تتبع الأرباح."
+    },
+    "topCourses": {
+      "title": "أفضل الدورات",
+      "empty": "لا توجد دورات بعد.",
+      "meta": "{{students}} طالب · {{rating}} ★"
+    },
+    "upcomingLive": {
+      "title": "الجلسات المباشرة القادمة",
+      "empty": "لا يوجد جدول حاليًا.",
+      "meta": "{{startsAt}} · {{attendees}} حاضر"
+    },
+    "pendingAssignments": {
+      "title": "الواجبات المعلّقة",
+      "manage": "إدارة",
+      "empty": "لا توجد واجبات معلّقة.",
+      "meta": "{{course}} · تستحق {{due}}"
+    },
+  "common": {
+    "allCaughtUp": "لا يوجد جديد."
+  },
+     "level": {
+        "beginner": "مبتدئ",
+        "intermediate": "متوسط",
+        "advanced": "متقدم"
+      },
     "workspace": "مساحة عمل المعلم",
     "overview": "نظرة عامة",
     "overviewDesc": "متابعة نشاط الدورات، تسجيل الطلاب، وطلبات السحب.",
@@ -401,6 +602,33 @@
     "statementExported": "تم تصدير البيان"
   },
   "student": {
+    "quizzesTaken": "الاختبارات المُجراة",
+    "quizAverage": "متوسط الاختبارات",
+    "plan": "الخطة",
+    "daysLeft_zero": "لا أيام متبقية",
+    "daysLeft_one": "يوم واحد متبقٍ",
+    "daysLeft_two": "يومان متبقيان",
+    "daysLeft_few": "{{count}} أيام متبقية",
+    "daysLeft_many": "{{count}} يومًا متبقيًا",
+    "daysLeft_other": "{{count}} يوم متبقٍ",
+    "continueLearning": "متابعة التعلّم",
+    "continueLearningDesc": "أكمل من حيث توقفت",
+    "allCaughtUp": "لقد أنجزت كل شيء — جميع الدورات في خطتك مكتملة.",
+    "studyActivity": "نشاط الدراسة",
+    "hoursStudiedDesc": "ساعات الدراسة — آخر ٧ أيام",
+    "noLiveSessions": "لا توجد جلسات مجدولة.",
+    "recentQuizResults": "نتائج الاختبارات الأخيرة",
+    "scoreFormat": "النتيجة {{score}}/{{total}}",
+    "noQuizzes": "لم تُجرِ أي اختبار بعد.",
+    "noWishlist": "لا توجد دورات محفوظة بعد.",
+    "toggleWishlist": "تبديل المفضلة",
+    "addToWishlist": "إضافة إلى المفضلة",
+    "removeFromWishlist": "إزالة من المفضلة",
+    "subPendingTitle": "طلب اشتراكك قيد المراجعة",
+    "subPendingDesc": "ستحصل على وصول كامل لجميع الدورات فور الموافقة عليه.",
+    "unlockDashboard": "افتح لوحة التحكم الخاصة بك",
+    "subscribeDesc": "اشترك في إحدى الخطط لفتح جميع الدورات على المنصة.",
+    "viewPlans": "عرض الخطط",
     "workspace": "مساحة عمل الطالب",
     "overview": "نظرة عامة",
     "overviewDesc": "مرحباً بعودتك! واصل التعلم من حيث توقفت.",
@@ -415,7 +643,7 @@
     "certificates": "شهاداتي المعتمدة",
     "certificatesDesc": "عرض وتحميل شهادات الإنجاز التي حصلت عليها.",
     "wishlist": "قائمة المفضلة",
-    "myOrders": "سجل الطلبات والشراء",
+    "myOrders": "الاشتراكات",
     "discover": "استكشف الكتالوج",
     "profile": "الملف الشخصي والإعدادات",
     "learner": "طالب",
@@ -466,5 +694,863 @@
     "view": "عرض",
     "download": "تنزيل",
     "share": "مشاركة"
+  },
+   "courseDetail": {
+    "backToCourses": "العودة إلى الدورات",
+    "notFound": {
+      "title": "الدورة غير موجودة",
+      "description": "ربما تم حذفها، أو أن الرابط قديم."
+    },
+    "unassigned": "غير معيّن",
+    "untitledCourse": "دورة بدون عنوان",
+    "courseBy": "دورة مقدَّمة من",
+    "updated": "آخر تحديث {{date}}",
+    "level": {
+      "beginner": "مبتدئ",
+      "intermediate": "متوسط",
+      "advanced": "متقدم"
+    },
+    "stats": {
+      "students": "الطلاب",
+      "lessons": "الدروس",
+      "duration": "المدة",
+      "liveSessions": "الجلسات المباشرة"
+    },
+    "tabs": {
+      "curriculum": "المنهج",
+      "uploads": "الملفات المرفوعة",
+      "live": "الجلسات المباشرة",
+      "metadata": "بيانات وصفية"
+    },
+    "curriculum": {
+      "emptyTitle": "لا يوجد منهج بعد",
+      "emptyDescription": "لم يقم هذا المعلم بإضافة أي وحدات لهذه الدورة.",
+      "lessonCount_one": "{{count}} درس",
+      "lessonCount_other": "{{count}} دروس",
+      "preview": "معاينة",
+      "locked": "مقفل"
+    },
+    "uploads": {
+      "emptyTitle": "لا توجد ملفات مرفوعة",
+      "emptyDescription": "ستظهر هنا مقاطع الفيديو وملفات PDF المرفقة بهذه الدورة.",
+      "openFile": "فتح {{title}}"
+    },
+    "live": {
+      "emptyTitle": "لا توجد جلسات مباشرة مجدولة",
+      "emptyDescription": "ستظهر هنا الجلسات التي يستضيفها هذا المعلم لهذه الدورة.",
+      "attendees_one": "{{count}} حاضر",
+      "attendees_other": "{{count}} حاضرين",
+      "hostedBy": "استضافة {{host}}",
+      "joinSession": "الانضمام إلى {{title}}",
+      "ended": "انتهت",
+      "upcoming": "قادمة"
+    },
+    "metadata": {
+      "slug": "المعرّف النصي",
+      "courseId": "معرّف الدورة",
+      "language": "اللغة",
+      "created": "تاريخ الإنشاء"
+    },
+    "about": {
+      "title": "عن هذه الدورة",
+      "noDescription": "لا يوجد وصف متاح."
+    },
+    "includes": {
+      "title": "تتضمن هذه الدورة",
+      "videos_one": "{{count}} فيديو عند الطلب",
+      "videos_other": "{{count}} فيديوهات عند الطلب",
+      "resources_one": "{{count}} مورد قابل للتحميل",
+      "resources_other": "{{count}} موارد قابلة للتحميل",
+      "liveSessions_one": "{{count}} جلسة مباشرة",
+      "liveSessions_other": "{{count}} جلسات مباشرة",
+      "lifetimeAccess": "وصول كامل مدى الحياة"
+    }
+  },
+   "builder": {
+    "backToCourses": "الدورات",
+    "subtitle": "قم ببناء هيكل الدورة وتفاصيلها.",
+    "published": "منشورة",
+    "draft": "مسودة",
+    "tabs": { "curriculum": "المنهج", "details": "التفاصيل" },
+    "saveCurriculum": "حفظ المنهج",
+    "loadingCurriculum": "جارٍ تحميل المنهج...",
+    "lessonsCount_one": "{{count}} درس",
+    "lessonsCount_other": "{{count}} دروس",
+    "addLesson": "إضافة درس",
+    "addModule": "إضافة وحدة",
+    "newModuleName": "وحدة جديدة {{count}}",
+    "newLessonName": "درس جديد",
+    "untitledModule": "هذه الوحدة",
+    "untitledLesson": "هذا الدرس",
+    "contentUrlPlaceholder": "رابط المحتوى",
+    "preview": "معاينة",
+    "courseInformation": "معلومات الدورة",
+    "percentComplete": "اكتمال {{percent}}%",
+    "titleLabel": "العنوان",
+    "titlePlaceholder": "مثال: معسكر تطوير الويب الشامل",
+    "subtitleLabel": "العنوان الفرعي",
+    "subtitlePlaceholder": "جملة قصيرة وجذابة عن الدورة",
+    "categoryLabel": "الفئة",
+    "categoryPlaceholder": "اختر فئة",
+    "languageLabel": "اللغة",
+    "languagePlaceholder": "مثال: العربية",
+    "descriptionLabel": "الوصف",
+    "descriptionPlaceholder": "صف ما سيتعلمه الطلاب في هذه الدورة...",
+    "levelStatus": "المستوى والحالة",
+    "difficultyLevel": "مستوى الصعوبة",
+    "visibility": "الظهور",
+    "saveChanges": "حفظ التغييرات",
+    "coverImage": "صورة الغلاف",
+    "uploadCoverImage": "انقر لرفع صورة الغلاف",
+    "uploadHint": "PNG أو JPG حتى 5 ميجابايت",
+    "pricing": "التسعير",
+    "priceLabel": "السعر (دولار أمريكي)",
+    "priceHint": "اضبطه على 0 لنشر الدورة مجانًا.",
+    "tips": "نصائح",
+    "tip1": "استخدم عنوانًا واضحًا يوضح للطلاب ما سيتعلمونه بالضبط.",
+    "tip2": "اجعل العنوان الفرعي قصيرًا — جملة واحدة تجذب القارئ.",
+    "tip3": "اختر صورة غلاف بتباين جيد لتظهر بوضوح كصورة مصغرة.",
+    "levels": { "beginner": "مبتدئ", "intermediate": "متوسط", "advanced": "متقدم" },
+    "statuses": { "draft": "مسودة", "published": "منشورة" },
+    "lessonKinds": { "video": "فيديو", "quiz": "اختبار", "article": "مقال" },
+    "moduleDeleted": "تم حذف الوحدة",
+    "moduleDeleteError": "فشل حذف الوحدة",
+    "lessonDeleted": "تم حذف الدرس",
+    "lessonDeleteError": "فشل حذف الدرس",
+    "deleteModuleTitle": "حذف هذه الوحدة؟",
+    "deleteModuleDesc": "سيتم حذف \"{{title}}\" وجميع دروسها نهائيًا. لا يمكن التراجع عن هذا الإجراء.",
+    "deleteLessonTitle": "حذف هذا الدرس؟",
+    "deleteLessonDesc": "سيتم حذف \"{{title}}\" نهائيًا. لا يمكن التراجع عن هذا الإجراء.",
+    "detailsSaved": "تم حفظ التغييرات بنجاح",
+    "detailsSaveError": "فشل حفظ التغييرات",
+    "curriculumSaved": "تم حفظ المنهج بنجاح",
+    "curriculumSaveError": "فشل حفظ المنهج",
+    "categoriesLoadError": "فشل تحميل الفئات",
+    "somethingWrong": "حدث خطأ ما",
+    "failedLoadCourse": "فشل تحميل الدورة",
+    "retry": "إعادة المحاولة",
+    "courseNotFound": "الدورة غير موجودة"
+  },
+  "teacherLessons": {
+    "title": "الدروس",
+    "description": "جميع الدروس في مقرراتك، في مكان واحد.",
+    "newLesson": "درس جديد",
+    "freePreview": "معاينة مجانية",
+    "loading": "جارٍ تحميل دروسك...",
+    "kind": { "video": "فيديو", "quiz": "اختبار", "article": "مقالة" },
+    "stats": { "total": "إجمالي الدروس", "videos": "فيديوهات", "quizzes": "اختبارات", "articles": "مقالات" },
+    "table": { "lesson": "الدرس", "course": "المقرر", "module": "الوحدة", "type": "النوع", "duration": "المدة" },
+    "emptyCourses": {
+      "title": "لا توجد مقررات بعد",
+      "description": "أنشئ مقررًا أولاً، ثم أضف الدروس إليه.",
+      "cta": "الانتقال إلى المقررات"
+    },
+    "emptyLessons": {
+      "title": "لا توجد دروس بعد",
+      "description": "أضف درسك الأول للبدء."
+    },
+    "editDialog": { "title": "تعديل الدرس" },
+    "newDialog": { "title": "درس جديد", "description": "اختر المقرر والوحدة اللذين ينتمي إليهما هذا الدرس." },
+    "deleteDialog": {
+      "title": "حذف الدرس؟",
+      "description": "سيتم حذف \"{{title}}\" نهائيًا. لا يمكن التراجع عن هذا الإجراء.",
+      "cancel": "إلغاء",
+      "confirm": "حذف",
+      "deleting": "جارٍ الحذف..."
+    },
+    "form": {
+      "title": "العنوان",
+      "titlePlaceholder": "مثال: مقدمة إلى الخطافات",
+      "type": "النوع",
+      "duration": "المدة",
+      "durationPlaceholder": "مثال: 10 دقائق",
+      "contentUrl": "رابط المحتوى",
+      "allowPreview": "السماح كمعاينة مجانية",
+      "course": "المقرر",
+      "module": "الوحدة",
+      "noModules": "لا توجد وحدات",
+      "noModulesHint": "لا يحتوي هذا المقرر على وحدات بعد. أضف وحدة من أداة إنشاء المقرر أولاً.",
+      "save": "حفظ",
+      "saving": "جارٍ الحفظ...",
+      "create": "إنشاء",
+      "creating": "جارٍ الإنشاء..."
+    },
+    "toast": {
+      "loadFailed": "فشل تحميل الدروس",
+      "updated": "تم تحديث الدرس",
+      "updateFailed": "فشل تحديث الدرس",
+      "removed": "تم حذف الدرس",
+      "removeFailed": "فشل حذف الدرس",
+      "created": "تم إنشاء الدرس — تم إشعار الطلاب",
+      "createFailed": "فشل إنشاء الدرس"
+    }
+  },
+   "teacherUploads": {
+    "title": "الملفات المرفوعة",
+    "description": "أدر فيديوهات مقرراتك وموارد PDF وتسجيلات الجلسات المباشرة.",
+    "loadingCourses": "جارٍ التحميل...",
+    "coursePlaceholder": "المقرر",
+    "generalCourse": "عام",
+    "uploading": "جارٍ الرفع…",
+    "upload": "رفع",
+    "loading": "جارٍ التحميل...",
+    "loadingUploads": "جارٍ تحميل الملفات المرفوعة…",
+    "ready": "جاهز",
+    "uploadingPct": "جارٍ الرفع {{pct}}٪",
+    "destination": {
+      "heading": "وجهة الرفع",
+      "videoOnly": "ملفات الفيديو فقط",
+      "videosOrPdfs": "فيديوهات أو ملفات PDF",
+      "lesson": "درس",
+      "recording": "تسجيل جلسة مباشرة",
+      "selectCourse": "اختر مقررًا",
+      "module": "وحدة",
+      "lessonField": "درس",
+      "selectModuleFirst": "اختر وحدة أولاً",
+      "liveSession": "جلسة مباشرة",
+      "willLinkLesson": "سيتم ربط الملفات المرفوعة بهذا الدرس",
+      "willSaveRecording": "سيتم حفظ الملفات المرفوعة كتسجيل لهذه الجلسة",
+      "unlockLesson": "اختر وحدة ودرسًا لتفعيل الرفع",
+      "unlockSession": "اختر جلسة مباشرة لتفعيل الرفع",
+      "noModulesHint": "لا يحتوي هذا المقرر على وحدات بعد — سيتم رفع الملفات دون ربطها بدرس.",
+      "noSessionsHint": "لا يحتوي هذا المقرر على جلسات مباشرة بعد — جدول جلسة أولاً من صفحة الجلسات المباشرة.",
+      "willReplaceRecording": "تحتوي هذه الجلسة على تسجيل بالفعل — سيؤدي رفع ملف جديد إلى استبداله."
+    },
+    "dropzone": {
+      "uploadingCount": "جارٍ رفع {{count}} ملف",
+      "uploadingCount_plural": "جارٍ رفع {{count}} ملفات",
+      "waitHint": "يرجى الانتظار حتى ينتهي هذا الرفع قبل إضافة ملفات أخرى.",
+      "chooseLessonFirst": "اختر وحدة ودرسًا أولاً",
+      "chooseSessionFirst": "اختر جلسة مباشرة أولاً",
+      "lockedHint": "الرفع مقفل حتى تحدد وجهة هذا الملف.",
+      "dropRecording": "أفلت تسجيل الجلسة هنا",
+      "dropFiles": "أفلت الملفات هنا للرفع",
+      "videoLimit": "فيديو فقط، حتى 2 جيجابايت",
+      "mixedLimit": "فيديوهات حتى 2 جيجابايت · ملفات PDF حتى 25 ميجابايت"
+    },
+    "tabs": {
+      "videos": "فيديوهات ({{count}})",
+      "pdfs": "ملفات PDF ({{count}})"
+    },
+    "empty": {
+      "videosTitle": "لا توجد فيديوهات بعد",
+      "videosDescription": "ارفع أول فيديو لمقررك.",
+      "pdfsTitle": "لا توجد ملفات PDF بعد",
+      "pdfsDescription": "ارفع أول مورد لمقررك."
+    },
+    "actions": {
+      "openVideo": "فتح الفيديو",
+      "openPdf": "فتح ملف PDF",
+      "linkToLesson": "ربط بدرس",
+      "deleteVideo": "حذف الفيديو",
+      "deletePdf": "حذف ملف PDF"
+    },
+    "linkDialog": {
+      "title": "ربط الملف بدرس",
+      "noModulesHint": "لا توجد وحدات لهذا المقرر. أضف وحدة من أداة إنشاء المقرر أولاً.",
+      "linking": "جارٍ الربط...",
+      "link": "ربط"
+    },
+    "deleteDialog": {
+      "title": "حذف هذا الملف؟",
+      "body": "سيتم حذف \"{{title}}\" نهائيًا. {{impact}} لا يمكن التراجع عن هذا الإجراء.",
+      "impactVideo": "سيفقد الطلاب الذين كانوا يشاهدونه إمكانية الوصول إليه.",
+      "impactPdf": "سيفقد الطلاب الذين كانوا يعرضونه إمكانية الوصول إليه.",
+      "cancel": "إلغاء",
+      "confirm": "حذف",
+      "deleting": "جارٍ الحذف…"
+    },
+    "preview": {
+      "video": "معاينة الفيديو",
+      "pdf": "معاينة PDF",
+      "exactView": "هذا بالضبط ما يراه الطلاب.",
+      "openNewTab": "فتح في تبويب جديد"
+    },
+    "toast": {
+      "linked": "تم ربط الملف بالدرس",
+      "linkFailed": "فشل ربط الملف",
+      "noPreviewLink": "لا يحتوي هذا الملف على رابط قابل للعرض بعد",
+      "removed": "تم حذف \"{{title}}\"",
+      "removeFailed": "فشل حذف الملف",
+      "selectLessonFirst": "اختر وحدة ودرسًا قبل الرفع",
+      "selectSessionFirst": "اختر جلسة مباشرة قبل الرفع",
+      "notVideoSingle": "\"{{name}}\" ليس فيديو — يجب أن تكون التسجيلات ملفات فيديو",
+      "notVideoMultiple": "{{count}} ملفات ليست فيديوهات — يجب أن تكون التسجيلات ملفات فيديو",
+      "uploaded": "تم رفع {{name}} — تم إشعار الطلاب",
+      "recordingLinked": "تم ربط التسجيل بالجلسة المباشرة",
+      "recordingLinkFailed": "تم الرفع، لكن تعذر ربطه بالجلسة المباشرة",
+      "lessonLinked": "تم الربط بالدرس",
+      "uploadFailed": "فشل رفع {{name}}"
+    }
+  },
+  "teacherQuizzes": {
+    "title": "الاختبارات",
+    "description": "أنشئ اختبارات وأدر بنك الأسئلة لكل مقرر.",
+    "newQuiz": "اختبار جديد",
+    "deleteQuiz": "حذف الاختبار",
+    "published": "منشور",
+    "manageQuestions": "إدارة الأسئلة",
+    "preview": "معاينة",
+    "questionsCount": "{{count}} سؤال",
+    "questionsCount_plural": "{{count}} أسئلة",
+    "minutes": "{{count}} دقيقة",
+    "minutes_plural": "{{count}} دقيقة",
+    "empty": {
+      "title": "لا توجد اختبارات بعد",
+      "noCourses": "أنشئ مقررًا أولاً، ثم أضف الاختبارات إليه.",
+      "noQuizzes": "أنشئ اختبارك الأول للبدء."
+    },
+    "newDialog": {
+      "title": "اختبار جديد",
+      "titleField": "العنوان",
+      "titlePlaceholder": "مثال: React Hooks — الأساسيات",
+      "course": "المقرر",
+      "selectCourse": "اختر مقررًا",
+      "selectCourseFirst": "الرجاء اختيار مقرر.",
+      "duration": "المدة (دقيقة)",
+      "create": "إنشاء",
+      "creating": "جارٍ الإنشاء…"
+    },
+    "deleteDialog": {
+      "title": "حذف هذا الاختبار؟",
+      "description": "سيتم حذف الاختبار وجميع أسئلته نهائيًا. لا يمكن التراجع عن هذا الإجراء.",
+      "cancel": "إلغاء",
+      "confirm": "حذف",
+      "deleting": "جارٍ الحذف…"
+    },
+    "toast": {
+      "loadFailed": "تعذر تحميل اختباراتك. حاول مرة أخرى.",
+      "created": "تم إنشاء الاختبار — تم إشعار الطلاب",
+      "createFailed": "حدث خطأ أثناء إنشاء الاختبار.",
+      "removed": "تم حذف الاختبار",
+      "removeFailed": "تعذر حذف هذا الاختبار."
+    }
+  },
+   "teacherQuizEditor": {
+    "backToQuizzes": "العودة إلى الاختبارات",
+    "notFound": {
+      "title": "الاختبار غير موجود",
+      "description": "ربما تم حذفه، أو أن الرابط غير صالح.",
+      "back": "العودة إلى الاختبارات"
+    },
+    "meta": {
+      "quizTitle": "عنوان الاختبار",
+      "duration": "المدة (بالدقائق)",
+      "save": "حفظ"
+    },
+    "questions": {
+      "heading": "الأسئلة",
+      "newQuestion": "سؤال جديد",
+      "emptyTitle": "لا توجد أسئلة بعد",
+      "emptyDescription": "أضف سؤالك الأول لبناء هذا الاختبار."
+    },
+    "questionDialog": {
+      "newTitle": "سؤال جديد",
+      "editTitle": "تعديل السؤال"
+    },
+    "deleteDialog": {
+      "title": "حذف هذا السؤال؟",
+      "description": "لا يمكن التراجع عن هذا الإجراء.",
+      "cancel": "إلغاء",
+      "confirm": "حذف",
+      "deleting": "جارٍ الحذف…"
+    },
+    "toast": {
+      "loadFailed": "تعذر تحميل هذا الاختبار.",
+      "metaUpdated": "تم تحديث تفاصيل الاختبار",
+      "metaSaveFailed": "تعذر حفظ تفاصيل الاختبار.",
+      "questionRemoved": "تم حذف السؤال",
+      "questionRemoveFailed": "تعذر حذف هذا السؤال.",
+      "questionUpdated": "تم تحديث السؤال",
+      "questionAdded": "تمت إضافة السؤال",
+      "questionSaveFailed": "تعذر حفظ هذا السؤال."
+    }
+  },
+  "teacherLive": {
+    "title": "الجلسات المباشرة",
+    "description": "جدول وأدر الحصص المباشرة مع طلابك.",
+    "schedule": "جدولة",
+    "started": "بدأت",
+    "deleteSession": "حذف الجلسة",
+    "attendeesLine": "{{startsAt}} · {{count}} مسجّل",
+    "starting": "جارٍ البدء…",
+    "startSession": "بدء الجلسة",
+    "edit": "تعديل",
+    "empty": {
+      "title": "لا توجد جلسات بعد",
+      "description": "جدول أول حصة مباشرة لك."
+    },
+    "dialog": {
+      "newTitle": "جلسة جديدة",
+      "editTitle": "تعديل الجلسة"
+    },
+    "deleteDialog": {
+      "title": "حذف هذه الجلسة؟",
+      "description": "سيتم حذف \"{{title}}\" نهائيًا. لا يمكن التراجع عن هذا الإجراء.",
+      "cancel": "إلغاء",
+      "confirm": "حذف",
+      "deleting": "جارٍ الحذف…"
+    },
+    "form": {
+      "title": "العنوان",
+      "course": "المقرر",
+      "host": "المضيف",
+      "startsAt": "وقت البدء",
+      "duration": "المدة",
+      "attendees": "الحضور",
+      "joinUrl": "رابط الانضمام (اختياري)",
+      "save": "حفظ",
+      "saving": "جارٍ الحفظ…"
+    },
+    "toast": {
+      "loadFailed": "تعذر تحميل الجلسات المباشرة.",
+      "removed": "تم حذف الجلسة",
+      "deleteFailed": "تعذر حذف الجلسة. حاول مرة أخرى.",
+      "noJoinUrl": "لا يوجد رابط انضمام لهذه الجلسة. عدّل الجلسة لإضافة رابط.",
+      "started": "بدأت {{title}}",
+      "startFailed": "تعذر بدء الجلسة. حاول مرة أخرى.",
+      "updated": "تم تحديث الجلسة",
+      "scheduled": "تمت جدولة الجلسة — تم إشعار الطلاب",
+      "saveFailed": "تعذر حفظ الجلسة. حاول مرة أخرى."
+    }
+  },
+  "teacherProgress": {
+    "title": "تقدّم المقررات",
+    "description": "إجمالي إنجاز الدروس عبر جميع مقرراتك.",
+    "stats": {
+      "lessonsTotal": "إجمالي الدروس",
+      "completionRate": "معدل الإنجاز",
+      "avgQuizScore": "متوسط درجات الاختبارات"
+    },
+    "rowSummary": "{{students}} طالب · {{done}}/{{total}} درس مكتمل",
+    "empty": {
+      "title": "لا توجد مقررات بعد",
+      "description": "سيظهر التقدّم هنا بمجرد أن يبدأ الطلاب في إكمال الدروس."
+    },
+    "error": {
+      "title": "تعذر تحميل التقدّم",
+      "description": "حدث خطأ أثناء جلب هذه البيانات. حاول مرة أخرى."
+    }
+  },
+    "catalog": {
+    "title": "تصفّح الكتالوج",
+    "description": "كل دورة منشورة في لومين، متاحة لعضويتك.",
+    "descriptionLocked": "كل دورة منشورة في لومين.",
+    "searchPlaceholder": "ابحث في الكتالوج",
+    "level": "المستوى",
+    "allLevels": "كل المستويات",
+    "levels": {
+      "beginner": "مبتدئ",
+      "intermediate": "متوسط",
+      "advanced": "متقدم"
+    },
+    "category": "الفئة",
+    "allCategories": "كل الفئات",
+    "defaultCategory": "عام",
+    "defaultInstructor": "مدرّب لومين",
+    "membershipActive": "العضوية نشطة",
+    "accessThrough": "الوصول متاح حتى {{date}}",
+    "noWishlisted": "لا توجد دورات في المفضلة",
+    "noWishlistedDesc": "اضغط على أيقونة القلب في بطاقة الدورة لحفظها هنا.",
+    "noMatch": "لا توجد دورات مطابقة",
+    "noMatchDesc": "جرّب كلمة بحث أو مستوى أو فئة مختلفة.",
+    "viewCourse": "عرض الدورة",
+    "locked": {
+      "pendingTitle": "عضويتك قيد المراجعة",
+      "pendingDesc": "نقوم حاليًا بتأكيد إثبات الدفع. عادةً ما يستغرق هذا أقل من يوم — سيتم إشعارك فور الموافقة.",
+      "expiredTitle": "انتهت صلاحية عضويتك",
+      "expiredDesc": "جدّد اشتراكك للعودة إلى جميع الدورات والجلسات المباشرة ومسارات الشهادات.",
+      "title": "الكتالوج الكامل متاح للأعضاء فقط",
+      "defaultDesc": "اشترك مرة واحدة لفتح جميع الدورات في لومين — بدون شراء لكل دورة على حدة، وبلا حدود لعدد الدورات التي تبدأها.",
+      "renew": "تجديد العضوية",
+      "viewPlans": "عرض خطط العضوية"
+    }
+  },
+   "coursePlayer": {
+    "myCourses": "دوراتي",
+    "loadingCourse": "جارٍ تحميل الدورة…",
+    "notFound": {
+      "title": "الدورة غير موجودة",
+      "backToCourses": "الرجوع إلى دوراتي"
+    },
+    "noLessons": {
+      "title": "لم يتم نشر أي دروس بعد",
+      "subtitle": "تحقق لاحقًا بعد أن يضيف المدرّس محتوى لهذه الدورة."
+    },
+    "lessonOf": "الدرس {{current}} من {{total}}",
+    "downloadDisabled": "التحميل غير متاح",
+    "completed": "مكتمل",
+    "videoUnsupported": "متصفحك لا يدعم تشغيل الفيديو المضمّن.",
+    "openReadingMaterial": "فتح مادة القراءة",
+    "previous": "السابق",
+    "saving": "جارٍ الحفظ…",
+    "markComplete": "تحديد كمكتمل",
+    "markCompleteAndContinue": "إكمال الدرس والمتابعة",
+    "markAsNotDone": "إلغاء الإكمال",
+    "takeQuiz": "بدء الاختبار",
+    "quizNotAvailable": "الاختبار غير متاح بعد",
+    "attachmentsForLesson": "مرفقات هذا الدرس ({{count}})",
+    "courseContent": "محتوى الدورة",
+    "lessonsCompleted": "{{done}} من {{total}} دروس",
+    "lessonKind": {
+      "video": "فيديو",
+      "pdf": "مستند",
+      "quiz": "اختبار",
+      "text": "قراءة"
+    },
+    "playing": "قيد التشغيل",
+    "video": "فيديو",
+    "pdf": "ملف PDF",
+    "play": "تشغيل",
+    "get": "تنزيل",
+    "pdfBadge": "PDF",
+    "pdfDocument": "ملف PDF",
+    "lessonDocuments": "مستندات الدرس",
+    "progress": "التقدّم"
+  },
+   "studentQuizzes": {
+    "loading": "جارٍ التحميل…",
+    "title": "الاختبارات",
+    "description": "اختبر ما تعلّمته وراجع محاولاتك السابقة.",
+    "membershipActive": "الاشتراك فعّال",
+    "accessThrough": "الوصول متاح حتى {{date}}",
+    "filterBy": "تصفية حسب:",
+    "allCategories": "جميع التصنيفات",
+    "allCourses": "جميع الدورات",
+    "resetFilters": "إعادة ضبط الفلاتر",
+    "clearFilters": "مسح الفلاتر",
+    "notTaken": "لم يُجرَ",
+    "questionsCount": "{{count}} أسئلة",
+    "minutes": "{{count}} دقيقة",
+    "reviewOrRetake": "مراجعة النتائج / إعادة المحاولة",
+    "startQuiz": "بدء الاختبار",
+    "stats": {
+      "available": "المتاحة",
+      "attempts": "المحاولات",
+      "averageScore": "متوسط النتيجة"
+    },
+    "empty": {
+      "title": "لا توجد اختبارات متاحة",
+      "filteredDescription": "لم يتم العثور على اختبارات تطابق فلتر التصنيف/الدورة المحدد.",
+      "defaultDescription": "لا توجد اختبارات منشورة لدوراتك بعد."
+    },
+    "locked": {
+      "pendingTitle": "اشتراكك قيد المراجعة",
+      "expiredTitle": "انتهت صلاحية اشتراكك",
+      "defaultTitle": "الاختبارات متاحة للمشتركين فقط",
+      "pendingDescription": "نقوم بتأكيد إثبات الدفع الخاص بك. عادةً ما يستغرق ذلك أقل من يوم.",
+      "expiredDescription": "جدّد اشتراكك للوصول إلى الاختبارات ومتابعة تقدّمك.",
+      "defaultDescription": "اشترك لفتح جميع الاختبارات والدورات والميزات التفاعلية في Lumen.",
+      "renew": "تجديد الاشتراك",
+      "viewPlans": "عرض خطط الاشتراك"
+    }
+  },
+   "quizPage": {
+    "quizzes": "الاختبارات",
+    "notFound": "الاختبار غير موجود",
+    "backToQuizzes": "الرجوع إلى الاختبارات",
+    "noQuestions": "لا توجد أسئلة متاحة في هذا الاختبار.",
+    "questionOf": "السؤال {{current}} من {{total}}",
+    "percentAnswered": "تمت الإجابة على {{pct}}%",
+    "previous": "السابق",
+    "next": "التالي",
+    "submitQuiz": "إرسال الاختبار",
+    "submitting": "جارٍ الإرسال…",
+    "multiSelectHint": "يمكنك اختيار أكثر من إجابة إذا كان ذلك مناسبًا.",
+    "true": "صحيح",
+    "false": "خطأ",
+    "chooseMatch": "اختر تطابقًا…",
+    "toast": {
+      "loadError": "تعذّر تحميل هذا الاختبار.",
+      "timeUp": "انتهى الوقت — سيتم إرسال إجاباتك تلقائيًا.",
+      "submitSuccess": "حصلت على {{score}}/{{total}} خلال {{duration}}",
+      "submitError": "تعذّر إرسال اختبارك. حاول مرة أخرى."
+    },
+    "results": {
+      "heading": "{{title}} · النتائج",
+      "scoreLabel": "النتيجة {{score}} / {{total}}",
+      "timeTaken": "الوقت المستغرق",
+      "passed": "ناجح",
+      "tryAgain": "حاول مرة أخرى",
+      "retake": "إعادة المحاولة",
+      "retakeConfirm": {
+        "title": "إعادة هذا الاختبار؟",
+        "description": "سيتم استبدال نتائجك وإجاباتك الحالية لهذه المحاولة بمجرد إرسال محاولة جديدة.",
+        "cancel": "إلغاء",
+        "confirm": "نعم، أعد المحاولة"
+      },
+      "allQuizzes": "جميع الاختبارات",
+      "review": "المراجعة",
+      "correctAnswer": "الإجابة الصحيحة",
+      "youAnswered": "إجابتك: {{value}}",
+      "noAnswer": "لا توجد إجابة",
+      "correctValue": "الصحيح: {{value}}"
+    }
+  },
+   "liveClasses": {
+    "loading": "جارٍ التحميل…",
+    "title": "الحصص المباشرة",
+    "description": "انضم إلى جلسات تفاعلية مع المدرّسين وزملائك.",
+    "membershipActive": "الاشتراك فعّال",
+    "accessThrough": "الوصول متاح حتى {{date}}",
+    "filterBy": "تصفية حسب:",
+    "allCategories": "جميع التصنيفات",
+    "allCourses": "جميع الدورات",
+    "resetFilters": "إعادة ضبط الفلاتر",
+    "clearFilters": "مسح الفلاتر",
+    "defaultDuration": "60 دقيقة",
+    "live": "مباشر",
+    "untitledSession": "جلسة بدون عنوان",
+    "defaultHost": "المدرّس",
+    "hostedBy": "يستضيفها {{host}} · {{count}} مسجّل",
+    "opening": "جارٍ الفتح…",
+    "joinLiveNow": "انضم الآن مباشرة",
+    "joinSession": "انضمام إلى الجلسة",
+    "viewRecording": "عرض التسجيل",
+    "noRecording": "لا يوجد تسجيل",
+    "tabs": {
+      "upcoming": "القادمة ({{count}})",
+      "past": "السابقة ({{count}})"
+    },
+    "empty": {
+      "upcomingTitle": "لا توجد جلسات قادمة",
+      "upcomingDescription": "ستظهر هنا الجلسات المُجدولة من قِبل المدرّسين.",
+      "pastTitle": "لا توجد جلسات سابقة",
+      "pastDescription": "سيظهر هنا سجل جلساتك."
+    },
+    "recording": {
+      "defaultTitle": "تسجيل الجلسة",
+      "unavailable": "لا يوجد تسجيل متاح لهذه الجلسة."
+    },
+    "toast": {
+      "noJoinUrl": "لم يتم توفير رابط انضمام لهذه الجلسة بعد.",
+      "joining": "جارٍ الانضمام إلى {{title}}",
+      "openLinkError": "تعذّر فتح رابط الجلسة. حاول مرة أخرى."
+    },
+    "locked": {
+      "pendingTitle": "اشتراكك قيد المراجعة",
+      "expiredTitle": "انتهت صلاحية اشتراكك",
+      "defaultTitle": "الحصص المباشرة متاحة للمشتركين فقط",
+      "pendingDescription": "نقوم بتأكيد إثبات الدفع الخاص بك. عادةً ما يستغرق ذلك أقل من يوم.",
+      "expiredDescription": "جدّد اشتراكك للوصول إلى الحصص المباشرة والجلسات التفاعلية.",
+      "defaultDescription": "اشترك لفتح جميع الجلسات المباشرة والدورات والميزات التفاعلية في Lumen.",
+      "renew": "تجديد الاشتراك",
+      "viewPlans": "عرض خطط الاشتراك"
+    }
+  },
+  "progressPage": {
+    "title": "التقدّم",
+    "description": "تابع مدى تقدّمك في كل دورة ضمن خطتك.",
+    "planDaysLeft": "{{plan}} · متبقٍ {{days}} يوم",
+    "progressByCourse": "التقدّم حسب الدورة",
+    "courseProgress": "تقدّم الدورات",
+    "courseProgressHint": "تشمل هذه القائمة كل دورة ضمن خطتك — إحصائيات الاختبارات تظهر عند التوسيع لكل دورة.",
+    "courseRowSummary": "{{teacher}} · {{done}}/{{total}} دروس · {{quizCount}} اختبارات",
+    "noAttemptsYet": "لا توجد محاولات اختبار بعد لهذه الدورة.",
+    "noCourses": "لا توجد دورات متاحة بعد.",
+    "stats": {
+      "averageProgress": "متوسط التقدّم",
+      "lessonsCompleted": "الدروس المكتملة",
+      "quizAverage": "متوسط الاختبارات",
+      "quizzesTaken": "الاختبارات المُجراة"
+    },
+    "noSubscription": {
+      "pendingTitle": "طلب اشتراكك قيد المراجعة",
+      "expiredTitle": "انتهت صلاحية اشتراكك",
+      "rejectedTitle": "تم رفض آخر طلب اشتراك لك",
+      "defaultTitle": "افتح متابعة التقدّم",
+      "pendingDescription": "ستحصل على وصول كامل لجميع الدورات ومتابعة التقدّم بمجرد الموافقة على طلبك.",
+      "defaultDescription": "اشترك في إحدى الخطط لفتح جميع الدورات على المنصة وابدأ بمتابعة تقدّمك هنا.",
+      "viewPlans": "عرض الخطط"
+    }
+  },
+   "subscriptionPage": {
+    "title": "اشتراكي",
+    "description": "اشترك في إحدى الخطط لفتح جميع الدورات على المنصة.",
+    "history": "سجل الاشتراكات",
+    "choosePlan": "اختيار {{plan}}",
+    "status": {
+      "active": "فعّال",
+      "pending": "قيد المراجعة",
+      "expired": "منتهي",
+      "rejected": "مرفوض",
+      "cancelled": "ملغى"
+    },
+    "stats": {
+      "currentPlan": "الخطة الحالية",
+      "daysRemaining": "الأيام المتبقية",
+      "status": "الحالة"
+    },
+    "pending": {
+      "title": "طلبك لخطة {{plan}} قيد المراجعة",
+      "description": "سنُعلمك بمجرد تحقق أحد المشرفين من دفعتك. عادةً ما يستغرق ذلك أقل من 24 ساعة."
+    },
+    "noActive": {
+      "title": "ليس لديك اشتراك فعّال",
+      "description": "اختر إحدى الخطط أدناه للحصول على وصول كامل لجميع الدورات."
+    },
+    "table": {
+      "plan": "الخطة",
+      "amount": "المبلغ",
+      "status": "الحالة",
+      "submitted": "تاريخ الإرسال",
+      "expires": "تاريخ الانتهاء"
+    },
+    "empty": {
+      "title": "لا توجد اشتراكات بعد",
+      "description": "بمجرد اشتراكك في إحدى الخطط، ستظهر طلباتك هنا."
+    },
+    "badges": {
+      "save14": "وفّر 14%",
+      "bestValue": "الأفضل قيمةً"
+    },
+    "plans": {
+      "monthly": {
+        "name": "شهري",
+        "period": "شهر",
+        "features": {
+          "0": "وصول كامل لجميع الدورات",
+          "1": "جلسات مباشرة وأسئلة وأجوبة",
+          "2": "شهادات عند الإكمال"
+        }
+      },
+      "quarterly": {
+        "name": "ربع سنوي",
+        "period": "3 أشهر",
+        "features": {
+          "0": "كل مزايا الخطة الشهرية",
+          "1": "دعم ذو أولوية",
+          "2": "موارد قابلة للتنزيل"
+        }
+      },
+      "yearly": {
+        "name": "سنوي",
+        "period": "سنة",
+        "features": {
+          "0": "كل مزايا الخطة الربع سنوية",
+          "1": "وصول مبكر للدورات الجديدة",
+          "2": "جلسة إرشاد فردية"
+        }
+      }
+    },
+    "toast": {
+      "invalidFileType": "يرجى رفع صورة أو ملف PDF لإيصال الدفع.",
+      "fileTooLarge": "الملف كبير جدًا. الحد الأقصى 5 ميجابايت.",
+      "missingProof": "يرجى إرفاق إثبات الدفع للمتابعة.",
+      "submitSuccess": "تم إرسال طلب الاشتراك — بانتظار موافقة المشرف.",
+      "submitError": "تعذّر إرسال طلب الاشتراك."
+    },
+    "dialog": {
+      "title": "الاشتراك في {{plan}}",
+      "descriptionPrefix": "حوّل مبلغ",
+      "descriptionSuffix": "وارفع إيصال الدفع (إثبات شيك/تحويل) أدناه. سيقوم فريقنا بالمراجعة وتفعيل وصولك.",
+      "uploadPrompt": "انقر لرفع الإيصال",
+      "uploadHint": "PNG أو JPG أو PDF · حتى 5 ميجابايت",
+      "proofAlt": "إثبات الدفع",
+      "cancel": "إلغاء",
+      "submit": "إرسال الطلب",
+      "submitting": "جارٍ الإرسال…"
+    }
+  },
+  "coursesPage": {
+    "title": "دليل الدورات",
+    "subtitle": "تصفّح أكثر من {{count}} دورة مميزة. صفِّ النتائج حسب التصنيف والمستوى والتقييم.",
+    "searchPlaceholder": "ابحث عن موضوع، مثل TypeScript",
+    "clearFilters": "مسح الفلاتر",
+    "resetFilters": "إعادة ضبط الفلاتر",
+    "generalCategory": "عام",
+    "newBadge": "جديد",
+    "byInstructor": "بواسطة {{name}}",
+    "defaultInstructor": "المدرّس",
+    "filters": {
+      "category": "التصنيف",
+      "allCategories": "جميع التصنيفات",
+      "level": "المستوى",
+      "allLevels": "جميع المستويات",
+      "rating": "التقييم",
+      "sort": "الترتيب"
+    },
+    "levels": {
+      "beginner": "مبتدئ",
+      "intermediate": "متوسط",
+      "advanced": "متقدّم"
+    },
+    "ratings": {
+      "any": "أي تقييم",
+      "upFrom": "{{value}} فأعلى"
+    },
+    "sort": {
+      "popular": "الأكثر شهرة",
+      "rating": "الأعلى تقييمًا",
+      "newest": "الأحدث"
+    },
+    "empty": {
+      "title": "لا توجد دورات تطابق الفلاتر المحددة",
+      "description": "جرّب مسح البحث أو اختيار تصنيف مختلف."
+    },
+    "toast": {
+      "categoriesError": "تعذّر تحميل التصنيفات",
+      "coursesError": "تعذّر تحميل الدورات"
+    }
+  },
+  "courseDetails": {
+    "backToCourses": "كل الدورات",
+    "newCourse": "دورة جديدة",
+    "selfPaced": "بالوتيرة التي تناسبك",
+    "levelDefault": "مبتدئ",
+    "categoryDefault": "عام",
+    "enrolledBadge": "مسجَّل",
+    "previewBadge": "معاينة",
+    "lessonCount_one": "درس واحد",
+    "lessonCount_other": "{{count}} دروس",
+    "learners_one": "متعلّم واحد",
+    "learners_other": "{{count}} متعلّم",
+    "tabs": {
+      "overview": "نظرة عامة",
+      "curriculum": "المنهج",
+      "instructor": "المدرّس"
+    },
+    "about": {
+      "title": "عن هذه الدورة",
+      "empty": "لم يضف المدرّس نظرة عامة عن الدورة بعد."
+    },
+    "curriculum": {
+      "empty": "لا يحتوي هذا الكورس على أي محتوى منشور بعد."
+    },
+    "instructor": {
+      "role": "مدرّس",
+      "taughtBy": "هذه الدورة يقدمها {{name}}."
+    },
+    "cta": {
+      "goToCourse": "الذهاب إلى دورتي",
+      "enrollFree": "التسجيل مجاناً",
+      "enrollingFree": "جارٍ التسجيل...",
+      "buyCourse": "شراء الدورة",
+      "redirecting": "جارٍ التحويل..."
+    },
+    "sidebar": {
+      "onDemand": "{{duration}} حسب الطلب"
+    },
+    "notFound": {
+      "title": "الدورة غير موجودة",
+      "description": "الدورة التي تبحث عنها غير موجودة.",
+      "backButton": "العودة إلى الدورات"
+    }
+  },
+  "sidebar": {
+    "teacher": {
+      "overview": "نظرة عامة",
+      "contentManagement": "إدارة المحتوى",
+      "mediaAndUploads": "الوسائط والرفع",
+      "engagement": "البث المباشر والأداء"
+    },
+    "student": {
+      "overview": "نظرة عامة",
+      "learningActivity": "التعلم والاختبارات",
+      "trackingAndOrders": "التقدم والطلبات",
+      "explore": "استكشاف"
+    }
   }
+
+  
 }

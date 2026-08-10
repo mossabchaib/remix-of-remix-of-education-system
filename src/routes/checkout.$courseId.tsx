@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { courses } from "@/lib/mock-data";
 import { setCheckout } from "@/lib/lms-storage";
+import { useAuth } from "@/hooks/useAuth"; // <-- إضافة استدعاء useAuth
 
 export const Route = createFileRoute("/checkout/$courseId")({
   loader: ({ params }) => {
@@ -34,10 +35,22 @@ export const Route = createFileRoute("/checkout/$courseId")({
 function Checkout() {
   const { course } = Route.useLoaderData();
   const navigate = useNavigate();
+  const { isAuthenticated }:any = useAuth(); // <-- فحص حالة تسجيل الدخول
+
   const tax = Math.round(course.price * 0.08 * 100) / 100;
   const total = course.price + tax;
 
   function next() {
+    // 1. إذا لم يكن المستخدم مسجلاً، توجه لصفحة الـ Login
+    if (!isAuthenticated) {
+      navigate({
+        to: "/login",
+        search: { redirect: window.location.pathname },
+      });
+      return;
+    }
+
+    // 2. إذا كان مسجلاً، استكمل عملية الدفع
     setCheckout({ courseId: course.id, method: "Card" });
     navigate({ to: "/payment/$courseId", params: { courseId: course.id } });
   }

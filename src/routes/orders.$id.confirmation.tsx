@@ -4,7 +4,7 @@ import { SiteLayout } from "@/components/site/SiteLayout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { getOrder } from "@/lib/lms-storage";
+import { useOrder } from "@/hooks/Useorder";
 
 export const Route = createFileRoute("/orders/$id/confirmation")({
   head: () => ({ meta: [{ title: "Order confirmation — Lumen" }, { name: "robots", content: "noindex" }] }),
@@ -13,7 +13,7 @@ export const Route = createFileRoute("/orders/$id/confirmation")({
 
 function Confirmation() {
   const { id } = Route.useParams();
-  const order = typeof window !== "undefined" ? getOrder(id) : undefined;
+  const order = useOrder(id);
   if (!order) throw notFound();
   return (
     <SiteLayout>

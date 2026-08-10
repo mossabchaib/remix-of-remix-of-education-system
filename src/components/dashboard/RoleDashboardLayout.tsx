@@ -27,47 +27,71 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { clearSession, getSession } from "@/lib/auth";
 
-type NavItem = { label: string; icon: ComponentType<{ className?: string }>; to: string };
-
-const getTeacherNav = (t: (key: string) => string): NavItem[] => [
-  { label: t("dashboard_common.overview"), icon: LayoutDashboard, to: "/dashboard/teacher" },
-  { label: t("teacher.myCourses"), icon: BookOpen, to: "/dashboard/teacher/courses" },
-  { label: t("teacher.createCourse"), icon: Plus, to: "/dashboard/teacher/courses/new" },
-  { label: t("teacher.lessonsNav"), icon: FileVideo, to: "/dashboard/teacher/lessons" },
-  { label: t("teacher.uploads"), icon: UploadCloud, to: "/dashboard/teacher/uploads" },
-  { label: t("teacher.quizzes"), icon: ListChecks, to: "/dashboard/teacher/quizzes" },
-  { label: t("teacher.liveSessions"), icon: Video, to: "/dashboard/teacher/live" },
-  { label: t("teacher.studentsNav"), icon: Users, to: "/dashboard/teacher/students" },
-  { label: t("teacher.studentProgress"), icon: TrendingUp, to: "/dashboard/teacher/progress" },
-  { label: t("teacher.analytics"), icon: BarChart3, to: "/dashboard/teacher/analytics" },
-  { label: t("teacher.revenue"), icon: DollarSign, to: "/dashboard/teacher/revenue" },
-  { label: t("common.notifications"), icon: Bell, to: "/dashboard/teacher/notifications" },
-];
-
-const getStudentNav = (t: (key: string) => string): NavItem[] => [
-  { label: t("dashboard_common.overview"), icon: LayoutDashboard, to: "/dashboard/student" },
-  { label: t("student.myCourses"), icon: BookOpen, to: "/dashboard/student/courses" },
-  { label: t("student.resources"), icon: FileText, to: "/dashboard/student/resources" },
-  { label: t("student.quizzes"), icon: ListChecks, to: "/dashboard/student/quizzes" },
-  { label: t("student.liveClasses"), icon: Video, to: "/dashboard/student/live" },
-  { label: t("student.progress"), icon: TrendingUp, to: "/dashboard/student/progress" },
-  { label: t("student.certificates"), icon: Award, to: "/dashboard/student/certificates" },
-  { label: t("student.wishlist"), icon: Heart, to: "/dashboard/student/wishlist" },
-  { label: t("student.myOrders"), icon: ShoppingBag, to: "/dashboard/student/orders" },
-  { label: t("common.notifications"), icon: Bell, to: "/dashboard/student/notifications" },
-  { label: t("student.discover"), icon: Compass, to: "/courses" },
-];
-
-const accountNav = (role: "teacher" | "student", t: (key: string) => string): NavItem[] => {
-  const base: NavItem[] = [
-    { label: t("common.profile"), icon: UserCircle, to: `/dashboard/${role}/profile` },
-  ];
-  if (role === "teacher") base.push({ label: t("teacher.helpSupport"), icon: LifeBuoy, to: `/dashboard/teacher/help` });
-  return base;
+type NavSection = {
+  title: string;
+  items: { label: string; icon: ComponentType<{ className?: string }>; to: string }[];
 };
 
+const getTeacherNav = (t: (key: string) => string): NavSection[] => [
+  {
+    title: t("dashboard_common.overview") || "Overview",
+    items: [
+      { label: t("dashboard_common.overview"), icon: LayoutDashboard, to: "/dashboard/teacher" },
+      { label: t("teacher.myCourses"), icon: BookOpen, to: "/dashboard/teacher/courses" },
+    ],
+  },
+  {
+    title: t("sidebar.teacher.contentManagement") || "Content Management",
+    items: [
+      { label: t("teacher.createCourse"), icon: Plus, to: "/dashboard/teacher/courses/new" },
+      { label: t("teacher.lessonsNav"), icon: FileVideo, to: "/dashboard/teacher/lessons" },
+    ],
+  },
+  {
+    title: t("sidebar.teacher.mediaAndUploads") || "Media & Uploads",
+    items: [
+      { label: t("teacher.uploads"), icon: UploadCloud, to: "/dashboard/teacher/uploads" },
+      { label: t("teacher.quizzes"), icon: ListChecks, to: "/dashboard/teacher/quizzes" },
+    ],
+  },
+  {
+    title: t("sidebar.teacher.engagement") || "Live & Performance",
+    items: [
+      { label: t("teacher.liveSessions"), icon: Video, to: "/dashboard/teacher/live" },
+      { label: t("teacher.studentProgress"), icon: TrendingUp, to: "/dashboard/teacher/progress" },
+    ],
+  },
+];
 
-
+const getStudentNav = (t: (key: string) => string): NavSection[] => [
+  {
+    title: t("dashboard_common.overview") || "Overview",
+    items: [
+      { label: t("dashboard_common.overview"), icon: LayoutDashboard, to: "/dashboard/student" },
+      { label: t("student.myCourses"), icon: BookOpen, to: "/dashboard/student/courses" },
+    ],
+  },
+  {
+    title: t("student.learningActivity") || "Learning & Quizzes",
+    items: [
+      { label: t("student.quizzes"), icon: ListChecks, to: "/dashboard/student/quizzes" },
+      { label: t("student.liveClasses"), icon: Video, to: "/dashboard/student/live" },
+    ],
+  },
+  {
+    title: t("student.trackingAndOrders") || "Progress & Orders",
+    items: [
+      { label: t("student.progress"), icon: TrendingUp, to: "/dashboard/student/progress" },
+      { label: t("student.myOrders"), icon: ShoppingBag, to: "/dashboard/student/orders" },
+    ],
+  },
+  {
+    title: t("student.explore") || "Discovery",
+    items: [
+      { label: t("student.discover"), icon: Compass, to: "/courses" },
+    ],
+  },
+];
 
 export function RoleDashboardLayout({
   role,
@@ -79,8 +103,7 @@ export function RoleDashboardLayout({
   useReminders();
   const { t, i18n } = useTranslation();
   const isRTL = i18n.dir() === "rtl";
-  const nav = role === "teacher" ? getTeacherNav(t) : getStudentNav(t);
-  const account = accountNav(role, t);
+  const navSections = role === "teacher" ? getTeacherNav(t) : getStudentNav(t);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const navigate = useNavigate();
   const session = getSession();
@@ -103,45 +126,37 @@ export function RoleDashboardLayout({
               </span>
               <div className="min-w-0 group-data-[collapsible=icon]:hidden">
                 <p className="truncate text-sm font-semibold">{t("common.lumen")}</p>
-                <p className="truncate text-xs text-muted-foreground capitalize">{role === "teacher" ? t("teacher.workspace") : t("student.workspace")}</p>
+                <p className="truncate text-xs text-muted-foreground capitalize">
+                  {role === "teacher" ? t("teacher.workspace") : t("student.workspace")}
+                </p>
               </div>
             </div>
           </SidebarHeader>
+          
           <SidebarContent>
-            <SidebarGroup>
-              <SidebarGroupLabel>{t("dashboard_common.workspace")}</SidebarGroupLabel>
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  {nav.map((n) => (
-                    <SidebarMenuItem key={n.to + n.label}>
-                      <SidebarMenuButton asChild isActive={isActive(n.to)} tooltip={n.label}>
-                        <Link to={n.to as string} className="flex items-center gap-2">
-                          <n.icon className="h-4 w-4" />
-                          <span>{n.label}</span>
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  ))}
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
-            <SidebarGroup>
-              <SidebarGroupLabel>{t("dashboard_common.account")}</SidebarGroupLabel>
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  {account.map((n) => (
-                    <SidebarMenuItem key={n.to}>
-                      <SidebarMenuButton asChild isActive={isActive(n.to)} tooltip={n.label}>
-                        <Link to={n.to as string} className="flex items-center gap-2">
-                          <n.icon className="h-4 w-4" /> <span>{n.label}</span>
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  ))}
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
+            {navSections.map((section, idx) => (
+              <SidebarGroup key={idx}>
+                <SidebarGroupLabel className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/80 px-2 mb-1">
+                  {section.title}
+                </SidebarGroupLabel>
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    {section.items.map((n) => (
+                      <SidebarMenuItem key={n.to + n.label}>
+                        <SidebarMenuButton asChild isActive={isActive(n.to)} tooltip={n.label}>
+                          <Link to={n.to as string} className="flex items-center gap-2">
+                            <n.icon className="h-4 w-4" />
+                            <span>{n.label}</span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    ))}
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </SidebarGroup>
+            ))}
           </SidebarContent>
+
           <SidebarFooter>
             <SidebarMenu>
               <SidebarMenuItem>
@@ -163,16 +178,6 @@ export function RoleDashboardLayout({
           <header className="sticky top-0 z-30 flex h-16 items-center gap-2 border-b border-border/60 bg-background/80 px-4 backdrop-blur-lg">
             <SidebarTrigger className={isRTL ? "rotate-180" : ""} />
             <div className="ms-auto flex items-center gap-3">
-              <Button asChild variant="ghost" size="icon" className="relative">
-                <Link to={`/dashboard/${role}/notifications` as string} aria-label={t("common.notifications")}>
-                  <Bell className="h-4 w-4" />
-                  {unread > 0 && (
-                    <span className="absolute end-1 top-1 grid h-4 min-w-4 place-items-center rounded-full bg-primary px-1 text-[10px] font-semibold text-primary-foreground">
-                      {unread > 9 ? "9+" : unread}
-                    </span>
-                  )}
-                </Link>
-              </Button>
               <div className="flex items-center gap-2">
                 <Avatar className="h-8 w-8">
                   <AvatarFallback className="bg-primary/10 text-primary text-xs font-semibold">

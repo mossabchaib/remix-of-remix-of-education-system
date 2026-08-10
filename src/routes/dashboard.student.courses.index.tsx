@@ -1,103 +1,200 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
-import { useMemo, useState } from "react";
-import { Award, Clock, PlayCircle, Search, XCircle } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import {
+  BookOpen, GraduationCap, Globe2, Lock, Search, Sparkles, ShieldCheck, Heart,
+} from "lucide-react";
 import { RoleDashboardLayout } from "@/components/dashboard/RoleDashboardLayout";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Progress } from "@/components/ui/progress";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { EmptyState } from "@/components/common/EmptyState";
-import { UnenrollDialog } from "@/components/student/UnenrollDialog";
-import { flatLessons, courseProgress } from "@/lib/lms-storage";
-import * as CertificateService from "@/services/certificate";
 import {
-  useEnrollmentIds,
-  useLastAccessed,
-  useProgress,
-  useTeacherCourses,
-  useIssuedCertificates,
-} from "@/hooks/useStudentData";
-import type { Course } from "@/lib/mock-data";
+  getAllCourses,
+  hasActiveAccess,
+  getMySubscription,
+  getAdminCategories,
+  getWishlist,
+  toggleWishlist,
+  type Subscription,
+} from "@/lib/lms-storage";
 
 export const Route = createFileRoute("/dashboard/student/courses/")({
-  head: () => ({ meta: [{ title: "My courses — Lumen" }, { name: "robots", content: "noindex" }] }),
-  component: MyCourses,
+  head: () => ({
+    meta: [{ title: "Browse courses — Lumen" }, { name: "robots", content: "noindex" }],
+  }),
+  component: BrowseCourses,
 });
 
-const LEVELS = ["All", "Beginner", "Intermediate", "Advanced"] as const;
+/**
+ * Signature device for this page: courses read like catalogued volumes on
+ * a shelf. Every category gets a deterministic "spine" color — a thin bar
+ * on the left edge of the card — instead of a generic colored tag.
+ */
+const SPINES = [
+  { bg: "#8B5E3C" }, // walnut
+  { bg: "#2F5D62" }, // pine
+  { bg: "#7A4B6D" }, // plum
+  { bg: "#B0793A" }, // brass
+  { bg: "#3D5A80" }, // ink
+  { bg: "#8C5B3F" }, // oak
+];
+function spineFor(key: string) {
+  let hash = 0;
+  for (let i = 0; i < key.length; i++) hash = (hash * 31 + key.charCodeAt(i)) >>> 0;
+  return SPINES[hash % SPINES.length];
+}
 
-type Item = Course & {
-  pct: number;
-  done: number;
-  total: number;
-  lastAt?: string;
-  hasCertificate: boolean;
+// Shape is defensive: the real API response for /api/courses may or may not
+// join categories/profiles, so every field is read with a few fallbacks.
+type RawCourse = {
+  id: string;
+  title: string;
+  subtitle?: string;
+  description?: string;
+  status?: string;
+  level?: "beginner" | "intermediate" | "advanced" | string;
+  language?: string;
+  image_cover?: string;
+  category_id?: string;
+  category?: string;
+  categories?: { id?: string; name?: string };
+  teacher_id?: string;
+  teacher?: string;
+  profiles?: { full_name?: string };
 };
 
-function MyCourses() {
+type CategoryRow = { id: string; name: string };
+
+function BrowseCourses() {
   const { t } = useTranslation();
+
+  const [checking, setChecking] = useState(true);
+  const [access, setAccess] = useState(false);
+  const [subscription, setSubscription] = useState<Subscription | null>(null);
+
+  const [loadingCourses, setLoadingCourses] = useState(true);
+  const [courses, setCourses] = useState<RawCourse[]>([]);
+  const [categories, setCategories] = useState<CategoryRow[]>([]);
+
   const [query, setQuery] = useState("");
-  const [level, setLevel] = useState<(typeof LEVELS)[number]>("All");
-  const [category, setCategory] = useState<string>("All");
-  const [unenrollTarget, setUnenrollTarget] = useState<{ id: string; title: string } | null>(null);
+  const [level, setLevel] = useState<string>("all");
+  const [category, setCategory] = useState<string>("all");
 
-  // القراءة كلها عبر الـ Hooks المخصصة فقط (لا localStorage مباشر)
-  const teacherCourses = useTeacherCourses();     // مصدر الحقيقة: lms.teacher.courses
-  const ids = useEnrollmentIds();                 // lms.enrollments
-  const lastAccessed = useLastAccessed();          // lms.lastAccessed
-  const certificates = useIssuedCertificates();    // lms.certificates
-  useProgress();                                   // اشتراك فقط لإعادة الحساب عند تغيّر lms.progress
+  // Wishlist — sourced from localStorage via lms-storage, never from mock data.
+  const [wishlist, setWishlistState] = useState<string[]>([]);
+  const [wishlistOnly, setWishlistOnly] = useState(false);
+  const [wishlistPendingId, setWishlistPendingId] = useState<string | null>(null);
 
-  const certifiedCourseIds = useMemo(
-    () => new Set(certificates.map((c) => c.courseId).filter(Boolean)),
-    [certificates],
-  );
+  const levelLabel = (lvl?: string) => (lvl ? t(`catalog.levels.${lvl}`, lvl) : t("catalog.allLevels"));
 
-  const categories = useMemo(
-    () => ["All", ...Array.from(new Set(teacherCourses.map((c) => c.category)))],
-    [teacherCourses],
-  );
+  useEffect(() => {
+    setWishlistState(getWishlist());
+  }, []);
 
-  const enriched = useMemo(() => {
-    return teacherCourses
-      .filter((c) => ids.includes(c.id)) // فقط الكورسات المسجَّل فيها فعلياً
-      .map((c) => {
-        const total = flatLessons(c.id).length;
-        const p = courseProgressSafe(c.id, total);
-        return { ...c, ...p, lastAt: lastAccessed[c.id], hasCertificate: certifiedCourseIds.has(c.id) };
-      });
-  }, [teacherCourses, ids, lastAccessed, certifiedCourseIds]);
-
-  const filtered = enriched.filter(
-    (c) =>
-      c.title.toLowerCase().includes(query.toLowerCase()) &&
-      (level === "All" || c.level === level) &&
-      (category === "All" || c.category === category),
-  );
-
-  const inProgress = filtered.filter((c) => c.pct > 0 && c.pct < 100);
-  const notStarted = filtered.filter((c) => c.pct === 0);
-  const completed = filtered.filter((c) => c.pct === 100);
-
-  const handleViewCertificate = (course: Item) => {
-    // إصدار الشهادة (إن لم تُصدَر بعد) عبر الـ Service — لا كتابة مباشرة هنا
-    if (!course.hasCertificate) {
-      CertificateService.issue({ id: course.id, title: course.title });
+  const handleToggleWishlist = async (courseId: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setWishlistPendingId(courseId);
+    try {
+      const next = toggleWishlist(courseId);
+      setWishlistState(next);
+    } finally {
+      setWishlistPendingId(null);
     }
   };
+
+  // Straight calls into lms-storage — no custom hooks involved.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const [sub, ok] = await Promise.all([getMySubscription(), hasActiveAccess()]);
+      if (cancelled) return;
+      setSubscription(sub);
+      setAccess(ok);
+      setChecking(false);
+
+      if (ok) {
+        setLoadingCourses(true);
+        const [all, cats] = await Promise.all([
+          getAllCourses(),
+          getAdminCategories().catch(() => []),
+        ]);
+        if (cancelled) return;
+        setCourses(Array.isArray(all) ? all : []);
+        setCategories(Array.isArray(cats) ? (cats as CategoryRow[]) : []);
+        setLoadingCourses(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const categoryName = (c: RawCourse) =>
+    c.categories?.name ?? c.category ?? categories.find((x) => x.id === c.category_id)?.name ?? t("catalog.defaultCategory");
+  const teacherName = (c: RawCourse) => c.profiles?.full_name ?? c.teacher ?? t("catalog.defaultInstructor");
+
+  const published = useMemo(
+    () => courses.filter((c) => !c.status || c.status === "published"),
+    [courses],
+  );
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return published.filter((c) => {
+      const matchesQ =
+        !q || c.title.toLowerCase().includes(q) || (c.subtitle ?? "").toLowerCase().includes(q);
+      const matchesLevel = level === "all" || (c.level ?? "").toLowerCase() === level;
+      const matchesCat = category === "all" || categoryName(c) === category;
+      const matchesWishlist = !wishlistOnly || wishlist.includes(c.id);
+      return matchesQ && matchesLevel && matchesCat && matchesWishlist;
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [published, query, level, category, categories, wishlistOnly, wishlist]);
+
+  const categoryOptions = useMemo(
+    () => ["all", ...Array.from(new Set(published.map((c) => categoryName(c))))],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [published, categories],
+  );
+
+  const clearFilters = () => {
+    setQuery("");
+    setLevel("all");
+    setCategory("all");
+    setWishlistOnly(false);
+  };
+
+  if (checking) {
+    return (
+      <RoleDashboardLayout role="student">
+        <div className="flex h-64 items-center justify-center text-sm text-muted-foreground">
+          {t("common.loading")}
+        </div>
+      </RoleDashboardLayout>
+    );
+  }
+
+  if (!access) {
+    return (
+      <RoleDashboardLayout role="student">
+        <PageHeader title={t("catalog.title")} description={t("catalog.descriptionLocked")} />
+        <LockedCatalog subscription={subscription} />
+      </RoleDashboardLayout>
+    );
+  }
 
   return (
     <RoleDashboardLayout role="student">
       <PageHeader
-        title={t("student.myCourses")}
-        description={t("student.myCoursesDesc")}
+        title={t("catalog.title")}
+        description={t("catalog.description")}
         actions={
           <div className="flex flex-wrap items-center gap-2">
             <div className="relative w-56">
@@ -105,136 +202,191 @@ function MyCourses() {
               <Input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder={t("student.searchMyCourses")}
+                placeholder={t("catalog.searchPlaceholder")}
                 className="pl-9"
               />
             </div>
-            <Select value={level} onValueChange={(v) => setLevel(v as typeof level)}>
-              <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
+            <Select value={level} onValueChange={setLevel}>
+              <SelectTrigger className="w-40">
+                <SelectValue placeholder={t("catalog.level")} />
+              </SelectTrigger>
               <SelectContent>
-                {LEVELS.map((l) => <SelectItem key={l} value={l}>{l}</SelectItem>)}
+                <SelectItem value="all">{t("catalog.allLevels")}</SelectItem>
+                <SelectItem value="beginner">{t("catalog.levels.beginner")}</SelectItem>
+                <SelectItem value="intermediate">{t("catalog.levels.intermediate")}</SelectItem>
+                <SelectItem value="advanced">{t("catalog.levels.advanced")}</SelectItem>
               </SelectContent>
             </Select>
             <Select value={category} onValueChange={setCategory}>
-              <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="w-44">
+                <SelectValue placeholder={t("catalog.category")} />
+              </SelectTrigger>
               <SelectContent>
-                {categories.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                {categoryOptions.map((c) => (
+                  <SelectItem key={c} value={c}>
+                    {c === "all" ? t("catalog.allCategories") : c}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
+            <Button
+              type="button"
+              variant={wishlistOnly ? "default" : "outline"}
+              onClick={() => setWishlistOnly((v) => !v)}
+              className="gap-1.5"
+            >
+              <Heart className={`h-4 w-4 ${wishlistOnly ? "fill-current" : ""}`} />
+              {t("student.wishlist")}
+              {wishlist.length > 0 && (
+                <Badge variant="secondary" className="ml-1 px-1.5 py-0 text-[10px]">
+                  {wishlist.length}
+                </Badge>
+              )}
+            </Button>
           </div>
         }
       />
 
-      <Tabs defaultValue="all">
-        <TabsList>
-          <TabsTrigger value="all">{t("student.allCourses")} ({filtered.length})</TabsTrigger>
-          <TabsTrigger value="progress">{t("student.inProgress")} ({inProgress.length})</TabsTrigger>
-          <TabsTrigger value="not-started">{t("student.notStarted")} ({notStarted.length})</TabsTrigger>
-          <TabsTrigger value="completed">{t("common.completed")} ({completed.length})</TabsTrigger>
-        </TabsList>
-        <TabsContent value="all">
-          <Grid items={filtered} onUnenroll={setUnenrollTarget} onViewCertificate={handleViewCertificate} />
-        </TabsContent>
-        <TabsContent value="progress">
-          <Grid items={inProgress} onUnenroll={setUnenrollTarget} onViewCertificate={handleViewCertificate} />
-        </TabsContent>
-        <TabsContent value="not-started">
-          <Grid items={notStarted} onUnenroll={setUnenrollTarget} onViewCertificate={handleViewCertificate} />
-        </TabsContent>
-        <TabsContent value="completed">
-          <Grid items={completed} onUnenroll={setUnenrollTarget} onViewCertificate={handleViewCertificate} />
-        </TabsContent>
-      </Tabs>
+      <div className="mb-5 flex items-center gap-2 text-xs text-muted-foreground">
+        <ShieldCheck className="h-3.5 w-3.5 text-success" />
+        <span>
+          {t("catalog.membershipActive")}
+          {subscription?.ends_at && (
+            <> · {t("catalog.accessThrough", { date: new Date(subscription.ends_at).toLocaleDateString() })}</>
+          )}
+        </span>
+      </div>
 
-      <UnenrollDialog
-        open={!!unenrollTarget}
-        onOpenChange={(open) => !open && setUnenrollTarget(null)}
-        courseId={unenrollTarget?.id ?? ""}
-        courseTitle={unenrollTarget?.title ?? ""}
-      />
+      {loadingCourses ? (
+        <CatalogSkeleton />
+      ) : filtered.length === 0 ? (
+        <EmptyState
+          title={wishlistOnly ? t("catalog.noWishlisted") : t("catalog.noMatch")}
+          description={wishlistOnly ? t("catalog.noWishlistedDesc") : t("catalog.noMatchDesc")}
+          action={
+            <Button variant="outline" onClick={clearFilters}>
+              {t("common.clearFilters")}
+            </Button>
+          }
+        />
+      ) : (
+        <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+          {filtered.map((c) => {
+            const spine = spineFor(categoryName(c));
+            const wished = wishlist.includes(c.id);
+            const isPending = wishlistPendingId === c.id;
+            return (
+              <Card
+                key={c.id}
+                className="group relative overflow-hidden border-border/60 p-0 shadow-card transition-shadow hover:shadow-lg"
+              >
+                <div className="absolute inset-y-0 left-0 w-1.5" style={{ background: spine.bg }} aria-hidden />
+                <div
+                  className="h-32 bg-muted bg-cover bg-center"
+                  style={c.image_cover ? { backgroundImage: `url(${c.image_cover})` } : undefined}
+                />
+                <button
+                  type="button"
+                  disabled={isPending}
+                  onClick={(e) => handleToggleWishlist(c.id, e)}
+                  className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-background/90 shadow-sm backdrop-blur transition-colors hover:bg-background disabled:cursor-wait"
+                  aria-label={wished ? t("student.removeFromWishlist") : t("student.addToWishlist")}
+                >
+                  <Heart
+                    className={`h-4 w-4 transition-colors ${
+                      wished ? "fill-destructive text-destructive" : "text-muted-foreground"
+                    } ${isPending ? "scale-90" : ""}`}
+                  />
+                </button>
+                <div className="space-y-3 p-5 pl-6">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Badge variant="outline" style={{ borderColor: spine.bg, color: spine.bg }}>
+                      {categoryName(c)}
+                    </Badge>
+                    <Badge variant="outline" className="text-xs">
+                      {levelLabel(c.level)}
+                    </Badge>
+                  </div>
+                  <div>
+                    <p className="text-base font-semibold leading-snug">{c.title}</p>
+                    {c.subtitle && <p className="mt-0.5 text-xs text-muted-foreground">{c.subtitle}</p>}
+                  </div>
+                  <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+                    <span className="flex items-center gap-1">
+                      <GraduationCap className="h-3 w-3" /> {teacherName(c)}
+                    </span>
+                    {c.language && (
+                      <span className="flex items-center gap-1">
+                        <Globe2 className="h-3 w-3" /> {c.language}
+                      </span>
+                    )}
+                  </div>
+                  <Button asChild className="w-full">
+                    <Link to="/dashboard/student/courses/$id" params={{ id: c.id }}>
+                      <BookOpen className="mr-1.5 h-4 w-4" />
+                      {t("catalog.viewCourse")}
+                    </Link>
+                  </Button>
+                </div>
+              </Card>
+            );
+          })}
+        </div>
+      )}
     </RoleDashboardLayout>
   );
 }
 
-// حساب محلي بسيط بدل استدعاء courseProgress مباشرة من lms-storage داخل الصفحة —
-// نبقيها كدالة عرض فقط (لا كتابة)؛ يمكن استبدالها لاحقاً بـ hook مخصص useCourseProgress(id)
-function courseProgressSafe(courseId: string, total: number) {
-  return courseProgress(courseId, total);
+function LockedCatalog({ subscription }: { subscription: Subscription | null }) {
+  const { t } = useTranslation();
+  const pending = subscription?.status === "pending";
+  const expired = subscription?.status === "expired";
+
+  return (
+    <div className="relative overflow-hidden rounded-xl border border-border/60">
+      <div className="pointer-events-none absolute inset-0 grid grid-cols-3 gap-5 p-6 opacity-[0.12] blur-[1px] sm:grid-cols-4">
+        {[...SPINES, ...SPINES].map((s, i) => (
+          <div key={i} className="h-40 rounded-lg" style={{ background: s.bg }} />
+        ))}
+      </div>
+      <div className="relative flex flex-col items-center gap-4 px-6 py-20 text-center">
+        <div className="flex h-14 w-14 items-center justify-center rounded-full border border-border/60 bg-background shadow-card">
+          <Lock className="h-6 w-6 text-muted-foreground" />
+        </div>
+        <div className="space-y-1.5">
+          <h2 className="text-xl font-semibold">
+            {pending
+              ? t("catalog.locked.pendingTitle")
+              : expired
+                ? t("catalog.locked.expiredTitle")
+                : t("catalog.locked.title")}
+          </h2>
+          <p className="mx-auto max-w-md text-sm text-muted-foreground">
+            {pending
+              ? t("catalog.locked.pendingDesc")
+              : expired
+                ? t("catalog.locked.expiredDesc")
+                : t("catalog.locked.defaultDesc")}
+          </p>
+        </div>
+        {!pending && (
+          <Button asChild size="lg" className="mt-2">
+            <Link to="/dashboard/student/orders">
+              <Sparkles className="mr-1.5 h-4 w-4" />
+              {expired ? t("catalog.locked.renew") : t("catalog.locked.viewPlans")}
+            </Link>
+          </Button>
+        )}
+      </div>
+    </div>
+  );
 }
 
-function Grid({
-  items,
-  onUnenroll,
-  onViewCertificate,
-}: {
-  items: Item[];
-  onUnenroll: (target: { id: string; title: string }) => void;
-  onViewCertificate: (course: Item) => void;
-}) {
-  const { t } = useTranslation();
-
-  if (items.length === 0) {
-    return (
-      <EmptyState
-        title={t("student.nothingHereYet")}
-        description={t("student.exploreCatalogPrompt")}
-        action={<Button asChild><Link to="/courses">{t("student.browseCourses")}</Link></Button>}
-      />
-    );
-  }
+function CatalogSkeleton() {
   return (
-    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-      {items.map((c) => (
-        <Card key={c.id} className="overflow-hidden border-border/60 p-0 shadow-card">
-          <Link to="/dashboard/student/courses/$id" params={{ id: c.id }} className="block h-32" style={{ backgroundImage: c.cover }} />
-          <div className="space-y-3 p-5">
-            <div className="flex items-center justify-between gap-2">
-              <div className="flex flex-wrap items-center gap-2">
-                <Badge variant="outline">{c.level}</Badge>
-                <Badge variant="outline" className="text-xs">{c.category}</Badge>
-                {c.pct === 100 && <Badge className="bg-success/10 text-success border-success/20">Completed</Badge>}
-              </div>
-              <button
-                type="button"
-                onClick={() => onUnenroll({ id: c.id, title: c.title })}
-                className="text-muted-foreground hover:text-destructive transition-colors"
-                aria-label={t("student.unenroll")}
-                title={t("student.unenroll")}
-              >
-                <XCircle className="h-4 w-4" />
-              </button>
-            </div>
-            <p className="text-base font-semibold leading-snug">{c.title}</p>
-            <p className="text-xs text-muted-foreground">{c.teacher}</p>
-            <div>
-              <div className="mb-1 flex items-center justify-between text-xs">
-                <span className="text-muted-foreground">{c.done} / {c.total} {t("admin.lessons")}</span>
-                <span className="font-medium">{c.pct}%</span>
-              </div>
-              <Progress value={c.pct} className="h-1.5" />
-            </div>
-            {c.lastAt && (
-              <p className="flex items-center gap-1 text-[11px] text-muted-foreground">
-                <Clock className="h-3 w-3" /> {t("student.lastOpened")} {new Date(c.lastAt).toLocaleDateString()}
-              </p>
-            )}
-            {c.pct === 100 ? (
-              <Button asChild variant="outline" className="w-full" onClick={() => onViewCertificate(c)}>
-                <Link to="/dashboard/student/certificates">
-                  <Award className="mr-1.5 h-4 w-4" />
-                  {t("student.viewCertificate")}
-                </Link>
-              </Button>
-            ) : (
-              <Button asChild className="w-full">
-                <Link to="/dashboard/student/courses/$id" params={{ id: c.id }}>
-                  <PlayCircle className="mr-1.5 h-4 w-4" />
-                  {c.pct === 0 ? t("student.startCourse") : t("student.continueCourse")}
-                </Link>
-              </Button>
-            )}
-          </div>
-        </Card>
+    <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+      {Array.from({ length: 6 }).map((_, i) => (
+        <div key={i} className="h-72 animate-pulse rounded-xl border border-border/60 bg-muted/40" />
       ))}
     </div>
   );

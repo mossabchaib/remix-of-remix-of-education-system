@@ -20,7 +20,6 @@ import { Route as RegisterRouteImport } from './routes/register'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AdminAnnouncementsRouteImport } from './routes/admin.announcements'
 import { Route as AdminCategoriesRouteImport } from './routes/admin.categories'
-import { Route as AdminCoursesRouteImport } from './routes/admin.courses'
 import { Route as AdminReportsRouteImport } from './routes/admin.reports'
 import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
 import { Route as AdminStudentsRouteImport } from './routes/admin.students'
@@ -31,6 +30,7 @@ import { Route as CoursesIdRouteImport } from './routes/courses.$id'
 import { Route as DashboardStudentRouteImport } from './routes/dashboard.student'
 import { Route as DashboardTeacherRouteImport } from './routes/dashboard.teacher'
 import { Route as PaymentCourseIdRouteImport } from './routes/payment.$courseId'
+import { Route as AdminCoursesIndexRouteImport } from './routes/admin.courses.index'
 import { Route as AdminCoursesIdRouteImport } from './routes/admin.courses.$id'
 import { Route as AdminPaymentsIndexRouteImport } from './routes/admin.payments.index'
 import { Route as AdminPaymentsIdRouteImport } from './routes/admin.payments.$id'
@@ -131,11 +131,6 @@ const AdminCategoriesRoute = AdminCategoriesRouteImport.update({
   path: '/categories',
   getParentRoute: () => AdminRoute,
 } as any)
-const AdminCoursesRoute = AdminCoursesRouteImport.update({
-  id: '/courses',
-  path: '/courses',
-  getParentRoute: () => AdminRoute,
-} as any)
 const AdminReportsRoute = AdminReportsRouteImport.update({
   id: '/reports',
   path: '/reports',
@@ -186,10 +181,15 @@ const PaymentCourseIdRoute = PaymentCourseIdRouteImport.update({
   path: '/payment/$courseId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminCoursesIndexRoute = AdminCoursesIndexRouteImport.update({
+  id: '/courses/',
+  path: '/courses/',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminCoursesIdRoute = AdminCoursesIdRouteImport.update({
-  id: '/$id',
-  path: '/$id',
-  getParentRoute: () => AdminCoursesRoute,
+  id: '/courses/$id',
+  path: '/courses/$id',
+  getParentRoute: () => AdminRoute,
 } as any)
 const AdminPaymentsIndexRoute = AdminPaymentsIndexRouteImport.update({
   id: '/payments/',
@@ -439,7 +439,6 @@ export interface FileRoutesByFullPath {
   '/register': typeof RegisterRoute
   '/admin/announcements': typeof AdminAnnouncementsRoute
   '/admin/categories': typeof AdminCategoriesRoute
-  '/admin/courses': typeof AdminCoursesRouteWithChildren
   '/admin/reports': typeof AdminReportsRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/students': typeof AdminStudentsRoute
@@ -481,6 +480,7 @@ export interface FileRoutesByFullPath {
   '/orders/$id/failed': typeof OrdersIdFailedRoute
   '/orders/$id/receipt': typeof OrdersIdReceiptRoute
   '/orders/$id/success': typeof OrdersIdSuccessRoute
+  '/admin/courses/': typeof AdminCoursesIndexRoute
   '/admin/payments/': typeof AdminPaymentsIndexRoute
   '/admin/subscriptions/': typeof AdminSubscriptionsIndexRoute
   '/admin/users/': typeof AdminUsersIndexRoute
@@ -506,7 +506,6 @@ export interface FileRoutesByTo {
   '/register': typeof RegisterRoute
   '/admin/announcements': typeof AdminAnnouncementsRoute
   '/admin/categories': typeof AdminCategoriesRoute
-  '/admin/courses': typeof AdminCoursesRouteWithChildren
   '/admin/reports': typeof AdminReportsRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/students': typeof AdminStudentsRoute
@@ -545,6 +544,7 @@ export interface FileRoutesByTo {
   '/orders/$id/failed': typeof OrdersIdFailedRoute
   '/orders/$id/receipt': typeof OrdersIdReceiptRoute
   '/orders/$id/success': typeof OrdersIdSuccessRoute
+  '/admin/courses': typeof AdminCoursesIndexRoute
   '/admin/payments': typeof AdminPaymentsIndexRoute
   '/admin/subscriptions': typeof AdminSubscriptionsIndexRoute
   '/admin/users': typeof AdminUsersIndexRoute
@@ -572,7 +572,6 @@ export interface FileRoutesById {
   '/register': typeof RegisterRoute
   '/admin/announcements': typeof AdminAnnouncementsRoute
   '/admin/categories': typeof AdminCategoriesRoute
-  '/admin/courses': typeof AdminCoursesRouteWithChildren
   '/admin/reports': typeof AdminReportsRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/students': typeof AdminStudentsRoute
@@ -614,6 +613,7 @@ export interface FileRoutesById {
   '/orders/$id/failed': typeof OrdersIdFailedRoute
   '/orders/$id/receipt': typeof OrdersIdReceiptRoute
   '/orders/$id/success': typeof OrdersIdSuccessRoute
+  '/admin/courses/': typeof AdminCoursesIndexRoute
   '/admin/payments/': typeof AdminPaymentsIndexRoute
   '/admin/subscriptions/': typeof AdminSubscriptionsIndexRoute
   '/admin/users/': typeof AdminUsersIndexRoute
@@ -642,7 +642,6 @@ export interface FileRouteTypes {
     | '/register'
     | '/admin/announcements'
     | '/admin/categories'
-    | '/admin/courses'
     | '/admin/reports'
     | '/admin/settings'
     | '/admin/students'
@@ -684,6 +683,7 @@ export interface FileRouteTypes {
     | '/orders/$id/failed'
     | '/orders/$id/receipt'
     | '/orders/$id/success'
+    | '/admin/courses/'
     | '/admin/payments/'
     | '/admin/subscriptions/'
     | '/admin/users/'
@@ -709,7 +709,6 @@ export interface FileRouteTypes {
     | '/register'
     | '/admin/announcements'
     | '/admin/categories'
-    | '/admin/courses'
     | '/admin/reports'
     | '/admin/settings'
     | '/admin/students'
@@ -748,6 +747,7 @@ export interface FileRouteTypes {
     | '/orders/$id/failed'
     | '/orders/$id/receipt'
     | '/orders/$id/success'
+    | '/admin/courses'
     | '/admin/payments'
     | '/admin/subscriptions'
     | '/admin/users'
@@ -774,7 +774,6 @@ export interface FileRouteTypes {
     | '/register'
     | '/admin/announcements'
     | '/admin/categories'
-    | '/admin/courses'
     | '/admin/reports'
     | '/admin/settings'
     | '/admin/students'
@@ -816,6 +815,7 @@ export interface FileRouteTypes {
     | '/orders/$id/failed'
     | '/orders/$id/receipt'
     | '/orders/$id/success'
+    | '/admin/courses/'
     | '/admin/payments/'
     | '/admin/subscriptions/'
     | '/admin/users/'
@@ -930,13 +930,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminCategoriesRouteImport
       parentRoute: typeof AdminRoute
     }
-    '/admin/courses': {
-      id: '/admin/courses'
-      path: '/courses'
-      fullPath: '/admin/courses'
-      preLoaderRoute: typeof AdminCoursesRouteImport
-      parentRoute: typeof AdminRoute
-    }
     '/admin/reports': {
       id: '/admin/reports'
       path: '/reports'
@@ -1007,12 +1000,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PaymentCourseIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/courses/': {
+      id: '/admin/courses/'
+      path: '/courses'
+      fullPath: '/admin/courses/'
+      preLoaderRoute: typeof AdminCoursesIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/courses/$id': {
       id: '/admin/courses/$id'
-      path: '/$id'
+      path: '/courses/$id'
       fullPath: '/admin/courses/$id'
       preLoaderRoute: typeof AdminCoursesIdRouteImport
-      parentRoute: typeof AdminCoursesRoute
+      parentRoute: typeof AdminRoute
     }
     '/admin/payments/': {
       id: '/admin/payments/'
@@ -1318,30 +1318,19 @@ declare module '@tanstack/react-router' {
   }
 }
 
-interface AdminCoursesRouteChildren {
-  AdminCoursesIdRoute: typeof AdminCoursesIdRoute
-}
-
-const AdminCoursesRouteChildren: AdminCoursesRouteChildren = {
-  AdminCoursesIdRoute: AdminCoursesIdRoute,
-}
-
-const AdminCoursesRouteWithChildren = AdminCoursesRoute._addFileChildren(
-  AdminCoursesRouteChildren,
-)
-
 interface AdminRouteChildren {
   AdminAnnouncementsRoute: typeof AdminAnnouncementsRoute
   AdminCategoriesRoute: typeof AdminCategoriesRoute
-  AdminCoursesRoute: typeof AdminCoursesRouteWithChildren
   AdminReportsRoute: typeof AdminReportsRoute
   AdminSettingsRoute: typeof AdminSettingsRoute
   AdminStudentsRoute: typeof AdminStudentsRoute
   AdminTeachersRoute: typeof AdminTeachersRoute
   AdminIndexRoute: typeof AdminIndexRoute
+  AdminCoursesIdRoute: typeof AdminCoursesIdRoute
   AdminPaymentsIdRoute: typeof AdminPaymentsIdRoute
   AdminSubscriptionsIdRoute: typeof AdminSubscriptionsIdRoute
   AdminUsersIdRoute: typeof AdminUsersIdRoute
+  AdminCoursesIndexRoute: typeof AdminCoursesIndexRoute
   AdminPaymentsIndexRoute: typeof AdminPaymentsIndexRoute
   AdminSubscriptionsIndexRoute: typeof AdminSubscriptionsIndexRoute
   AdminUsersIndexRoute: typeof AdminUsersIndexRoute
@@ -1350,15 +1339,16 @@ interface AdminRouteChildren {
 const AdminRouteChildren: AdminRouteChildren = {
   AdminAnnouncementsRoute: AdminAnnouncementsRoute,
   AdminCategoriesRoute: AdminCategoriesRoute,
-  AdminCoursesRoute: AdminCoursesRouteWithChildren,
   AdminReportsRoute: AdminReportsRoute,
   AdminSettingsRoute: AdminSettingsRoute,
   AdminStudentsRoute: AdminStudentsRoute,
   AdminTeachersRoute: AdminTeachersRoute,
   AdminIndexRoute: AdminIndexRoute,
+  AdminCoursesIdRoute: AdminCoursesIdRoute,
   AdminPaymentsIdRoute: AdminPaymentsIdRoute,
   AdminSubscriptionsIdRoute: AdminSubscriptionsIdRoute,
   AdminUsersIdRoute: AdminUsersIdRoute,
+  AdminCoursesIndexRoute: AdminCoursesIndexRoute,
   AdminPaymentsIndexRoute: AdminPaymentsIndexRoute,
   AdminSubscriptionsIndexRoute: AdminSubscriptionsIndexRoute,
   AdminUsersIndexRoute: AdminUsersIndexRoute,

@@ -9,10 +9,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { courses } from "@/lib/mock-data";
-import {
-  addOrder, clearCheckout, generateInvoice, generateOrderId, generateTxId,
-  getEnrollments, setCheckout, setEnrollments,
-} from "@/lib/lms-storage";
+import { lumenOrderService } from "@/services/lumenOrderService";
+import { lumenEnrollmentService } from "@/services/lumenEnrollmentService";
 
 export const Route = createFileRoute("/payment/$courseId")({
   loader: ({ params }) => {
@@ -54,10 +52,7 @@ function PaymentPage() {
 
   function finalize(status: "paid" | "failed") {
     const last4 = card.replace(/\s+/g, "").slice(-4);
-    const id = generateOrderId();
-    addOrder({
-      id,
-      invoice: generateInvoice(),
+    const order = lumenOrderService.complete({
       courseId: course.id,
       courseTitle: course.title,
       teacher: course.teacher,
@@ -65,24 +60,20 @@ function PaymentPage() {
       status,
       method,
       cardLast4: method === "Card" ? last4 : undefined,
-      txId: generateTxId(),
-      date: new Date().toISOString().slice(0, 10),
       buyerName: name || "Learner",
       buyerEmail: email,
     });
     if (status === "paid") {
-      const cur = getEnrollments();
-      if (!cur.includes(course.id)) setEnrollments([...cur, course.id]);
+      lumenEnrollmentService.enroll(course.id);
     }
-    clearCheckout();
     navigate({
       to: status === "paid" ? "/orders/$id/success" : "/orders/$id/failed",
-      params: { id },
+      params: { id: order.id },
     });
   }
 
   function onPay() {
-    setCheckout({ courseId: course.id, method, cardLast4: card.slice(-4), cardName: name });
+    lumenOrderService.setDraft({ courseId: course.id, method, cardLast4: card.slice(-4), cardName: name });
     setProcessing(true);
     setTimeout(() => {
       setProcessing(false);

@@ -1,14 +1,32 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
+import { useEffect, useState, useCallback } from "react";
+import { toast } from "sonner";
 import {
   ArrowRight, BookOpen, GraduationCap, ShieldCheck, Sparkles,
   Star, Users, Zap, PlayCircle, Award, TrendingUp, Check,
+  Globe2, CalendarDays,
 } from "lucide-react";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { courses, categories } from "@/lib/mock-data";
+import { CourseWishlistButton } from "@/components/client/CourseWishlistButton";
+import { useAuth } from "@/hooks/useAuth";
+import { CourseService } from "@/services";
+import { getAdminCategories, getAllCourses } from "@/lib/lms-storage";
+import type { Course } from "@/lib/mock-data";
+
+export interface Category {
+  id: string;
+  name: string;
+  slug: string;
+  image?: string;
+  image_url?: string;
+  coursesCount?: number;
+  courses?: number;
+  color?: string;
+}
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -22,9 +40,70 @@ export const Route = createFileRoute("/")({
   component: Home,
 });
 
+// ---- Helpers (same as /courses) ----
+function isNewCourse(createdAt?: string) {
+  if (!createdAt) return false;
+  const days = (Date.now() - new Date(createdAt).getTime()) / (1000 * 60 * 60 * 24);
+  return days <= 14;
+}
+
+function formatDate(createdAt?: string) {
+  if (!createdAt) return "";
+  return new Date(createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+}
+
 function Home() {
   const { t } = useTranslation();
-  const featured = courses.filter((c) => c.status === "Published").slice(0, 6);
+  const { isAuthenticated }: any = useAuth();
+
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
+
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [coursesLoading, setCoursesLoading] = useState(true);
+
+  // جلب التصنيفات
+  const loadCategories = useCallback(async () => {
+    try {
+      setCategoriesLoading(true);
+      const data: any = await getAdminCategories();
+      const categoriesList = Array.isArray(data)
+        ? data
+        : data?.categories || data?.data || [];
+      setCategories(categoriesList);
+    } catch (err: any) {
+      console.error("Failed to load categories:", err);
+      toast.error(err?.message || "Failed to load categories");
+    } finally {
+      setCategoriesLoading(false);
+    }
+  }, []);
+
+  // جلب الكورسات من نفس المصدر المستخدم في صفحة /courses
+  const loadCourses = useCallback(async () => {
+    try {
+      setCoursesLoading(true);
+      const data: any = await getAllCourses();
+      const coursesList = Array.isArray(data)
+        ? data
+        : data?.courses || data?.data || [];
+      setCourses(coursesList);
+    } catch (err: any) {
+      console.error("Failed to load courses:", err);
+      toast.error(err?.message || "Failed to load courses");
+    } finally {
+      setCoursesLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadCategories();
+    loadCourses();
+  }, [loadCategories, loadCourses]);
+
+  const featured = courses
+    .filter((c: any) => String(c.status || "").toLowerCase() === "published")
+    .slice(0, 6);
 
   const features = [
     { icon: BookOpen, title: t("home.featureCurriculum"), desc: t("home.featureCurriculumDesc") },
@@ -77,7 +156,7 @@ function Home() {
             </div>
           </div>
 
-          {/* Preview mock */}
+          {/* Preview mock (app.lumen.school/dashboard) */}
           <div className="relative mx-auto mt-16 max-w-5xl">
             <div className="absolute -inset-1 rounded-3xl gradient-brand opacity-20 blur-2xl" />
             <Card className="relative overflow-hidden rounded-2xl border-border/60 bg-card/90 shadow-elegant backdrop-blur">
@@ -88,13 +167,24 @@ function Home() {
                 <span className="ms-3 text-xs text-muted-foreground">{t("home.previewUrl")}</span>
               </div>
               <div className="grid gap-4 p-6 sm:grid-cols-3">
-                {featured.slice(0, 3).map((c) => (
-                  <div key={c.id} className="rounded-xl border border-border/60 bg-background p-4">
-                    <div className="h-24 w-full rounded-lg" style={{ backgroundImage: c.cover }} />
-                    <p className="mt-3 text-sm font-semibold line-clamp-1">{c.title}</p>
-                    <p className="text-xs text-muted-foreground">{c.lessons} {t("home.lessons")} · {c.hours}h</p>
-                  </div>
-                ))}
+                {coursesLoading ? (
+                  Array.from({ length: 3 }).map((_, i) => (
+                    <Card key={i} className="overflow-hidden border-border/60 shadow-card animate-pulse">
+                      <div className="h-40 w-full bg-muted/60" />
+                      <div className="space-y-3 p-5">
+                        <div className="h-3 w-1/3 rounded bg-muted/60" />
+                        <div className="h-4 w-3/4 rounded bg-muted/60" />
+                        <div className="h-3 w-1/2 rounded bg-muted/40" />
+                      </div>
+                    </Card>
+                  ))
+                ) : featured.length === 0 ? (
+                  <p className="col-span-full text-sm text-muted-foreground">No courses found.</p>
+                ) : (
+                  featured.slice(0, 3).map((c: any) => (
+                    <CourseCard key={c.id} course={c} isAuthenticated={isAuthenticated} />
+                  ))
+                )}
               </div>
             </Card>
           </div>
@@ -136,17 +226,36 @@ function Home() {
             </Button>
           </div>
           <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
-            {categories.map((c) => (
-              <Link key={c.id} to="/courses" className="group">
-                <Card className="border-border/60 p-4 text-center shadow-card transition group-hover:shadow-elegant group-hover:-translate-y-0.5">
-                  <div className="mx-auto grid h-10 w-10 place-items-center rounded-xl" style={{ background: c.color + "22", color: c.color }}>
-                    <BookOpen className="h-5 w-5" />
-                  </div>
-                  <p className="mt-3 text-sm font-semibold">{c.name}</p>
-                  <p className="text-xs text-muted-foreground">{c.courses} {t("nav.courses").toLowerCase()}</p>
+            {categoriesLoading ? (
+              Array.from({ length: 6 }).map((_, i) => (
+                <Card key={i} className="flex flex-col items-center justify-center border-border/60 p-5 animate-pulse">
+                  <div className="h-20 w-20 rounded-full bg-muted/60" />
+                  <div className="mt-4 h-3.5 w-16 rounded bg-muted/60" />
                 </Card>
-              </Link>
-            ))}
+              ))
+            ) : categories.length === 0 ? (
+              <p className="col-span-full text-sm text-muted-foreground">No categories found.</p>
+            ) : (
+              categories.map((c) => (
+                <div key={c.id}  className="group">
+                  <Card className="flex flex-col items-center justify-center border-border/60 p-5 text-center shadow-card transition-all duration-300 group-hover:shadow-elegant group-hover:-translate-y-1">
+                    <div
+                      className="relative mx-auto flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-background shadow-md transition-transform duration-300 group-hover:scale-105"
+                      style={{ background: (c.color || "#3b82f6") + "15", color: c.color || "#3b82f6" }}
+                    >
+                      {c.image_url || c.image ? (
+                        <img src={c.image_url || c.image} alt={c.name} className="h-full w-full object-cover" />
+                      ) : (
+                        <BookOpen className="h-8 w-8" />
+                      )}
+                    </div>
+                    <div className="mt-4 w-full">
+                      <p className="line-clamp-1 text-sm font-semibold tracking-tight text-foreground transition-colors group-hover:text-primary">{c.name}</p>
+                    </div>
+                  </Card>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </section>
@@ -164,9 +273,24 @@ function Home() {
             </Button>
           </div>
           <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {featured.map((c) => (
-              <CourseCard key={c.id} course={c} />
-            ))}
+            {coursesLoading ? (
+              Array.from({ length: 3 }).map((_, i) => (
+                <Card key={i} className="overflow-hidden border-border/60 shadow-card animate-pulse">
+                  <div className="h-40 w-full bg-muted/60" />
+                  <div className="p-5 space-y-3">
+                    <div className="h-3 w-1/3 rounded bg-muted/60" />
+                    <div className="h-4 w-3/4 rounded bg-muted/60" />
+                    <div className="h-3 w-1/2 rounded bg-muted/40" />
+                  </div>
+                </Card>
+              ))
+            ) : featured.length === 0 ? (
+              <p className="col-span-full text-sm text-muted-foreground">No courses found.</p>
+            ) : (
+              featured.map((c: any) => (
+                <CourseCard key={c.id} course={c} isAuthenticated={isAuthenticated} />
+              ))
+            )}
           </div>
         </div>
       </section>
@@ -210,30 +334,73 @@ function Home() {
   );
 }
 
-function CourseCard({ course: c }: { course: typeof courses[number] }) {
-  const { t } = useTranslation();
+// ---- Unified CourseCard (identical design to /courses) ----
+function CourseCard({ course: c, isAuthenticated }: { course: any; isAuthenticated?: boolean }) {
+  const coverStyle = c.image_cover
+    ? c.image_cover.startsWith("linear-gradient")
+      ? { background: c.image_cover }
+      : { backgroundImage: `url(${c.image_cover})`, backgroundSize: "cover", backgroundPosition: "center" }
+    : { backgroundImage: c.cover };
+
   return (
-    <Link to="/courses/$id" params={{ id: c.id }}>
-      <Card className="group h-full overflow-hidden border-border/60 shadow-card transition hover:shadow-elegant hover:-translate-y-0.5">
-        <div className="relative h-40" style={{ backgroundImage: c.cover }}>
-          <Badge className="absolute start-3 top-3 bg-background/85 text-foreground hover:bg-background/85">{c.category}</Badge>
-        </div>
-        <div className="p-5">
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <span>{c.level}</span><span>·</span><span>{c.hours}h · {c.lessons} {t("home.lessons")}</span>
-          </div>
-          <h3 className="mt-2 line-clamp-2 text-base font-semibold">{c.title}</h3>
-          <p className="mt-1 text-sm text-muted-foreground">{t("home.courseBy")} {c.teacher}</p>
-          <div className="mt-4 flex items-center justify-between">
-            <div className="flex items-center gap-1 text-sm">
-              <Star className="h-4 w-4 fill-primary text-primary" />
-              <span className="font-medium">{c.rating.toFixed(1)}</span>
-              <span className="text-muted-foreground">({c.students.toLocaleString()})</span>
-            </div>
-            <p className="text-base font-semibold">{c.price === 0 ? t("common.free") : `$${c.price}`}</p>
+    <Card className="group relative flex h-full flex-col overflow-hidden border-border/60 shadow-card transition-all duration-300 hover:-translate-y-1 hover:shadow-elegant">
+      <Link to="/courses/$id" params={{ id: c.id }} className="block">
+        <div className="relative h-40 overflow-hidden" style={coverStyle}>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-black/0 to-black/0 transition-opacity duration-300 group-hover:from-black/45" />
+          <div className="absolute inset-x-3 top-3 flex items-center justify-between gap-2">
+            <Badge className="bg-background/90 text-foreground hover:bg-background/90 capitalize backdrop-blur-sm">
+              {c.categories?.name || c.category || "General"}
+            </Badge>
+            {isNewCourse(c.created_at) && (
+              <Badge className="border-none bg-primary text-primary-foreground">New</Badge>
+            )}
           </div>
         </div>
-      </Card>
-    </Link>
+      </Link>
+
+      {isAuthenticated && (
+        <CourseWishlistButton
+          courseId={c.id}
+          courseTitle={c.title}
+          className="absolute right-3 top-3"
+        />
+      )}
+
+      <Link to="/courses/$id" params={{ id: c.id }} className="flex flex-1 flex-col">
+        <div className="flex flex-1 flex-col p-5">
+          <p className="text-sm text-muted-foreground">by {c.profiles?.full_name || c.teacher || "Instructor"}</p>
+          <h3 className="mt-1 line-clamp-2 text-base font-semibold leading-snug transition-colors group-hover:text-primary">
+            {c.title}
+          </h3>
+
+          {(c.subtitle || c.description) && (
+            <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">
+              {c.subtitle || c.description}
+            </p>
+          )}
+
+          <div className="mt-auto flex flex-wrap items-center gap-x-4 gap-y-2 pt-4 text-xs text-muted-foreground">
+            {c.level && (
+              <span className="flex items-center gap-1 capitalize">
+                <GraduationCap className="h-3.5 w-3.5" />
+                {c.level}
+              </span>
+            )}
+            {c.language && (
+              <span className="flex items-center gap-1">
+                <Globe2 className="h-3.5 w-3.5" />
+                {c.language}
+              </span>
+            )}
+            {c.created_at && (
+              <span className="ml-auto flex items-center gap-1">
+                <CalendarDays className="h-3.5 w-3.5" />
+                {formatDate(c.created_at)}
+              </span>
+            )}
+          </div>
+        </div>
+      </Link>
+    </Card>
   );
 }

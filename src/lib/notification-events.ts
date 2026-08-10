@@ -143,23 +143,29 @@ function parseWhen(s: string) {
  * live sessions starting within the next hour and assignments due within
  * the next 24 hours. Each event is deduped by sourceId so it fires once.
  */
-export function runReminderSweep() {
+/**
+ * Called on a timer from any dashboard. Emits reminder notifications for
+ * live sessions starting within the next hour and assignments due within
+ * the next 24 hours. Each event is deduped by sourceId so it fires once.
+ */
+export async function runReminderSweep() {
   const now = Date.now();
   const inOneHour = now + 60 * 60 * 1000;
   const inOneDay = now + 24 * 60 * 60 * 1000;
 
-  for (const s of getLiveSessions() as LiveSession[]) {
+  const liveSessions = await getLiveSessions();
+
+  for (const s of liveSessions) {
     const when = parseWhen(s.startsAt);
     if (!when) continue;
     const t = when.getTime();
     if (t >= now && t <= inOneHour) {
-      const courseId = courseIdByTitle(s.course);
       addNotification({
         title: "Live session starting soon",
         body: `${s.title} · ${s.startsAt}`,
         kind: "live",
-        audience: courseId ? { scope: "course", courseId } : { scope: "role", role: "student" },
-        courseId,
+        audience: s.course_id ? { scope: "course", courseId: s.course_id } : { scope: "role", role: "student" },
+        courseId: s.course_id,
         link: `/dashboard/student/live`,
         sourceId: `live-soon:${s.id}`,
       });

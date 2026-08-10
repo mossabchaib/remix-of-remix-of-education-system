@@ -7,6 +7,7 @@ import {
   ArrowUpDown,
   ChevronLeft,
   ChevronRight,
+  Loader2,
   MoreHorizontal,
   Search,
   Eye,
@@ -48,6 +49,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { EmptyState } from "@/components/common/EmptyState";
+import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
 export type Column<T> = {
@@ -64,6 +66,22 @@ export type Filter<T> = {
   options: string[];
 };
 
+const PAGE_WINDOW_SIZE = 5;
+
+/** Returns a sliding window of page numbers centered on the current page. */
+function getPageWindow(current: number, totalPages: number, windowSize = PAGE_WINDOW_SIZE) {
+  if (totalPages <= windowSize) {
+    return Array.from({ length: totalPages }, (_, i) => i + 1);
+  }
+  let start = Math.max(1, current - Math.floor(windowSize / 2));
+  let end = start + windowSize - 1;
+  if (end > totalPages) {
+    end = totalPages;
+    start = end - windowSize + 1;
+  }
+  return Array.from({ length: end - start + 1 }, (_, i) => start + i);
+}
+
 export function DataTable<T extends { id: string }>({
   data,
   columns,
@@ -73,6 +91,8 @@ export function DataTable<T extends { id: string }>({
   onEdit,
   onDelete,
   pageSize = 8,
+  loading = false,
+  emptyMessage,
 }: {
   data: T[];
   columns: Column<T>[];
@@ -80,8 +100,13 @@ export function DataTable<T extends { id: string }>({
   filters?: Filter<T>[];
   onView?: (row: T) => void;
   onEdit?: (row: T) => void;
-  onDelete?: (row: T) => void;
+  /** May be sync or async; the confirm dialog awaits it and shows a "Deleting..." state. */
+  onDelete?: (row: T) => void | Promise<void>;
   pageSize?: number;
+  /** Shows a skeleton table body instead of rows while data is being fetched. */
+  loading?: boolean;
+  /** Overrides the default "no results" description shown when there are zero rows. */
+  emptyMessage?: string;
 }) {
   const { t } = useTranslation();
   const [query, setQuery] = useState("");
@@ -90,6 +115,7 @@ export function DataTable<T extends { id: string }>({
   const [page, setPage] = useState(1);
   const [filterState, setFilterState] = useState<Record<string, string>>({});
   const [pending, setPending] = useState<T | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const filtered = useMemo(() => {
     let rows = data;
@@ -118,6 +144,8 @@ export function DataTable<T extends { id: string }>({
   const pages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const current = Math.min(page, pages);
   const slice = filtered.slice((current - 1) * pageSize, current * pageSize);
+  const hasActions = Boolean(onView || onEdit || onDelete);
+  const pageWindow = getPageWindow(current, pages);
 
   const toggleSort = (key: string) => {
     if (sortKey === key) setSortDir(sortDir === "asc" ? "desc" : "asc");
@@ -127,11 +155,29 @@ export function DataTable<T extends { id: string }>({
     }
   };
 
+  const handleConfirmDelete = async () => {
+    if (!pending) return;
+    setIsDeleting(true);
+    try {
+      await onDelete?.(pending);
+      toast.success(t("dashboard_common.deleteSuccess"));
+      setPending(null);
+    } catch (error) {
+      console.error("Failed to delete record:", error);
+      toast.error(t("dashboard_common.deleteError"));
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   return (
-    <div className="space-y-4">
+    // Force LTR layout for the entire table (search bar, filters, columns,
+    // sort arrows, action menu, pagination) regardless of the page's
+    // overall text direction.
+    <div dir="ltr" className="space-y-4 text-left">
       <div className="flex flex-wrap items-center gap-2">
-        <div className="relative flex-1 min-w-[220px]">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <div className="relative min-w-[220px] flex-1">
+          <Search className="pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             value={query}
             onChange={(e) => {
@@ -139,7 +185,7 @@ export function DataTable<T extends { id: string }>({
               setPage(1);
             }}
             placeholder={t("dashboard_common.search")}
-            className="pl-9"
+            className="ps-9"
           />
         </div>
         {filters.map((f) => (
@@ -155,7 +201,9 @@ export function DataTable<T extends { id: string }>({
               <SelectValue placeholder={f.label} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">{t("common.all")} {f.label.toLowerCase()}</SelectItem>
+              <SelectItem value="all">
+                {t("dashboard_common.allOption", { label: f.label })}
+              </SelectItem>
               {f.options.map((o) => (
                 <SelectItem key={o} value={o}>
                   {o}
@@ -174,18 +222,19 @@ export function DataTable<T extends { id: string }>({
                 <TableHead key={c.key} className={c.className}>
                   {c.sortable ? (
                     <button
+                      type="button"
                       onClick={() => toggleSort(c.key)}
                       className="inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground hover:text-foreground"
                     >
                       {c.header}
                       {sortKey === c.key ? (
                         sortDir === "asc" ? (
-                          <ArrowUp className="h-3 w-3" />
+                          <ArrowUp className="h-3 w-3" aria-hidden="true" />
                         ) : (
-                          <ArrowDown className="h-3 w-3" />
+                          <ArrowDown className="h-3 w-3" aria-hidden="true" />
                         )
                       ) : (
-                        <ArrowUpDown className="h-3 w-3 opacity-50" />
+                        <ArrowUpDown className="h-3 w-3 opacity-50" aria-hidden="true" />
                       )}
                     </button>
                   ) : (
@@ -195,16 +244,36 @@ export function DataTable<T extends { id: string }>({
                   )}
                 </TableHead>
               ))}
-              {(onView || onEdit || onDelete) && (
-                <TableHead className="w-10 text-end" />
+              {hasActions && (
+                <TableHead className="w-10 text-end">
+                  <span className="sr-only">{t("dashboard_common.actions")}</span>
+                </TableHead>
               )}
             </TableRow>
           </TableHeader>
           <TableBody>
-            {slice.length === 0 ? (
+            {loading ? (
+              Array.from({ length: pageSize }).map((_, i) => (
+                <TableRow key={`skeleton-${i}`}>
+                  {columns.map((c) => (
+                    <TableCell key={c.key} className={c.className}>
+                      <div className="h-4 w-3/4 animate-pulse rounded bg-muted" />
+                    </TableCell>
+                  ))}
+                  {hasActions && (
+                    <TableCell className="text-end">
+                      <div className="ms-auto h-4 w-4 animate-pulse rounded bg-muted" />
+                    </TableCell>
+                  )}
+                </TableRow>
+              ))
+            ) : slice.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={columns.length + 1} className="p-0">
-                  <EmptyState title={t("dashboard_common.noResults")} description={t("dashboard_common.tryAdjustFilters")} />
+                <TableCell colSpan={columns.length + (hasActions ? 1 : 0)} className="p-0">
+                  <EmptyState
+                    title={t("dashboard_common.noResults")}
+                    description={emptyMessage ?? t("dashboard_common.tryAdjustFilters")}
+                  />
                 </TableCell>
               </TableRow>
             ) : (
@@ -215,23 +284,26 @@ export function DataTable<T extends { id: string }>({
                       {c.render ? c.render(row) : String(row[c.key] ?? "")}
                     </TableCell>
                   ))}
-                  {(onView || onEdit || onDelete) && (
+                  {hasActions && (
                     <TableCell className="text-end">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button variant="ghost" size="icon" className="h-8 w-8">
-                            <MoreHorizontal className="h-4 w-4" />
+                            <MoreHorizontal className="h-4 w-4" aria-hidden="true" />
+                            <span className="sr-only">{t("dashboard_common.openRowMenu")}</span>
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           {onView && (
                             <DropdownMenuItem onClick={() => onView(row)}>
-                              <Eye className="mr-2 h-4 w-4" /> View
+                              <Eye className="me-2 h-4 w-4" aria-hidden="true" />
+                              {t("dashboard_common.view")}
                             </DropdownMenuItem>
                           )}
                           {onEdit && (
                             <DropdownMenuItem onClick={() => onEdit(row)}>
-                              <Pencil className="mr-2 h-4 w-4" /> Edit
+                              <Pencil className="me-2 h-4 w-4" aria-hidden="true" />
+                              {t("dashboard_common.edit")}
                             </DropdownMenuItem>
                           )}
                           {onDelete && (
@@ -241,7 +313,8 @@ export function DataTable<T extends { id: string }>({
                                 className="text-destructive focus:text-destructive"
                                 onClick={() => setPending(row)}
                               >
-                                <Trash2 className="me-2 h-4 w-4" /> {t("dashboard_common.delete")}
+                                <Trash2 className="me-2 h-4 w-4" aria-hidden="true" />
+                                {t("dashboard_common.delete")}
                               </DropdownMenuItem>
                             </>
                           )}
@@ -258,8 +331,10 @@ export function DataTable<T extends { id: string }>({
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-xs text-muted-foreground">
-          Showing <span className="font-medium text-foreground">{slice.length}</span> of{" "}
-          <span className="font-medium text-foreground">{filtered.length}</span> results
+          {t("dashboard_common.showingResults", {
+            shown: slice.length,
+            total: filtered.length,
+          })}
         </p>
         <div className="flex items-center gap-1">
           <Button
@@ -267,54 +342,84 @@ export function DataTable<T extends { id: string }>({
             size="icon"
             className="h-8 w-8"
             onClick={() => setPage(Math.max(1, current - 1))}
-            disabled={current === 1}
+            disabled={current === 1 || loading}
           >
-            <ChevronLeft className="h-4 w-4" />
+            <ChevronLeft className="h-4 w-4" aria-hidden="true" />
+            <span className="sr-only">{t("dashboard_common.previousPage")}</span>
           </Button>
-          {Array.from({ length: pages }).slice(0, 5).map((_, i) => (
+          {pageWindow[0] > 1 && (
+            <span className="px-1 text-xs text-muted-foreground" aria-hidden="true">
+              …
+            </span>
+          )}
+          {pageWindow.map((p) => (
             <Button
-              key={i}
-              variant={current === i + 1 ? "default" : "outline"}
+              key={p}
+              variant={current === p ? "default" : "outline"}
               size="icon"
               className="h-8 w-8"
-              onClick={() => setPage(i + 1)}
+              onClick={() => setPage(p)}
+              disabled={loading}
+              aria-current={current === p ? "page" : undefined}
             >
-              {i + 1}
+              {p}
             </Button>
           ))}
+          {pageWindow[pageWindow.length - 1] < pages && (
+            <span className="px-1 text-xs text-muted-foreground" aria-hidden="true">
+              …
+            </span>
+          )}
           <Button
             variant="outline"
             size="icon"
             className="h-8 w-8"
             onClick={() => setPage(Math.min(pages, current + 1))}
-            disabled={current === pages}
+            disabled={current === pages || loading}
           >
-            <ChevronRight className="h-4 w-4" />
+            <ChevronRight className="h-4 w-4" aria-hidden="true" />
+            <span className="sr-only">{t("dashboard_common.nextPage")}</span>
           </Button>
         </div>
       </div>
 
-      <AlertDialog open={pending !== null} onOpenChange={(o) => !o && setPending(null)}>
-        <AlertDialogContent>
+      <AlertDialog
+        open={pending !== null}
+        onOpenChange={(open) => !open && !isDeleting && setPending(null)}
+      >
+        <AlertDialogContent dir="ltr" className="text-left">
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete this record?</AlertDialogTitle>
+            <AlertDialogTitle>{t("dashboard_common.deleteConfirmTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              This action can't be undone. The record will be permanently removed from your workspace.
+              {t("dashboard_common.deleteConfirmDescription")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
+            <AlertDialogCancel disabled={isDeleting}>
+              {t("common.cancel")}
+            </AlertDialogCancel>
             <AlertDialogAction
-              onClick={() => {
-                if (pending) {
-                  onDelete?.(pending);
-                  toast.success("Record deleted");
-                  setPending(null);
-                }
+              onClick={(e) => {
+                // Prevent the dialog from closing automatically so we can
+                // keep it open with a "Deleting..." state until the async
+                // delete call settles.
+                e.preventDefault();
+                handleConfirmDelete();
               }}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={isDeleting}
+              className={cn(
+                "bg-destructive text-destructive-foreground hover:bg-destructive/90",
+                isDeleting && "opacity-80",
+              )}
             >
-              {t("dashboard_common.delete")}
+              {isDeleting ? (
+                <span className="inline-flex items-center gap-2">
+                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                  {t("dashboard_common.deleting")}
+                </span>
+              ) : (
+                t("dashboard_common.delete")
+              )}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

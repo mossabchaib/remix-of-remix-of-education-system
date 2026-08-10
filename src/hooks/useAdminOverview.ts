@@ -9,8 +9,8 @@ import {
   type RevenuePoint,
   type RecentPayment,
 } from "@/lib/analytics";
+import type { ProfileData } from "@/lib/lms-storage";
 
-// Only recompute when a key that actually affects this page changes.
 const WATCHED_KEYS: string[] = [
   storageKeys.orders,
   storageKeys.adminUsers,
@@ -19,39 +19,60 @@ const WATCHED_KEYS: string[] = [
   storageKeys.enrollments,
 ];
 
+const EMPTY_KPIS: AdminKpis = {
+  totalRevenue: 0,
+  revenueDelta: 0,
+  activeLearners: 0,
+  learnersDelta: 0,
+  publishedCourses: 0,
+  coursesDelta: 0,
+  completionRate: 0,
+};
+
 export type AdminOverviewData = {
   kpis: AdminKpis;
   revenueSeries: RevenuePoint[];
   payments: RecentPayment[];
-  users: ReturnType<typeof recentUsers>;
+  users: ProfileData[];
+  loading: boolean;
 };
 
-function readAll(): AdminOverviewData {
+async function readAll(): Promise<Omit<AdminOverviewData, "loading">> {
+  const [kpis, revenueSeries, users] = await Promise.all([
+    computeKpis(),
+    computeMonthlySeries(12),
+    recentUsers(6),
+  ]);
   return {
-    kpis: computeKpis(),
-    revenueSeries: computeMonthlySeries(12),
-    payments: recentPayments(6),
-    users: recentUsers(6),
+    kpis,
+    revenueSeries,
+    payments: recentPayments(6), // sync — يقرا غير من orders/localStorage
+    users,
   };
 }
 
-/**
- * Read-only hook for the Admin Overview page (`/admin`).
- * Recomputes automatically whenever a relevant lms-storage key changes,
- * via the shared `lms:storage-change` CustomEvent that every write
- * helper in `lms-storage.ts` already emits.
- *
- * NOTE for maintainers: if the project settles on a shared generic
- * `useKeyedStorage(keys, read)` hook, this can be rewritten to call it
- * directly. It's implemented standalone here so it has zero dependency
- * on a hook signature I haven't seen in this codebase yet — swap the
- * effect body below once that hook exists, keeping the return shape
- * (`AdminOverviewData`) identical so the page component doesn't change.
- */
 export function useAdminOverview(): AdminOverviewData {
-  const [data, setData] = useState<AdminOverviewData>(readAll);
+  const [data, setData] = useState<AdminOverviewData>({
+    kpis: EMPTY_KPIS,
+    revenueSeries: [],
+    payments: [],
+    users: [],
+    loading: true,
+  });
 
-  const refresh = useCallback(() => setData(readAll()), []);
+  const refresh = useCallback(async () => {
+    try {
+      const result = await readAll();
+      setData({ ...result, loading: false });
+    } catch (err) {
+      console.error("Failed to load admin overview:", err);
+      setData((prev) => ({ ...prev, loading: false }));
+    }
+  }, []);
+
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
 
   useEffect(() => {
     function handler(e: Event) {
