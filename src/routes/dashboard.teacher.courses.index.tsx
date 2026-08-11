@@ -126,12 +126,7 @@ function TeacherCourses() {
       sortable: true,
       render: (c) => <span className="text-sm text-muted-foreground">{c.language || "English"}</span>,
     },
-    {
-      key: "price",
-      header: t("admin.price"),
-      sortable: true,
-      render: (c) => <span className="text-sm font-medium">${Number(c.price || 0).toLocaleString()}</span>,
-    },
+   
     {
       key: "status",
       header: t("common.status"),

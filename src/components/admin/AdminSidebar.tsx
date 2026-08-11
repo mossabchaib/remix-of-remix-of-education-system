@@ -66,17 +66,19 @@ export function AdminSidebar() {
 
   return (
     <Sidebar side={isRTL ? "right" : "left"} collapsible="icon">
-      <SidebarHeader>
-        <div className="flex items-center gap-2 px-2 py-1.5">
-          <span className="grid h-8 w-8 place-items-center rounded-lg gradient-brand text-primary-foreground">
-            <GraduationCap className="h-4 w-4" />
-          </span>
-          <div className="min-w-0 group-data-[collapsible=icon]:hidden">
-            <p className="truncate text-sm font-semibold">{t("admin.lumenAdmin")}</p>
-            <p className="truncate text-xs text-muted-foreground">{t("dashboard_common.workspace")}</p>
-          </div>
-        </div>
-      </SidebarHeader>
+    <SidebarHeader>
+  <Link to="/" className="flex items-center gap-3 group px-2 py-1.5">
+    <span className="relative flex h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-xl p-0.5 shadow-md shadow-sky-500/20 transition-all duration-300 group-hover:scale-105 group-hover:shadow-lg group-hover:shadow-sky-500/30">
+      <span className="flex h-full w-full items-center justify-center rounded-[10px] bg-background/90 backdrop-blur-sm transition-colors group-hover:bg-background/70">
+        <img src="public/logo.png" alt="Logo" className="h-16 w-16 object-contain" />
+      </span>
+    </span>
+    <div className="min-w-0 group-data-[collapsible=icon]:hidden">
+      <p className="truncate text-sm font-semibold transition-colors group-hover:text-sky-500">{t("admin.lumenAdmin")}</p>
+      <p className="truncate text-xs text-muted-foreground">{t("dashboard_common.workspace")}</p>
+    </div>
+  </Link>
+</SidebarHeader>
       <SidebarContent>
         <Section label={t("dashboard_common.overview")} items={main} />
         <Section label={t("dashboard_common.catalog")} items={catalog} />

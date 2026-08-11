@@ -13,8 +13,8 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/login")({
   head: () => ({
     meta: [
-      { title: "Sign in — Lumen" },
-      { name: "description", content: "Sign in to your Lumen account to continue learning." },
+      { title: "Sign in — El Manara" },
+      { name: "description", content: "Sign in to your El Manara account to continue learning." },
     ],
   }),
   component: Login,
@@ -169,12 +169,14 @@ export function AuthShell({ children }: { children: React.ReactNode }) {
         </div>
 
         <div className="relative z-10 flex h-full flex-col justify-between p-12 text-primary-foreground">
-          <Link to="/" className="flex items-center gap-2">
-            <span className="grid h-9 w-9 place-items-center rounded-xl bg-white/15 backdrop-blur">
-              <GraduationCap className="h-5 w-5" />
-            </span>
-            <span className="text-lg font-semibold">Lumen.</span>
-          </Link>
+         <Link to="/" className="flex items-center gap-2">
+   <span className="relative flex h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-xl p-0.5 shadow-md shadow-sky-500/20 transition-all duration-300 group-hover:scale-105 group-hover:shadow-lg group-hover:shadow-sky-500/30">
+      <span className="flex h-full w-full items-center justify-center rounded-[10px] bg-background/90 backdrop-blur-sm transition-colors group-hover:bg-background/70">
+       <img src="public/logo.png" alt="El Manara Logo" className="h-16 w-16 object-contain" />
+      </span>
+    </span>
+  <span className="text-lg font-semibold">El Manara.</span>
+</Link>
           <div>
             <p className="text-3xl font-semibold leading-tight tracking-tight">
               {t("login.testimonial")}

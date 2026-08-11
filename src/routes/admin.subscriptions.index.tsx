@@ -121,7 +121,7 @@ function SubsAdmin() {
       key: "amount" as any,
       header: t("admin.subscription.table.amount"),
       sortable: true,
-      render: (r) => `$${Number(r.amount).toFixed(2)}`,
+      render: (r) => `DA ${Number(r.amount).toFixed(2)}`,
     },
     {
       key: "status" as any,
@@ -187,7 +187,7 @@ function SubsAdmin() {
         />
         <StatCard
           label={t("admin.subscription.stats.revenue")}
-          value={`$${totalRevenue.toFixed(2)}`}
+          value={`DA ${totalRevenue.toFixed(2)}`}
           icon={Wallet}
         />
       </div>

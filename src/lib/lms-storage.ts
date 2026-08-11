@@ -320,10 +320,11 @@ export function notificationsFor(ctx: {
 /* ============ Course structure (lessons/modules) ============ */
 export interface Lesson {
   title: string;
-  kind: "video" | "quiz" | "article";
+  kind: "video"  | "article";
   duration?: string;
   content_url?: string;
   order_index: number;
+  reading?:string;
   is_preview?: boolean;
 }
 

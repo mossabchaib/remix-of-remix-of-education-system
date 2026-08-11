@@ -45,13 +45,20 @@ function CoursesAdmin() {
   const [courseToDelete, setCourseToDelete] = useState<CourseRow | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const loadCourses = useCallback(async () => {
+const loadCourses = useCallback(async () => {
     try {
       setLoadError(null);
       const result = await getAllCourses();
+      
+      // ضع الـ console.log هنا لمعرفة شكل البيانات الخام والمنظمة
+      console.log("Raw courses result:", result);
+
       const normalized = Array.isArray(result)
         ? result
         : (result as any)?.data || (result as any)?.courses || [];
+      
+      console.log("Normalized courses data:", normalized);
+
       setCourses(normalized);
     } catch (err: any) {
       console.error(`Error loading storage key ${storageKeys.adminCourses}:`, err);
@@ -102,12 +109,12 @@ function CoursesAdmin() {
     }
   };
 
-  const columns: Column<CourseRow>[] = [
+ const columns: Column<CourseRow>[] = [
     {
       key: "title",
       header: t("admin.course"),
       sortable: true,
-      render: (c) => (
+      render: (c:any) => (
         <div className="flex items-center gap-3">
           <div className="h-10 w-14 shrink-0 rounded-md overflow-hidden bg-primary/10 flex items-center justify-center">
             {c.image_cover && c.image_cover.startsWith("linear-gradient") ? (
@@ -123,7 +130,7 @@ function CoursesAdmin() {
               {c.title || t("admin.untitledCourse")}
             </p>
             <p className="truncate text-xs text-muted-foreground">
-              {c.category || c.language || "—"} · {t(`teacher.level.${c.level || "beginner"}`)}
+              {c.categories?.name || c.language || "—"} · {t(`teacher.level.${c.level || "beginner"}`)}
             </p>
           </div>
         </div>
@@ -133,36 +140,7 @@ function CoursesAdmin() {
       key: "teacher",
       header: t("admin.instructor"),
       sortable: true,
-      render: (c) =>
-        (typeof c.teacher === "object" ? c.teacher?.full_name : c.teacher) ||
-        c.teacher_name ||
-        "—",
-    },
-    {
-      key: "students",
-      header: t("admin.students"),
-      sortable: true,
-      render: (c) => (c.students_count ?? c.students ?? 0).toLocaleString(),
-    },
-    {
-      key: "rating",
-      header: t("admin.rating"),
-      sortable: true,
-      render: (c) => (
-        <span className="inline-flex items-center gap-1 text-sm">
-          <Star className="h-3.5 w-3.5 fill-primary text-primary" />
-          {Number(c.rating ?? 0).toFixed(1)}
-        </span>
-      ),
-    },
-    {
-      key: "price",
-      header: t("admin.price"),
-      sortable: true,
-      render: (c) =>
-        Number(c.price || 0) === 0
-          ? t("common.free")
-          : `$${Number(c.price).toLocaleString()}`,
+      render: (c:any) => c.profiles?.full_name || (typeof c.teacher === "object" ? c.teacher?.full_name : c.teacher) || c.teacher_name || "—",
     },
     {
       key: "status",

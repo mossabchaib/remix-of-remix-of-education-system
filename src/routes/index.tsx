@@ -52,6 +52,19 @@ function formatDate(createdAt?: string) {
   return new Date(createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
 
+// Education-themed hero background (design/UI only — no data, no new imports)
+const HERO_BG_URL =
+  "https://images.unsplash.com/photo-1523240795612-9a054b0db644?q=80&w=2400&auto=format&fit=crop";
+
+// ---- Simple Loader (used for categories & courses loading states) ----
+function Loader({ className = "" }: { className?: string }) {
+  return (
+    <div className={`flex w-full items-center justify-center py-16 ${className}`}>
+      <div className="h-8 w-8 animate-spin rounded-full border-2 border-sky-200 border-t-sky-500" />
+    </div>
+  );
+}
+
 function Home() {
   const { t } = useTranslation();
   const { isAuthenticated }: any = useAuth();
@@ -123,63 +136,69 @@ function Home() {
 
   return (
     <SiteLayout>
-      {/* Hero */}
-      <section className="relative overflow-hidden">
-        <div className="pointer-events-none absolute inset-0 -z-10">
-          <div className="absolute -top-40 left-1/2 h-[36rem] w-[36rem] -translate-x-1/2 rounded-full bg-primary/15 blur-3xl" />
-          <div className="absolute top-40 right-0 h-96 w-96 rounded-full bg-accent/40 blur-3xl" />
-        </div>
-        <div className="mx-auto max-w-7xl px-4 pt-20 pb-24 sm:px-6 lg:px-8">
+      {/* Hero — education background image with overlay for legibility */}
+      <section className="relative isolate overflow-hidden">
+        <div
+          className="absolute inset-0 -z-20 bg-cover bg-center"
+          style={{ backgroundImage: `url(${HERO_BG_URL})` }}
+          aria-hidden="true"
+        />
+        {/* Dark tint + gradient so white text stays crisp over any part of the photo */}
+        <div
+          className="absolute inset-0 -z-10 bg-gradient-to-b from-black/80 via-black/70 to-black/90"
+          aria-hidden="true"
+        />
+
+        <div className="mx-auto max-w-7xl px-4 pt-24 pb-28 sm:px-6 sm:pt-28 sm:pb-32 lg:px-8">
           <div className="mx-auto max-w-3xl text-center">
-            <Badge variant="secondary" className="mb-5 rounded-full border border-border/60 bg-background/60 px-3 py-1 backdrop-blur">
-              <Sparkles className="me-1.5 h-3.5 w-3.5 text-primary" /> {t("home.badge")}
-            </Badge>
-            <h1 className="text-4xl font-semibold tracking-tight sm:text-6xl">
-              {t("home.heroTitle1")} <span className="text-gradient-brand">{t("home.heroHighlight")}</span>.
+            {/* <Badge className="mb-5 rounded-full border border-white/25 bg-white/10 px-3 py-1 text-white backdrop-blur">
+              <Sparkles className="me-1.5 h-3.5 w-3.5 text-sky-300" /> {t("home.badge")}
+            </Badge> */}
+            <h1 className="text-4xl font-semibold tracking-tight text-white sm:text-6xl">
+              {t("home.heroTitle1")} <span className="text-sky-300">{t("home.heroHighlight")}</span>.
               <br className="hidden sm:block" /> {t("home.heroTitle2")}
             </h1>
-            <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground">
+            <p className="mx-auto mt-6 max-w-2xl text-lg text-white/80">
               {t("home.heroSubtitle")}
             </p>
-            <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-              <Button asChild size="lg" className="shadow-elegant">
+            <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
+              <Button
+                asChild
+                size="lg"
+                className="bg-sky-400 text-black shadow-lg shadow-sky-400/30 hover:bg-sky-300"
+              >
                 <Link to="/courses">{t("home.browseCourses")} <ArrowRight className="ms-2 h-4 w-4 rtl:rotate-180" /></Link>
               </Button>
-              <Button asChild size="lg" variant="outline">
+              <Button
+                asChild
+                size="lg"
+                variant="outline"
+                className="border-white/30 bg-transparent text-white hover:bg-white/10 hover:text-white"
+              >
                 <Link to="/pricing"><PlayCircle className="me-2 h-4 w-4" /> {t("home.watchDemo")}</Link>
               </Button>
             </div>
-            <div className="mt-10 flex flex-wrap items-center justify-center gap-x-8 gap-y-2 text-sm text-muted-foreground">
-              <div className="flex items-center gap-1.5"><Star className="h-4 w-4 fill-primary text-primary" /> {t("home.avgRating")}</div>
+            <div className="mt-10 flex flex-wrap items-center justify-center gap-x-8 gap-y-2 text-sm text-white/70">
+              <div className="flex items-center gap-1.5"><Star className="h-4 w-4 fill-sky-300 text-sky-300" /> {t("home.avgRating")}</div>
               <div className="flex items-center gap-1.5"><Users className="h-4 w-4" /> {t("home.learnersCount")}</div>
               <div className="flex items-center gap-1.5"><ShieldCheck className="h-4 w-4" /> {t("home.trustedTeams")}</div>
             </div>
           </div>
 
           {/* Preview mock (app.lumen.school/dashboard) */}
-          <div className="relative mx-auto mt-16 max-w-5xl">
-            <div className="absolute -inset-1 rounded-3xl gradient-brand opacity-20 blur-2xl" />
-            <Card className="relative overflow-hidden rounded-2xl border-border/60 bg-card/90 shadow-elegant backdrop-blur">
-              <div className="flex items-center gap-1.5 border-b border-border/60 bg-muted/40 px-4 py-3">
-                <span className="h-2.5 w-2.5 rounded-full bg-destructive/60" />
-                <span className="h-2.5 w-2.5 rounded-full bg-warning/70" />
-                <span className="h-2.5 w-2.5 rounded-full bg-success/70" />
-                <span className="ms-3 text-xs text-muted-foreground">{t("home.previewUrl")}</span>
+          {/* <div className="relative mx-auto mt-16 max-w-5xl">
+            <Card className="overflow-hidden rounded-2xl border-white/15 bg-white shadow-2xl">
+              <div className="flex items-center gap-1.5 border-b border-black/10 bg-black px-4 py-3">
+                <span className="h-2.5 w-2.5 rounded-full bg-white/30" />
+                <span className="h-2.5 w-2.5 rounded-full bg-white/30" />
+                <span className="h-2.5 w-2.5 rounded-full bg-sky-400" />
+                <span className="ms-3 text-xs text-white/70">{t("home.previewUrl")}</span>
               </div>
               <div className="grid gap-4 p-6 sm:grid-cols-3">
                 {coursesLoading ? (
-                  Array.from({ length: 3 }).map((_, i) => (
-                    <Card key={i} className="overflow-hidden border-border/60 shadow-card animate-pulse">
-                      <div className="h-40 w-full bg-muted/60" />
-                      <div className="space-y-3 p-5">
-                        <div className="h-3 w-1/3 rounded bg-muted/60" />
-                        <div className="h-4 w-3/4 rounded bg-muted/60" />
-                        <div className="h-3 w-1/2 rounded bg-muted/40" />
-                      </div>
-                    </Card>
-                  ))
+                  <Loader className="col-span-full" />
                 ) : featured.length === 0 ? (
-                  <p className="col-span-full text-sm text-muted-foreground">No courses found.</p>
+                  <p className="col-span-full text-sm text-black/50">No courses found.</p>
                 ) : (
                   featured.slice(0, 3).map((c: any) => (
                     <CourseCard key={c.id} course={c} isAuthenticated={isAuthenticated} />
@@ -187,130 +206,131 @@ function Home() {
                 )}
               </div>
             </Card>
-          </div>
-        </div>
+          </div>*/}
+        </div> 
       </section>
 
       {/* Features */}
-      <section className="border-t border-border/60 bg-muted/20 py-20">
+      {/* <section className="border-t border-black/10 bg-white py-20 sm:py-24">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-2xl text-center">
-            <p className="text-sm font-semibold uppercase tracking-wider text-primary">{t("home.whyLumen")}</p>
-            <h2 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">{t("home.featuresTitle")}</h2>
-            <p className="mt-3 text-muted-foreground">{t("home.featuresSubtitle")}</p>
+            <p className="text-sm font-semibold uppercase tracking-wider text-sky-500">{t("home.whyLumen")}</p>
+            <h2 className="mt-2 text-3xl font-semibold tracking-tight text-black sm:text-4xl">{t("home.featuresTitle")}</h2>
+            <p className="mt-3 text-black/60">{t("home.featuresSubtitle")}</p>
           </div>
           <div className="mt-14 grid gap-6 md:grid-cols-3">
             {features.map((f) => (
-              <Card key={f.title} className="border-border/60 p-6 shadow-card transition hover:shadow-elegant hover:-translate-y-0.5">
-                <div className="grid h-11 w-11 place-items-center rounded-xl bg-primary-soft text-primary">
+              <Card
+                key={f.title}
+                className="border-black/10 p-7 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-sky-300 hover:shadow-lg"
+              >
+                <div className="grid h-11 w-11 place-items-center rounded-xl bg-sky-50 text-sky-500">
                   <f.icon className="h-5 w-5" />
                 </div>
-                <h3 className="mt-4 text-lg font-semibold">{f.title}</h3>
-                <p className="mt-1.5 text-sm text-muted-foreground">{f.desc}</p>
+                <h3 className="mt-5 text-lg font-semibold text-black">{f.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-black/60">{f.desc}</p>
               </Card>
             ))}
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* Categories */}
-      <section className="py-20">
+      <section className="bg-[#f3f9ff] py-20 sm:py-24">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex items-end justify-between gap-4">
+          <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
-              <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">{t("home.browseCategory")}</h2>
-              <p className="mt-2 text-muted-foreground">{t("home.browseCategoryDesc")}</p>
+              <h2 className="text-3xl font-semibold tracking-tight text-black sm:text-4xl">{t("home.browseCategory")}</h2>
+              <p className="mt-2 text-black/60">{t("home.browseCategoryDesc")}</p>
             </div>
-            <Button variant="ghost" asChild className="hidden sm:inline-flex">
+            <Button variant="ghost" asChild className="text-sky-600 hover:bg-sky-100 hover:text-sky-700">
               <Link to="/courses">{t("home.allCourses")} <ArrowRight className="ms-1.5 h-4 w-4 rtl:rotate-180" /></Link>
             </Button>
           </div>
-          <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+
+          <div className="mt-10">
             {categoriesLoading ? (
-              Array.from({ length: 6 }).map((_, i) => (
-                <Card key={i} className="flex flex-col items-center justify-center border-border/60 p-5 animate-pulse">
-                  <div className="h-20 w-20 rounded-full bg-muted/60" />
-                  <div className="mt-4 h-3.5 w-16 rounded bg-muted/60" />
-                </Card>
-              ))
+              <Loader />
             ) : categories.length === 0 ? (
-              <p className="col-span-full text-sm text-muted-foreground">No categories found.</p>
+              <p className="text-sm text-black/50">No categories found.</p>
             ) : (
-              categories.map((c) => (
-                <div key={c.id}  className="group">
-                  <Card className="flex flex-col items-center justify-center border-border/60 p-5 text-center shadow-card transition-all duration-300 group-hover:shadow-elegant group-hover:-translate-y-1">
-                    <div
-                      className="relative mx-auto flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-background shadow-md transition-transform duration-300 group-hover:scale-105"
-                      style={{ background: (c.color || "#3b82f6") + "15", color: c.color || "#3b82f6" }}
-                    >
-                      {c.image_url || c.image ? (
-                        <img src={c.image_url || c.image} alt={c.name} className="h-full w-full object-cover" />
-                      ) : (
-                        <BookOpen className="h-8 w-8" />
-                      )}
-                    </div>
-                    <div className="mt-4 w-full">
-                      <p className="line-clamp-1 text-sm font-semibold tracking-tight text-foreground transition-colors group-hover:text-primary">{c.name}</p>
-                    </div>
-                  </Card>
-                </div>
-              ))
+              <div className="grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-6">
+                {categories.map((c) => (
+                  <div key={c.id} className="group">
+                    <Card className="flex flex-col items-center justify-center border-black/10 bg-white p-5 text-center shadow-sm transition-all duration-300 group-hover:-translate-y-1 group-hover:border-sky-300 group-hover:shadow-lg">
+                      <div className="relative mx-auto flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-full bg-sky-50 text-sky-500 shadow-sm transition-transform duration-300 group-hover:scale-105">
+                        {c.image_url || c.image ? (
+                          <img src={c.image_url || c.image} alt={c.name} className="h-full w-full object-cover" />
+                        ) : (
+                          <BookOpen className="h-8 w-8" />
+                        )}
+                      </div>
+                      <div className="mt-4 w-full">
+                        <p className="line-clamp-1 text-sm font-semibold tracking-tight text-black transition-colors group-hover:text-sky-600">{c.name}</p>
+                      </div>
+                    </Card>
+                  </div>
+                ))}
+              </div>
             )}
           </div>
         </div>
       </section>
 
       {/* Popular courses */}
-      <section className="border-t border-border/60 py-20">
+      <section className="border-t border-black/10 bg-white py-20 sm:py-24">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex items-end justify-between gap-4">
+          <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
-              <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">{t("home.popularTitle")}</h2>
-              <p className="mt-2 text-muted-foreground">{t("home.popularSubtitle")}</p>
+              <h2 className="text-3xl font-semibold tracking-tight text-black sm:text-4xl">{t("home.popularTitle")}</h2>
+              <p className="mt-2 text-black/60">{t("home.popularSubtitle")}</p>
             </div>
-            <Button variant="outline" asChild>
+            <Button
+              variant="outline"
+              asChild
+              className="border-sky-300 text-sky-600 hover:bg-sky-50 hover:text-sky-700"
+            >
               <Link to="/courses">{t("common.viewAll")}</Link>
             </Button>
           </div>
-          <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+
+          <div className="mt-10">
             {coursesLoading ? (
-              Array.from({ length: 3 }).map((_, i) => (
-                <Card key={i} className="overflow-hidden border-border/60 shadow-card animate-pulse">
-                  <div className="h-40 w-full bg-muted/60" />
-                  <div className="p-5 space-y-3">
-                    <div className="h-3 w-1/3 rounded bg-muted/60" />
-                    <div className="h-4 w-3/4 rounded bg-muted/60" />
-                    <div className="h-3 w-1/2 rounded bg-muted/40" />
-                  </div>
-                </Card>
-              ))
+              <Loader />
             ) : featured.length === 0 ? (
-              <p className="col-span-full text-sm text-muted-foreground">No courses found.</p>
+              <p className="text-sm text-black/50">No courses found.</p>
             ) : (
-              featured.map((c: any) => (
-                <CourseCard key={c.id} course={c} isAuthenticated={isAuthenticated} />
-              ))
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {featured.map((c: any) => (
+                  <CourseCard key={c.id} course={c} isAuthenticated={isAuthenticated} />
+                ))}
+              </div>
             )}
           </div>
         </div>
       </section>
 
       {/* CTA */}
-      <section className="py-20">
+      <section className="bg-white pb-24 pt-4 sm:pb-28">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <Card className="relative overflow-hidden border-none bg-transparent p-0 shadow-elegant">
-            <div className="gradient-brand p-10 sm:p-14 text-primary-foreground">
+          <Card className="relative overflow-hidden border-none bg-black p-0 shadow-2xl">
+            <div className="p-10 text-white sm:p-14">
               <div className="grid gap-8 lg:grid-cols-[1.4fr_1fr] lg:items-center">
                 <div>
                   <h3 className="text-3xl font-semibold tracking-tight sm:text-4xl">{t("home.ctaTitle")}</h3>
-                  <p className="mt-3 max-w-xl text-primary-foreground/85">
+                  <p className="mt-3 max-w-xl text-white/70">
                     {t("home.ctaSubtitle")}
                   </p>
-                  <div className="mt-6 flex flex-wrap gap-3">
-                    <Button asChild size="lg" variant="secondary" className="text-foreground">
+                  <div className="mt-7 flex flex-wrap gap-3">
+                    <Button asChild size="lg" className="bg-sky-400 text-black hover:bg-sky-300">
                       <Link to="/register">{t("home.startFreeTrial")}</Link>
                     </Button>
-                    <Button asChild size="lg" variant="outline" className="bg-transparent border-white/30 text-primary-foreground hover:bg-white/10 hover:text-primary-foreground">
+                    <Button
+                      asChild
+                      size="lg"
+                      variant="outline"
+                      className="border-white/30 bg-transparent text-white hover:bg-white/10 hover:text-white"
+                    >
                       <Link to="/contact">{t("home.talkToSales")}</Link>
                     </Button>
                   </div>
@@ -318,7 +338,7 @@ function Home() {
                 <ul className="space-y-3 text-sm">
                   {ctaPoints.map((text) => (
                     <li key={text} className="flex items-start gap-2">
-                      <span className="mt-0.5 grid h-5 w-5 place-items-center rounded-full bg-white/15">
+                      <span className="mt-0.5 grid h-5 w-5 place-items-center rounded-full bg-sky-400 text-black">
                         <Check className="h-3 w-3" />
                       </span>
                       {text}
@@ -343,16 +363,16 @@ function CourseCard({ course: c, isAuthenticated }: { course: any; isAuthenticat
     : { backgroundImage: c.cover };
 
   return (
-    <Card className="group relative flex h-full flex-col overflow-hidden border-border/60 shadow-card transition-all duration-300 hover:-translate-y-1 hover:shadow-elegant">
+    <Card className="group relative flex h-full flex-col overflow-hidden border-black/10 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
       <Link to="/courses/$id" params={{ id: c.id }} className="block">
-        <div className="relative h-40 overflow-hidden" style={coverStyle}>
-          <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-black/0 to-black/0 transition-opacity duration-300 group-hover:from-black/45" />
+        <div className="relative h-40 overflow-hidden bg-sky-50" style={coverStyle}>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/0 to-black/0 transition-opacity duration-300 group-hover:from-black/50" />
           <div className="absolute inset-x-3 top-3 flex items-center justify-between gap-2">
-            <Badge className="bg-background/90 text-foreground hover:bg-background/90 capitalize backdrop-blur-sm">
+            <Badge className="border-none bg-white/95 text-black capitalize backdrop-blur-sm hover:bg-white/95">
               {c.categories?.name || c.category || "General"}
             </Badge>
             {isNewCourse(c.created_at) && (
-              <Badge className="border-none bg-primary text-primary-foreground">New</Badge>
+              <Badge className="border-none bg-sky-400 text-black">New</Badge>
             )}
           </div>
         </div>
@@ -368,33 +388,33 @@ function CourseCard({ course: c, isAuthenticated }: { course: any; isAuthenticat
 
       <Link to="/courses/$id" params={{ id: c.id }} className="flex flex-1 flex-col">
         <div className="flex flex-1 flex-col p-5">
-          <p className="text-sm text-muted-foreground">by {c.profiles?.full_name || c.teacher || "Instructor"}</p>
-          <h3 className="mt-1 line-clamp-2 text-base font-semibold leading-snug transition-colors group-hover:text-primary">
+          <p className="text-sm text-black/50">by {c.profiles?.full_name || c.teacher || "Instructor"}</p>
+          <h3 className="mt-1 line-clamp-2 text-base font-semibold leading-snug text-black transition-colors group-hover:text-sky-600">
             {c.title}
           </h3>
 
           {(c.subtitle || c.description) && (
-            <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">
+            <p className="mt-2 line-clamp-2 text-sm text-black/60">
               {c.subtitle || c.description}
             </p>
           )}
 
-          <div className="mt-auto flex flex-wrap items-center gap-x-4 gap-y-2 pt-4 text-xs text-muted-foreground">
+          <div className="mt-auto flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-black/10 pt-4 text-xs text-black/50">
             {c.level && (
               <span className="flex items-center gap-1 capitalize">
-                <GraduationCap className="h-3.5 w-3.5" />
+                <GraduationCap className="h-3.5 w-3.5 text-sky-500" />
                 {c.level}
               </span>
             )}
             {c.language && (
               <span className="flex items-center gap-1">
-                <Globe2 className="h-3.5 w-3.5" />
+                <Globe2 className="h-3.5 w-3.5 text-sky-500" />
                 {c.language}
               </span>
             )}
             {c.created_at && (
               <span className="ml-auto flex items-center gap-1">
-                <CalendarDays className="h-3.5 w-3.5" />
+                <CalendarDays className="h-3.5 w-3.5 text-sky-500" />
                 {formatDate(c.created_at)}
               </span>
             )}

@@ -54,8 +54,7 @@ function Lessons() {
 
   const KIND_META: Record<Lesson["kind"], { label: string; icon: typeof FileVideo; className: string }> = {
     video: { label: t("teacherLessons.kind.video"), icon: FileVideo, className: "border-blue-500/30 bg-blue-500/10 text-blue-600" },
-    quiz: { label: t("teacherLessons.kind.quiz"), icon: ListChecks, className: "border-amber-500/30 bg-amber-500/10 text-amber-600" },
-    article: { label: t("teacherLessons.kind.article"), icon: BookOpen, className: "border-violet-500/30 bg-violet-500/10 text-violet-600" },
+   article: { label: t("teacherLessons.kind.article"), icon: BookOpen, className: "border-violet-500/30 bg-violet-500/10 text-violet-600" },
   };
 
   // --- Courses: previously sourced from useTeacherCourses(), now read
@@ -286,12 +285,7 @@ function Lessons() {
           </div>
           <p className="mt-1.5 text-2xl font-semibold tabular-nums">{stats.video}</p>
         </Card>
-        <Card className="border-border/60 p-4 transition-colors hover:border-border">
-          <div className="flex items-center gap-2 text-amber-600">
-            <ListChecks className="h-4 w-4" /><span className="text-xs">{t("teacherLessons.stats.quizzes")}</span>
-          </div>
-          <p className="mt-1.5 text-2xl font-semibold tabular-nums">{stats.quiz}</p>
-        </Card>
+      
         <Card className="border-border/60 p-4 transition-colors hover:border-border">
           <div className="flex items-center gap-2 text-violet-600">
             <BookOpen className="h-4 w-4" /><span className="text-xs">{t("teacherLessons.stats.articles")}</span>
@@ -329,7 +323,7 @@ function Lessons() {
         <Card className="border-border/60 p-1 shadow-card">
           <DataTable
             data={rows} columns={cols} searchKeys={["title", "course"]}
-            filters={[{ key: "kind", label: t("teacherLessons.table.type"), options: ["video", "quiz", "article"] }]}
+            filters={[{ key: "kind", label: t("teacherLessons.table.type"), options: ["video", "article"] }]}
             pageSize={10}
             onEdit={(r) => setEditing(r)}
             onDelete={(r) => setDeleteTarget(r)}
@@ -407,7 +401,7 @@ function LessonForm({ initial, saving, onSubmit, t }: {
             <SelectContent>
               <SelectItem value="video">{t("teacherLessons.kind.video")}</SelectItem>
               <SelectItem value="article">{t("teacherLessons.kind.article")}</SelectItem>
-              <SelectItem value="quiz">{t("teacherLessons.kind.quiz")}</SelectItem>
+              {/* <SelectItem value="quiz">{t("teacherLessons.kind.quiz")}</SelectItem> */}
             </SelectContent>
           </Select>
         </div>
@@ -519,7 +513,7 @@ function NewLessonForm({ courses, modulesByCourse, saving, onSubmit, t }: {
             <SelectContent>
               <SelectItem value="video">{t("teacherLessons.kind.video")}</SelectItem>
               <SelectItem value="article">{t("teacherLessons.kind.article")}</SelectItem>
-              <SelectItem value="quiz">{t("teacherLessons.kind.quiz")}</SelectItem>
+              {/* <SelectItem value="quiz">{t("teacherLessons.kind.quiz")}</SelectItem> */}
             </SelectContent>
           </Select>
         </div>

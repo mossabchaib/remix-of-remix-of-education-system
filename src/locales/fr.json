@@ -44,7 +44,7 @@
     "save": "Enregistrer",
     "language": "Langue",
     "switchLang": "العربية",
-    "lumen": "Lumen",
+    "lumen": "EL MANARA",
     "free": "Gratuit",
     "perMonth": "/ mois",
     "export": "Exporter",
@@ -106,7 +106,7 @@
     "heroTitle1": "Apprenez avec",
     "heroHighlight": "clarté",
     "heroTitle2": "Progressez avec confiance.",
-    "heroSubtitle": "Lumen est une plateforme d'apprentissage premium pour les équipes et les particuliers. Des cours animés par des experts, de belles salles de classe et des outils d'administration conçus pour évoluer à grande échelle.",
+    "heroSubtitle": "EL MANARA est une plateforme d'apprentissage premium pour les équipes et les particuliers. Des cours animés par des experts, de belles salles de classe et des outils d'administration conçus pour évoluer à grande échelle.",
     "browseCourses": "Parcourir les cours",
     "watchDemo": "Voir la démo",
     "avgRating": "Note moyenne de 4,9",
@@ -114,7 +114,7 @@
     "trustedTeams": "Approuvé par plus de 300 équipes",
     "previewUrl": "app.lumen.school / dashboard",
     "lessons": "leçons",
-    "whyLumen": "Pourquoi Lumen",
+    "whyEL MANARA": "Pourquoi EL MANARA",
     "featuresTitle": "Tout ce dont une salle de classe moderne a besoin",
     "featuresSubtitle": "Un espace unique et soigné pour les apprenants, les enseignants et les administrateurs.",
     "featureCurriculum": "Programme organisé",
@@ -146,7 +146,7 @@
   },
   "about": {
     "heroTitle": "Nous construisons la salle de classe dont nous avons toujours rêvé.",
-    "heroSubtitle": "Lumen a débuté comme un petit studio obsédé par l'art d'enseigner. Aujourd'hui, nous sommes une équipe mondiale qui aide des centaines de milliers d'apprenants à progresser — avec élégance.",
+    "heroSubtitle": "EL MANARA a débuté comme un petit studio obsédé par l'art d'enseigner. Aujourd'hui, nous sommes une équipe mondiale qui aide des centaines de milliers d'apprenants à progresser — avec élégance.",
     "statLearners": "Apprenants actifs",
     "statLessons": "Leçons terminées",
     "statInstructors": "Instructeurs experts",
@@ -178,7 +178,7 @@
   },
   "login": {
     "welcomeBack": "Content de vous revoir",
-    "signInTitle": "Connectez-vous à Lumen",
+    "signInTitle": "Connectez-vous à EL MANARA",
     "emailLabel": "E-mail",
     "emailPlaceholder": "vous@exemple.com",
     "emailTip": "Astuce : utilisez <code>admin@…</code>, <code>teacher@…</code> ou n'importe quel e-mail pour un étudiant.",
@@ -188,7 +188,7 @@
     "signInBtn": "Se connecter",
     "noAccount": "Vous n'avez pas de compte ?",
     "createOne": "Créez-en un",
-    "testimonial": "\"Lumen est la salle de classe calme et concentrée dont mon équipe a toujours eu besoin.\"",
+    "testimonial": "\"EL MANARA est la salle de classe calme et concentrée dont mon équipe a toujours eu besoin.\"",
     "testimonialAuthor": "Priya S. — Responsable de la formation, Northwind",
     "welcomeBackToast": "Content de vous revoir — connecté en tant que {{role}}"
   },
@@ -208,7 +208,7 @@
     "createBtn": "Créer un compte",
     "hasAccount": "Vous avez déjà un compte ?",
     "signIn": "Se connecter",
-    "accountCreated": "Compte créé — bienvenue sur Lumen !"
+    "accountCreated": "Compte créé — bienvenue sur EL MANARA !"
   },
   "pricing": {
     "badge": "Tarification simple",
@@ -250,7 +250,7 @@
     "account": "Compte",
     "createAccount": "Créer un compte",
     "admin": "Administration",
-    "copyright": "© {{year}} Lumen Learning, Inc. Tous droits réservés."
+    "copyright": "© {{year}} EL MANARA Learning, Inc. Tous droits réservés."
   },
   "admin": {
     "subscription": {
@@ -373,7 +373,7 @@
       "teacher": "Enseignant",
       "student": "Étudiant"
     },
-    "lumenAdmin": "Administration Lumen",
+    "lumenAdmin": "Administration EL MANARA",
     "workspace": "Espace de travail",
     "overview": "Aperçu",
     "overviewDesc": "Un aperçu de votre plateforme d'apprentissage ce mois-ci.",
@@ -554,7 +554,7 @@
     "revenue": "Revenus et versements",
     "revenueDesc": "Suivez vos gains totaux, les ventes de cours et les demandes de versement.",
     "helpSupport": "Aide et support",
-    "helpSupportDesc": "Réponses, guides et une ligne directe vers l'équipe Lumen.",
+    "helpSupportDesc": "Réponses, guides et une ligne directe vers l'équipe EL MANARA.",
     "faq": "FAQ",
     "contact": "Contact",
     "reportProblem": "Signaler un problème",
@@ -1135,8 +1135,8 @@
   },
   "catalog": {
     "title": "Parcourir le catalogue",
-    "description": "Chaque cours publié sur Lumen, ouvert à votre abonnement.",
-    "descriptionLocked": "Chaque cours publié sur Lumen.",
+    "description": "Chaque cours publié sur EL MANARA, ouvert à votre abonnement.",
+    "descriptionLocked": "Chaque cours publié sur EL MANARA.",
     "searchPlaceholder": "Rechercher dans le catalogue",
     "level": "Niveau",
     "allLevels": "Tous les niveaux",
@@ -1148,7 +1148,7 @@
     "category": "Catégorie",
     "allCategories": "Toutes les catégories",
     "defaultCategory": "Général",
-    "defaultInstructor": "Instructeur Lumen",
+    "defaultInstructor": "Instructeur EL MANARA",
     "membershipActive": "Abonnement actif",
     "accessThrough": "accès jusqu'au {{date}}",
     "noWishlisted": "Aucun cours dans la liste de souhaits",
@@ -1162,7 +1162,7 @@
       "expiredTitle": "Votre abonnement a expiré",
       "expiredDesc": "Renouvelez pour retrouver l'accès à tous les cours, sessions en direct et parcours de certification.",
       "title": "Le catalogue complet est réservé aux membres",
-      "defaultDesc": "Abonnez-vous une fois pour débloquer tous les cours de Lumen — aucun achat par cours, aucune limite sur le nombre que vous commencez.",
+      "defaultDesc": "Abonnez-vous une fois pour débloquer tous les cours de EL MANARA — aucun achat par cours, aucune limite sur le nombre que vous commencez.",
       "renew": "Renouveler l'abonnement",
       "viewPlans": "Voir les forfaits d'abonnement"
     }
@@ -1241,7 +1241,7 @@
       "defaultTitle": "Les quiz sont réservés aux membres",
       "pendingDescription": "Nous confirmons votre justificatif de paiement. Cela prend généralement moins d'un jour.",
       "expiredDescription": "Renouvelez votre abonnement pour accéder aux quiz et suivre votre progression.",
-      "defaultDescription": "Abonnez-vous pour débloquer tous les quiz, cours et fonctionnalités interactives de Lumen.",
+      "defaultDescription": "Abonnez-vous pour débloquer tous les quiz, cours et fonctionnalités interactives de EL MANARA.",
       "renew": "Renouveler l'abonnement",
       "viewPlans": "Voir les forfaits d'abonnement"
     }
@@ -1334,7 +1334,7 @@
       "defaultTitle": "Les cours en direct sont réservés aux membres",
       "pendingDescription": "Nous confirmons votre justificatif de paiement. Cela prend généralement moins d'un jour.",
       "expiredDescription": "Renouvelez votre abonnement pour accéder aux cours en direct et aux sessions interactives.",
-      "defaultDescription": "Abonnez-vous pour débloquer toutes les sessions en direct, cours et fonctionnalités interactives de Lumen.",
+      "defaultDescription": "Abonnez-vous pour débloquer toutes les sessions en direct, cours et fonctionnalités interactives de EL MANARA.",
       "renew": "Renouveler l'abonnement",
       "viewPlans": "Voir les forfaits d'abonnement"
     }
@@ -1495,6 +1495,7 @@
     }
   },
   "courseDetails": {
+    "subsicription_now": "Abonnez-vous maintenant",
     "backToCourses": "Tous les cours",
     "newCourse": "Nouveau cours",
     "selfPaced": "À votre rythme",

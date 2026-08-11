@@ -74,7 +74,7 @@ export const Route = createFileRoute("/courses/$id")({
   component: CourseDetail,
 });
 
-const kindIcon: Record<Lesson["kind"], typeof PlayCircle> = {
+const kindIcon: any = {
   video: PlayCircle,
   reading: FileText,
   quiz: HelpCircle,
@@ -211,7 +211,7 @@ function CourseDetail() {
     setIsRedirectingToCheckout(true);
     try {
       lumenOrderService.beginCheckout(course);
-      navigate({ to: "/checkout/$courseId", params: { courseId: course.id } });
+      navigate({ to: "/login"});
     } finally {
       setIsRedirectingToCheckout(false);
     }
@@ -389,7 +389,7 @@ function CourseDetail() {
                     disabled={isPrimaryCtaBusy}
                   >
                     {isPrimaryCtaBusy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    {primaryCtaLabel}
+                    {t("courseDetails.subsicription_now")}
                   </Button>
                   {enrolled && (
                     <div className="mt-1 flex justify-center">

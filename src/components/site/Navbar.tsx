@@ -60,14 +60,16 @@ export function Navbar() {
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         
         {/* Brand Logo */}
-        <Link to="/" className="flex items-center gap-2.5 group">
-          <span className="grid h-9 w-9 place-items-center rounded-xl gradient-brand text-primary-foreground shadow-sm transition-transform duration-300 group-hover:scale-105">
-            <GraduationCap className="h-5 w-5" />
-          </span>
-          <span className="text-lg font-semibold tracking-tight text-foreground">
-            Lumen<span className="text-primary">.</span>
-          </span>
-        </Link>
+        <Link to="/" className="flex items-center gap-3 group">
+  <span className="relative flex h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-xl  p-0.5 shadow-md shadow-sky-500/20 transition-all duration-300 group-hover:scale-105 group-hover:shadow-lg group-hover:shadow-sky-500/30">
+    <span className="flex h-full w-full items-center justify-center rounded-[10px] bg-background/90 backdrop-blur-sm transition-colors group-hover:bg-background/70">
+      <img src="public/logo.png" alt="El Manara Logo" className="h-16 w-16 object-contain" />
+    </span>
+  </span>
+  <span className="text-xl font-bold tracking-tight text-foreground transition-colors group-hover:text-sky-500">
+    EL MANARA
+  </span>
+</Link>
 
         {/* Desktop Navigation Links */}
         <nav className="hidden md:flex items-center gap-1.5">
@@ -172,7 +174,7 @@ export function Navbar() {
                     <span className="grid h-8 w-8 place-items-center rounded-lg gradient-brand text-primary-foreground">
                       <GraduationCap className="h-4 w-4" />
                     </span>
-                    <span className="text-base font-semibold">Lumen.</span>
+                    <span className="text-base font-semibold">EL MANARA</span>
                   </div>
 
                   {/* Mobile Navigation Links */}
