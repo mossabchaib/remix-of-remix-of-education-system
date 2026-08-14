@@ -103,6 +103,7 @@ export async function signUp(params: {
   password: string;
   role: SessionRole;
 }): Promise<SignUpOutcome> {
+  console.log("signUp params:", params);
   const result: SignUpResult = await signUpRequest(params);
 
   if (result.status === "confirm_email") {

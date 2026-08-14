@@ -8,7 +8,6 @@ import {
   UserCircle, Users, Video, Calendar, FileText, Heart, ShoppingBag,
 } from "lucide-react";
 import { useReminders } from "@/hooks/useReminders";
-import { useNotifications } from "@/hooks/useNotifications";
 import {
   Sidebar,
   SidebarContent,
@@ -108,7 +107,6 @@ export function RoleDashboardLayout({
   const navigate = useNavigate();
   const session = getSession();
   const displayName = session?.name ?? (role === "teacher" ? t("teacher.instructor") : t("student.learner"));
-  const { unread } = useNotifications();
 
   const isActive = (to: string) => {
     if (to === `/dashboard/${role}`) return pathname === to;

@@ -16,7 +16,7 @@ type Actor = { name: string; role: "student" | "teacher" | "admin" } | null;
 
 function actorFrom(session?: { name?: string; role?: "student" | "teacher" | "admin" } | null): Actor {
   if (session && session.name && session.role) return { name: session.name, role: session.role };
-  const p = getProfile();
+  const p:any = getProfile();
   return { name: p.name, role: "teacher" };
 }
 

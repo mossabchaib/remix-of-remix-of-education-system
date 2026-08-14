@@ -37,7 +37,6 @@ import {
   STORAGE_EVENT,
   type LiveSession,
 } from "@/lib/lms-storage";
-import { notifyLiveScheduled } from "@/lib/notification-events";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/dashboard/teacher/live")({
@@ -268,14 +267,6 @@ function Live() {
                   toast.success(t("teacherLive.toast.updated"));
                 } else {
                   const created = await upsertLiveSession(payload);
-                  notifyLiveScheduled({
-                    courseId: created.course_id,
-                    courseTitle: courseTitle(created.course_id),
-                    sessionId: created.id,
-                    title: created.title,
-                    startsAt: created.startsAt,
-                    host: created.host,
-                  });
                   toast.success(t("teacherLive.toast.scheduled"));
                 }
                 setOpen(false); setEditing(null);
@@ -323,7 +314,7 @@ function Form({ initial, courses, saving, onSubmit, t }: {
 }) {
   const [title, setTitle] = useState(initial?.title ?? "");
   const [courseId, setCourseId] = useState(initial?.course_id ?? courses[0]?.id ?? "");
-  const [host, setHost] = useState(initial?.host ?? getProfile()?.name);
+ const [host, setHost] = useState<string>(initial?.host ?? (getProfile() as any)?.name ?? "");
   const [startsAt, setStartsAt] = useState(initial?.startsAt ?? new Date().toISOString().slice(0, 16).replace("T", " "));
   const [duration, setDuration] = useState(initial?.duration ?? "60 min");
   const [attendees, setAttendees] = useState(String(initial?.attendees ?? 0));

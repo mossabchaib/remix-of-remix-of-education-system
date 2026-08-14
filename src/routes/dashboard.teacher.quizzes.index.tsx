@@ -25,7 +25,6 @@ import {
   getQuizzesByCourse, upsertQuiz, deleteQuiz, getTeacherCourses, storageKeys, STORAGE_EVENT,
   type Quiz,
 } from "@/lib/lms-storage";
-import { notifyQuizPublished } from "@/lib/notification-events";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/dashboard/teacher/quizzes/")({
@@ -132,14 +131,6 @@ function TeacherQuizzes() {
         courseId: v.courseId,
         minutes: v.minutes,
       });
-
-      notifyQuizPublished({
-        courseId: v.courseId,
-        courseTitle: v.courseTitle,
-        quizId: created.id,
-        quizTitle: created.title,
-      });
-
       toast.success(t("teacherQuizzes.toast.created"));
       setOpen(false);
       loadQuizzes();

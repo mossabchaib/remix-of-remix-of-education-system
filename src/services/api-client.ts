@@ -335,6 +335,68 @@ export const lmsApi = {
     // admin: رفض الاشتراك
     reject: (id: string) => api.put<{ subscription: any }>(`/api/subscriptions/${id}/reject`),
   },
+  // --- Auth ---
+  auth: {
+    signUp: (data: { email: string; password: string; fullName?: string }) =>
+      api.post<{ message: string; data: { user: any; session: any } }>(
+        "/api/auth/signup",
+        data
+      ),
+
+    signIn: async (data: { email: string; password: string }) => {
+      const res = await api.post<{
+        message: string;
+        data: { user: any; session: { access_token: string; refresh_token: string } };
+      }>("/api/auth/signin", data);
+
+      // نخزن التوكنات تلقائياً بعد نجاح تسجيل الدخول
+      if (res.data?.session?.access_token && res.data?.session?.refresh_token) {
+        storeTokens(res.data.session.access_token, res.data.session.refresh_token);
+      }
+
+      return res;
+    },
+
+    signOut: async () => {
+      const refreshToken =
+        typeof window !== "undefined" ? window.localStorage.getItem(REFRESH_TOKEN_KEY) : null;
+
+      const res = await api.post<{ message: string }>("/api/auth/signout", {
+        refreshToken,
+      });
+
+      // نمسح التوكنات محلياً بعد تسجيل الخروج
+      if (typeof window !== "undefined") {
+        window.localStorage.removeItem(ACCESS_TOKEN_KEY);
+        window.localStorage.removeItem(REFRESH_TOKEN_KEY);
+      }
+
+      return res;
+    },
+
+    refresh: async () => {
+      const refreshToken =
+        typeof window !== "undefined" ? window.localStorage.getItem(REFRESH_TOKEN_KEY) : null;
+
+      if (!refreshToken) {
+        throw new ApiError("No refresh token found.", 401);
+      }
+
+      const res = await api.post<{ message: string; data: { session: any } }>(
+        "/api/auth/refresh",
+        { refreshToken }
+      );
+
+      if (res.data?.session?.access_token && res.data?.session?.refresh_token) {
+        storeTokens(res.data.session.access_token, res.data.session.refresh_token);
+      }
+
+      return res;
+    },
+
+    forgotPassword: (data: { email: string; redirectTo?: string }) =>
+      api.post<{ message: string }>("/api/auth/forgot-password", data),
+  },
   // --- Uploads ---
   // Maps to the `uploads` table: id, file_url, file_key, file_name, mime_type,
   // file_size, kind, lesson_id, teacher_id, upload_date.

@@ -108,10 +108,6 @@ function Pricing() {
                 <h3 className="text-2xl font-semibold tracking-tight">{t("pricing.enterpriseTitle")}</h3>
                 <p className="mt-2 text-muted-foreground">{t("pricing.enterpriseDesc")}</p>
               </div>
-              <div className="flex flex-wrap items-center gap-3 lg:justify-end">
-                <Button asChild size="lg" variant="outline"><Link to="/contact">{t("pricing.bookDemo")}</Link></Button>
-                <Button asChild size="lg"><Link to="/contact">{t("pricing.contactSales")}</Link></Button>
-              </div>
             </div>
           </div>
         </div>

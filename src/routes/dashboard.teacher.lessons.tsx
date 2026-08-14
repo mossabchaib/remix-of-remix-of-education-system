@@ -27,7 +27,6 @@ import {
   getTeacherCourses, storageKeys, STORAGE_EVENT,
   type Module, type Lesson,
 } from "@/lib/lms-storage";
-import { notifyLessonPublished } from "@/lib/notification-events";
 import { toast } from "sonner";
 
 // Minimal shape we rely on for a teacher's course. Kept local since the
@@ -249,7 +248,6 @@ function Lessons() {
       });
       await loadCourseModules(payload.courseId);
       const course = courses.find((c) => c.id === payload.courseId);
-      if (course) notifyLessonPublished({ courseId: course.id, courseTitle: course.title, lessonTitle: payload.title });
       toast.success(t("teacherLessons.toast.created"));
       setCreating(false);
     } catch (err: any) {

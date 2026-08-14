@@ -15,7 +15,6 @@ import { EmptyState } from "@/components/common/EmptyState";
 import { CourseWishlistButton } from "@/components/client/CourseWishlistButton";
 import { useAuth } from "@/hooks/useAuth";
 import { getAdminCategories, getAllCourses } from "@/lib/lms-storage";
-import { CourseService } from "@/services";
 import type { Course } from "@/lib/mock-data";
 
 export const Route = createFileRoute("/courses/")({

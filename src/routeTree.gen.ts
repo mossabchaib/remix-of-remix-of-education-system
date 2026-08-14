@@ -12,60 +12,32 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as AdminRouteImport } from './routes/admin'
-import { Route as ContactRouteImport } from './routes/contact'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
-import { Route as AdminAnnouncementsRouteImport } from './routes/admin.announcements'
 import { Route as AdminCategoriesRouteImport } from './routes/admin.categories'
-import { Route as AdminReportsRouteImport } from './routes/admin.reports'
-import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
-import { Route as AdminStudentsRouteImport } from './routes/admin.students'
-import { Route as AdminTeachersRouteImport } from './routes/admin.teachers'
-import { Route as CheckoutCourseIdRouteImport } from './routes/checkout.$courseId'
+import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
+import { Route as AuthResetPasswordRouteImport } from './routes/auth.reset-password'
 import { Route as CoursesIndexRouteImport } from './routes/courses.index'
 import { Route as CoursesIdRouteImport } from './routes/courses.$id'
 import { Route as DashboardStudentRouteImport } from './routes/dashboard.student'
 import { Route as DashboardTeacherRouteImport } from './routes/dashboard.teacher'
-import { Route as PaymentCourseIdRouteImport } from './routes/payment.$courseId'
 import { Route as AdminCoursesIndexRouteImport } from './routes/admin.courses.index'
 import { Route as AdminCoursesIdRouteImport } from './routes/admin.courses.$id'
-import { Route as AdminPaymentsIndexRouteImport } from './routes/admin.payments.index'
-import { Route as AdminPaymentsIdRouteImport } from './routes/admin.payments.$id'
 import { Route as AdminSubscriptionsIndexRouteImport } from './routes/admin.subscriptions.index'
-import { Route as AdminSubscriptionsIdRouteImport } from './routes/admin.subscriptions.$id'
 import { Route as AdminUsersIndexRouteImport } from './routes/admin.users.index'
-import { Route as AdminUsersIdRouteImport } from './routes/admin.users.$id'
 import { Route as DashboardStudentIndexRouteImport } from './routes/dashboard.student.index'
-import { Route as DashboardStudentAssignmentsRouteImport } from './routes/dashboard.student.assignments'
-import { Route as DashboardStudentCalendarRouteImport } from './routes/dashboard.student.calendar'
-import { Route as DashboardStudentCertificatesRouteImport } from './routes/dashboard.student.certificates'
 import { Route as DashboardStudentLiveRouteImport } from './routes/dashboard.student.live'
-import { Route as DashboardStudentNotificationsRouteImport } from './routes/dashboard.student.notifications'
 import { Route as DashboardStudentOrdersRouteImport } from './routes/dashboard.student.orders'
-import { Route as DashboardStudentProfileRouteImport } from './routes/dashboard.student.profile'
 import { Route as DashboardStudentProgressRouteImport } from './routes/dashboard.student.progress'
-import { Route as DashboardStudentResourcesRouteImport } from './routes/dashboard.student.resources'
-import { Route as DashboardStudentWishlistRouteImport } from './routes/dashboard.student.wishlist'
 import { Route as DashboardTeacherIndexRouteImport } from './routes/dashboard.teacher.index'
-import { Route as DashboardTeacherAnalyticsRouteImport } from './routes/dashboard.teacher.analytics'
-import { Route as DashboardTeacherAssignmentsRouteImport } from './routes/dashboard.teacher.assignments'
 import { Route as DashboardTeacherCoursesRouteImport } from './routes/dashboard.teacher.courses'
-import { Route as DashboardTeacherHelpRouteImport } from './routes/dashboard.teacher.help'
 import { Route as DashboardTeacherLessonsRouteImport } from './routes/dashboard.teacher.lessons'
 import { Route as DashboardTeacherLiveRouteImport } from './routes/dashboard.teacher.live'
-import { Route as DashboardTeacherNotificationsRouteImport } from './routes/dashboard.teacher.notifications'
-import { Route as DashboardTeacherProfileRouteImport } from './routes/dashboard.teacher.profile'
 import { Route as DashboardTeacherProgressRouteImport } from './routes/dashboard.teacher.progress'
-import { Route as DashboardTeacherRevenueRouteImport } from './routes/dashboard.teacher.revenue'
-import { Route as DashboardTeacherStudentsRouteImport } from './routes/dashboard.teacher.students'
 import { Route as DashboardTeacherUploadsRouteImport } from './routes/dashboard.teacher.uploads'
-import { Route as OrdersIdConfirmationRouteImport } from './routes/orders.$id.confirmation'
-import { Route as OrdersIdFailedRouteImport } from './routes/orders.$id.failed'
-import { Route as OrdersIdReceiptRouteImport } from './routes/orders.$id.receipt'
-import { Route as OrdersIdSuccessRouteImport } from './routes/orders.$id.success'
 import { Route as DashboardStudentCoursesIndexRouteImport } from './routes/dashboard.student.courses.index'
 import { Route as DashboardStudentCoursesIdRouteImport } from './routes/dashboard.student.courses.$id'
 import { Route as DashboardStudentQuizzesIndexRouteImport } from './routes/dashboard.student.quizzes.index'
@@ -89,11 +61,6 @@ const AboutRoute = AboutRouteImport.update({
 const AdminRoute = AdminRouteImport.update({
   id: '/admin',
   path: '/admin',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ContactRoute = ContactRouteImport.update({
-  id: '/contact',
-  path: '/contact',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardRoute = DashboardRouteImport.update({
@@ -121,39 +88,19 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AdminRoute,
 } as any)
-const AdminAnnouncementsRoute = AdminAnnouncementsRouteImport.update({
-  id: '/announcements',
-  path: '/announcements',
-  getParentRoute: () => AdminRoute,
-} as any)
 const AdminCategoriesRoute = AdminCategoriesRouteImport.update({
   id: '/categories',
   path: '/categories',
   getParentRoute: () => AdminRoute,
 } as any)
-const AdminReportsRoute = AdminReportsRouteImport.update({
-  id: '/reports',
-  path: '/reports',
-  getParentRoute: () => AdminRoute,
+const AuthCallbackRoute = AuthCallbackRouteImport.update({
+  id: '/auth/callback',
+  path: '/auth/callback',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const AdminSettingsRoute = AdminSettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminStudentsRoute = AdminStudentsRouteImport.update({
-  id: '/students',
-  path: '/students',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminTeachersRoute = AdminTeachersRouteImport.update({
-  id: '/teachers',
-  path: '/teachers',
-  getParentRoute: () => AdminRoute,
-} as any)
-const CheckoutCourseIdRoute = CheckoutCourseIdRouteImport.update({
-  id: '/checkout/$courseId',
-  path: '/checkout/$courseId',
+const AuthResetPasswordRoute = AuthResetPasswordRouteImport.update({
+  id: '/auth/reset-password',
+  path: '/auth/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CoursesIndexRoute = CoursesIndexRouteImport.update({
@@ -176,11 +123,6 @@ const DashboardTeacherRoute = DashboardTeacherRouteImport.update({
   path: '/teacher',
   getParentRoute: () => DashboardRoute,
 } as any)
-const PaymentCourseIdRoute = PaymentCourseIdRouteImport.update({
-  id: '/payment/$courseId',
-  path: '/payment/$courseId',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AdminCoursesIndexRoute = AdminCoursesIndexRouteImport.update({
   id: '/courses/',
   path: '/courses/',
@@ -191,24 +133,9 @@ const AdminCoursesIdRoute = AdminCoursesIdRouteImport.update({
   path: '/courses/$id',
   getParentRoute: () => AdminRoute,
 } as any)
-const AdminPaymentsIndexRoute = AdminPaymentsIndexRouteImport.update({
-  id: '/payments/',
-  path: '/payments/',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminPaymentsIdRoute = AdminPaymentsIdRouteImport.update({
-  id: '/payments/$id',
-  path: '/payments/$id',
-  getParentRoute: () => AdminRoute,
-} as any)
 const AdminSubscriptionsIndexRoute = AdminSubscriptionsIndexRouteImport.update({
   id: '/subscriptions/',
   path: '/subscriptions/',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminSubscriptionsIdRoute = AdminSubscriptionsIdRouteImport.update({
-  id: '/subscriptions/$id',
-  path: '/subscriptions/$id',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminUsersIndexRoute = AdminUsersIndexRouteImport.update({
@@ -216,53 +143,19 @@ const AdminUsersIndexRoute = AdminUsersIndexRouteImport.update({
   path: '/users/',
   getParentRoute: () => AdminRoute,
 } as any)
-const AdminUsersIdRoute = AdminUsersIdRouteImport.update({
-  id: '/users/$id',
-  path: '/users/$id',
-  getParentRoute: () => AdminRoute,
-} as any)
 const DashboardStudentIndexRoute = DashboardStudentIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => DashboardStudentRoute,
 } as any)
-const DashboardStudentAssignmentsRoute =
-  DashboardStudentAssignmentsRouteImport.update({
-    id: '/assignments',
-    path: '/assignments',
-    getParentRoute: () => DashboardStudentRoute,
-  } as any)
-const DashboardStudentCalendarRoute =
-  DashboardStudentCalendarRouteImport.update({
-    id: '/calendar',
-    path: '/calendar',
-    getParentRoute: () => DashboardStudentRoute,
-  } as any)
-const DashboardStudentCertificatesRoute =
-  DashboardStudentCertificatesRouteImport.update({
-    id: '/certificates',
-    path: '/certificates',
-    getParentRoute: () => DashboardStudentRoute,
-  } as any)
 const DashboardStudentLiveRoute = DashboardStudentLiveRouteImport.update({
   id: '/live',
   path: '/live',
   getParentRoute: () => DashboardStudentRoute,
 } as any)
-const DashboardStudentNotificationsRoute =
-  DashboardStudentNotificationsRouteImport.update({
-    id: '/notifications',
-    path: '/notifications',
-    getParentRoute: () => DashboardStudentRoute,
-  } as any)
 const DashboardStudentOrdersRoute = DashboardStudentOrdersRouteImport.update({
   id: '/orders',
   path: '/orders',
-  getParentRoute: () => DashboardStudentRoute,
-} as any)
-const DashboardStudentProfileRoute = DashboardStudentProfileRouteImport.update({
-  id: '/profile',
-  path: '/profile',
   getParentRoute: () => DashboardStudentRoute,
 } as any)
 const DashboardStudentProgressRoute =
@@ -271,43 +164,14 @@ const DashboardStudentProgressRoute =
     path: '/progress',
     getParentRoute: () => DashboardStudentRoute,
   } as any)
-const DashboardStudentResourcesRoute =
-  DashboardStudentResourcesRouteImport.update({
-    id: '/resources',
-    path: '/resources',
-    getParentRoute: () => DashboardStudentRoute,
-  } as any)
-const DashboardStudentWishlistRoute =
-  DashboardStudentWishlistRouteImport.update({
-    id: '/wishlist',
-    path: '/wishlist',
-    getParentRoute: () => DashboardStudentRoute,
-  } as any)
 const DashboardTeacherIndexRoute = DashboardTeacherIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => DashboardTeacherRoute,
 } as any)
-const DashboardTeacherAnalyticsRoute =
-  DashboardTeacherAnalyticsRouteImport.update({
-    id: '/analytics',
-    path: '/analytics',
-    getParentRoute: () => DashboardTeacherRoute,
-  } as any)
-const DashboardTeacherAssignmentsRoute =
-  DashboardTeacherAssignmentsRouteImport.update({
-    id: '/assignments',
-    path: '/assignments',
-    getParentRoute: () => DashboardTeacherRoute,
-  } as any)
 const DashboardTeacherCoursesRoute = DashboardTeacherCoursesRouteImport.update({
   id: '/courses',
   path: '/courses',
-  getParentRoute: () => DashboardTeacherRoute,
-} as any)
-const DashboardTeacherHelpRoute = DashboardTeacherHelpRouteImport.update({
-  id: '/help',
-  path: '/help',
   getParentRoute: () => DashboardTeacherRoute,
 } as any)
 const DashboardTeacherLessonsRoute = DashboardTeacherLessonsRouteImport.update({
@@ -320,58 +184,16 @@ const DashboardTeacherLiveRoute = DashboardTeacherLiveRouteImport.update({
   path: '/live',
   getParentRoute: () => DashboardTeacherRoute,
 } as any)
-const DashboardTeacherNotificationsRoute =
-  DashboardTeacherNotificationsRouteImport.update({
-    id: '/notifications',
-    path: '/notifications',
-    getParentRoute: () => DashboardTeacherRoute,
-  } as any)
-const DashboardTeacherProfileRoute = DashboardTeacherProfileRouteImport.update({
-  id: '/profile',
-  path: '/profile',
-  getParentRoute: () => DashboardTeacherRoute,
-} as any)
 const DashboardTeacherProgressRoute =
   DashboardTeacherProgressRouteImport.update({
     id: '/progress',
     path: '/progress',
     getParentRoute: () => DashboardTeacherRoute,
   } as any)
-const DashboardTeacherRevenueRoute = DashboardTeacherRevenueRouteImport.update({
-  id: '/revenue',
-  path: '/revenue',
-  getParentRoute: () => DashboardTeacherRoute,
-} as any)
-const DashboardTeacherStudentsRoute =
-  DashboardTeacherStudentsRouteImport.update({
-    id: '/students',
-    path: '/students',
-    getParentRoute: () => DashboardTeacherRoute,
-  } as any)
 const DashboardTeacherUploadsRoute = DashboardTeacherUploadsRouteImport.update({
   id: '/uploads',
   path: '/uploads',
   getParentRoute: () => DashboardTeacherRoute,
-} as any)
-const OrdersIdConfirmationRoute = OrdersIdConfirmationRouteImport.update({
-  id: '/orders/$id/confirmation',
-  path: '/orders/$id/confirmation',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const OrdersIdFailedRoute = OrdersIdFailedRouteImport.update({
-  id: '/orders/$id/failed',
-  path: '/orders/$id/failed',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const OrdersIdReceiptRoute = OrdersIdReceiptRouteImport.update({
-  id: '/orders/$id/receipt',
-  path: '/orders/$id/receipt',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const OrdersIdSuccessRoute = OrdersIdSuccessRouteImport.update({
-  id: '/orders/$id/success',
-  path: '/orders/$id/success',
-  getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardStudentCoursesIndexRoute =
   DashboardStudentCoursesIndexRouteImport.update({
@@ -432,56 +254,28 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/admin': typeof AdminRouteWithChildren
-  '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRouteWithChildren
   '/login': typeof LoginRoute
   '/pricing': typeof PricingRoute
   '/register': typeof RegisterRoute
-  '/admin/announcements': typeof AdminAnnouncementsRoute
   '/admin/categories': typeof AdminCategoriesRoute
-  '/admin/reports': typeof AdminReportsRoute
-  '/admin/settings': typeof AdminSettingsRoute
-  '/admin/students': typeof AdminStudentsRoute
-  '/admin/teachers': typeof AdminTeachersRoute
-  '/checkout/$courseId': typeof CheckoutCourseIdRoute
+  '/auth/callback': typeof AuthCallbackRoute
+  '/auth/reset-password': typeof AuthResetPasswordRoute
   '/courses/$id': typeof CoursesIdRoute
   '/dashboard/student': typeof DashboardStudentRouteWithChildren
   '/dashboard/teacher': typeof DashboardTeacherRouteWithChildren
-  '/payment/$courseId': typeof PaymentCourseIdRoute
   '/admin/': typeof AdminIndexRoute
   '/courses/': typeof CoursesIndexRoute
   '/admin/courses/$id': typeof AdminCoursesIdRoute
-  '/admin/payments/$id': typeof AdminPaymentsIdRoute
-  '/admin/subscriptions/$id': typeof AdminSubscriptionsIdRoute
-  '/admin/users/$id': typeof AdminUsersIdRoute
-  '/dashboard/student/assignments': typeof DashboardStudentAssignmentsRoute
-  '/dashboard/student/calendar': typeof DashboardStudentCalendarRoute
-  '/dashboard/student/certificates': typeof DashboardStudentCertificatesRoute
   '/dashboard/student/live': typeof DashboardStudentLiveRoute
-  '/dashboard/student/notifications': typeof DashboardStudentNotificationsRoute
   '/dashboard/student/orders': typeof DashboardStudentOrdersRoute
-  '/dashboard/student/profile': typeof DashboardStudentProfileRoute
   '/dashboard/student/progress': typeof DashboardStudentProgressRoute
-  '/dashboard/student/resources': typeof DashboardStudentResourcesRoute
-  '/dashboard/student/wishlist': typeof DashboardStudentWishlistRoute
-  '/dashboard/teacher/analytics': typeof DashboardTeacherAnalyticsRoute
-  '/dashboard/teacher/assignments': typeof DashboardTeacherAssignmentsRoute
   '/dashboard/teacher/courses': typeof DashboardTeacherCoursesRouteWithChildren
-  '/dashboard/teacher/help': typeof DashboardTeacherHelpRoute
   '/dashboard/teacher/lessons': typeof DashboardTeacherLessonsRoute
   '/dashboard/teacher/live': typeof DashboardTeacherLiveRoute
-  '/dashboard/teacher/notifications': typeof DashboardTeacherNotificationsRoute
-  '/dashboard/teacher/profile': typeof DashboardTeacherProfileRoute
   '/dashboard/teacher/progress': typeof DashboardTeacherProgressRoute
-  '/dashboard/teacher/revenue': typeof DashboardTeacherRevenueRoute
-  '/dashboard/teacher/students': typeof DashboardTeacherStudentsRoute
   '/dashboard/teacher/uploads': typeof DashboardTeacherUploadsRoute
-  '/orders/$id/confirmation': typeof OrdersIdConfirmationRoute
-  '/orders/$id/failed': typeof OrdersIdFailedRoute
-  '/orders/$id/receipt': typeof OrdersIdReceiptRoute
-  '/orders/$id/success': typeof OrdersIdSuccessRoute
   '/admin/courses/': typeof AdminCoursesIndexRoute
-  '/admin/payments/': typeof AdminPaymentsIndexRoute
   '/admin/subscriptions/': typeof AdminSubscriptionsIndexRoute
   '/admin/users/': typeof AdminUsersIndexRoute
   '/dashboard/student/': typeof DashboardStudentIndexRoute
@@ -499,53 +293,25 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRouteWithChildren
   '/login': typeof LoginRoute
   '/pricing': typeof PricingRoute
   '/register': typeof RegisterRoute
-  '/admin/announcements': typeof AdminAnnouncementsRoute
   '/admin/categories': typeof AdminCategoriesRoute
-  '/admin/reports': typeof AdminReportsRoute
-  '/admin/settings': typeof AdminSettingsRoute
-  '/admin/students': typeof AdminStudentsRoute
-  '/admin/teachers': typeof AdminTeachersRoute
-  '/checkout/$courseId': typeof CheckoutCourseIdRoute
+  '/auth/callback': typeof AuthCallbackRoute
+  '/auth/reset-password': typeof AuthResetPasswordRoute
   '/courses/$id': typeof CoursesIdRoute
-  '/payment/$courseId': typeof PaymentCourseIdRoute
   '/admin': typeof AdminIndexRoute
   '/courses': typeof CoursesIndexRoute
   '/admin/courses/$id': typeof AdminCoursesIdRoute
-  '/admin/payments/$id': typeof AdminPaymentsIdRoute
-  '/admin/subscriptions/$id': typeof AdminSubscriptionsIdRoute
-  '/admin/users/$id': typeof AdminUsersIdRoute
-  '/dashboard/student/assignments': typeof DashboardStudentAssignmentsRoute
-  '/dashboard/student/calendar': typeof DashboardStudentCalendarRoute
-  '/dashboard/student/certificates': typeof DashboardStudentCertificatesRoute
   '/dashboard/student/live': typeof DashboardStudentLiveRoute
-  '/dashboard/student/notifications': typeof DashboardStudentNotificationsRoute
   '/dashboard/student/orders': typeof DashboardStudentOrdersRoute
-  '/dashboard/student/profile': typeof DashboardStudentProfileRoute
   '/dashboard/student/progress': typeof DashboardStudentProgressRoute
-  '/dashboard/student/resources': typeof DashboardStudentResourcesRoute
-  '/dashboard/student/wishlist': typeof DashboardStudentWishlistRoute
-  '/dashboard/teacher/analytics': typeof DashboardTeacherAnalyticsRoute
-  '/dashboard/teacher/assignments': typeof DashboardTeacherAssignmentsRoute
-  '/dashboard/teacher/help': typeof DashboardTeacherHelpRoute
   '/dashboard/teacher/lessons': typeof DashboardTeacherLessonsRoute
   '/dashboard/teacher/live': typeof DashboardTeacherLiveRoute
-  '/dashboard/teacher/notifications': typeof DashboardTeacherNotificationsRoute
-  '/dashboard/teacher/profile': typeof DashboardTeacherProfileRoute
   '/dashboard/teacher/progress': typeof DashboardTeacherProgressRoute
-  '/dashboard/teacher/revenue': typeof DashboardTeacherRevenueRoute
-  '/dashboard/teacher/students': typeof DashboardTeacherStudentsRoute
   '/dashboard/teacher/uploads': typeof DashboardTeacherUploadsRoute
-  '/orders/$id/confirmation': typeof OrdersIdConfirmationRoute
-  '/orders/$id/failed': typeof OrdersIdFailedRoute
-  '/orders/$id/receipt': typeof OrdersIdReceiptRoute
-  '/orders/$id/success': typeof OrdersIdSuccessRoute
   '/admin/courses': typeof AdminCoursesIndexRoute
-  '/admin/payments': typeof AdminPaymentsIndexRoute
   '/admin/subscriptions': typeof AdminSubscriptionsIndexRoute
   '/admin/users': typeof AdminUsersIndexRoute
   '/dashboard/student': typeof DashboardStudentIndexRoute
@@ -565,56 +331,28 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/admin': typeof AdminRouteWithChildren
-  '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRouteWithChildren
   '/login': typeof LoginRoute
   '/pricing': typeof PricingRoute
   '/register': typeof RegisterRoute
-  '/admin/announcements': typeof AdminAnnouncementsRoute
   '/admin/categories': typeof AdminCategoriesRoute
-  '/admin/reports': typeof AdminReportsRoute
-  '/admin/settings': typeof AdminSettingsRoute
-  '/admin/students': typeof AdminStudentsRoute
-  '/admin/teachers': typeof AdminTeachersRoute
-  '/checkout/$courseId': typeof CheckoutCourseIdRoute
+  '/auth/callback': typeof AuthCallbackRoute
+  '/auth/reset-password': typeof AuthResetPasswordRoute
   '/courses/$id': typeof CoursesIdRoute
   '/dashboard/student': typeof DashboardStudentRouteWithChildren
   '/dashboard/teacher': typeof DashboardTeacherRouteWithChildren
-  '/payment/$courseId': typeof PaymentCourseIdRoute
   '/admin/': typeof AdminIndexRoute
   '/courses/': typeof CoursesIndexRoute
   '/admin/courses/$id': typeof AdminCoursesIdRoute
-  '/admin/payments/$id': typeof AdminPaymentsIdRoute
-  '/admin/subscriptions/$id': typeof AdminSubscriptionsIdRoute
-  '/admin/users/$id': typeof AdminUsersIdRoute
-  '/dashboard/student/assignments': typeof DashboardStudentAssignmentsRoute
-  '/dashboard/student/calendar': typeof DashboardStudentCalendarRoute
-  '/dashboard/student/certificates': typeof DashboardStudentCertificatesRoute
   '/dashboard/student/live': typeof DashboardStudentLiveRoute
-  '/dashboard/student/notifications': typeof DashboardStudentNotificationsRoute
   '/dashboard/student/orders': typeof DashboardStudentOrdersRoute
-  '/dashboard/student/profile': typeof DashboardStudentProfileRoute
   '/dashboard/student/progress': typeof DashboardStudentProgressRoute
-  '/dashboard/student/resources': typeof DashboardStudentResourcesRoute
-  '/dashboard/student/wishlist': typeof DashboardStudentWishlistRoute
-  '/dashboard/teacher/analytics': typeof DashboardTeacherAnalyticsRoute
-  '/dashboard/teacher/assignments': typeof DashboardTeacherAssignmentsRoute
   '/dashboard/teacher/courses': typeof DashboardTeacherCoursesRouteWithChildren
-  '/dashboard/teacher/help': typeof DashboardTeacherHelpRoute
   '/dashboard/teacher/lessons': typeof DashboardTeacherLessonsRoute
   '/dashboard/teacher/live': typeof DashboardTeacherLiveRoute
-  '/dashboard/teacher/notifications': typeof DashboardTeacherNotificationsRoute
-  '/dashboard/teacher/profile': typeof DashboardTeacherProfileRoute
   '/dashboard/teacher/progress': typeof DashboardTeacherProgressRoute
-  '/dashboard/teacher/revenue': typeof DashboardTeacherRevenueRoute
-  '/dashboard/teacher/students': typeof DashboardTeacherStudentsRoute
   '/dashboard/teacher/uploads': typeof DashboardTeacherUploadsRoute
-  '/orders/$id/confirmation': typeof OrdersIdConfirmationRoute
-  '/orders/$id/failed': typeof OrdersIdFailedRoute
-  '/orders/$id/receipt': typeof OrdersIdReceiptRoute
-  '/orders/$id/success': typeof OrdersIdSuccessRoute
   '/admin/courses/': typeof AdminCoursesIndexRoute
-  '/admin/payments/': typeof AdminPaymentsIndexRoute
   '/admin/subscriptions/': typeof AdminSubscriptionsIndexRoute
   '/admin/users/': typeof AdminUsersIndexRoute
   '/dashboard/student/': typeof DashboardStudentIndexRoute
@@ -635,56 +373,28 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/admin'
-    | '/contact'
     | '/dashboard'
     | '/login'
     | '/pricing'
     | '/register'
-    | '/admin/announcements'
     | '/admin/categories'
-    | '/admin/reports'
-    | '/admin/settings'
-    | '/admin/students'
-    | '/admin/teachers'
-    | '/checkout/$courseId'
+    | '/auth/callback'
+    | '/auth/reset-password'
     | '/courses/$id'
     | '/dashboard/student'
     | '/dashboard/teacher'
-    | '/payment/$courseId'
     | '/admin/'
     | '/courses/'
     | '/admin/courses/$id'
-    | '/admin/payments/$id'
-    | '/admin/subscriptions/$id'
-    | '/admin/users/$id'
-    | '/dashboard/student/assignments'
-    | '/dashboard/student/calendar'
-    | '/dashboard/student/certificates'
     | '/dashboard/student/live'
-    | '/dashboard/student/notifications'
     | '/dashboard/student/orders'
-    | '/dashboard/student/profile'
     | '/dashboard/student/progress'
-    | '/dashboard/student/resources'
-    | '/dashboard/student/wishlist'
-    | '/dashboard/teacher/analytics'
-    | '/dashboard/teacher/assignments'
     | '/dashboard/teacher/courses'
-    | '/dashboard/teacher/help'
     | '/dashboard/teacher/lessons'
     | '/dashboard/teacher/live'
-    | '/dashboard/teacher/notifications'
-    | '/dashboard/teacher/profile'
     | '/dashboard/teacher/progress'
-    | '/dashboard/teacher/revenue'
-    | '/dashboard/teacher/students'
     | '/dashboard/teacher/uploads'
-    | '/orders/$id/confirmation'
-    | '/orders/$id/failed'
-    | '/orders/$id/receipt'
-    | '/orders/$id/success'
     | '/admin/courses/'
-    | '/admin/payments/'
     | '/admin/subscriptions/'
     | '/admin/users/'
     | '/dashboard/student/'
@@ -702,53 +412,25 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/about'
-    | '/contact'
     | '/dashboard'
     | '/login'
     | '/pricing'
     | '/register'
-    | '/admin/announcements'
     | '/admin/categories'
-    | '/admin/reports'
-    | '/admin/settings'
-    | '/admin/students'
-    | '/admin/teachers'
-    | '/checkout/$courseId'
+    | '/auth/callback'
+    | '/auth/reset-password'
     | '/courses/$id'
-    | '/payment/$courseId'
     | '/admin'
     | '/courses'
     | '/admin/courses/$id'
-    | '/admin/payments/$id'
-    | '/admin/subscriptions/$id'
-    | '/admin/users/$id'
-    | '/dashboard/student/assignments'
-    | '/dashboard/student/calendar'
-    | '/dashboard/student/certificates'
     | '/dashboard/student/live'
-    | '/dashboard/student/notifications'
     | '/dashboard/student/orders'
-    | '/dashboard/student/profile'
     | '/dashboard/student/progress'
-    | '/dashboard/student/resources'
-    | '/dashboard/student/wishlist'
-    | '/dashboard/teacher/analytics'
-    | '/dashboard/teacher/assignments'
-    | '/dashboard/teacher/help'
     | '/dashboard/teacher/lessons'
     | '/dashboard/teacher/live'
-    | '/dashboard/teacher/notifications'
-    | '/dashboard/teacher/profile'
     | '/dashboard/teacher/progress'
-    | '/dashboard/teacher/revenue'
-    | '/dashboard/teacher/students'
     | '/dashboard/teacher/uploads'
-    | '/orders/$id/confirmation'
-    | '/orders/$id/failed'
-    | '/orders/$id/receipt'
-    | '/orders/$id/success'
     | '/admin/courses'
-    | '/admin/payments'
     | '/admin/subscriptions'
     | '/admin/users'
     | '/dashboard/student'
@@ -767,56 +449,28 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/admin'
-    | '/contact'
     | '/dashboard'
     | '/login'
     | '/pricing'
     | '/register'
-    | '/admin/announcements'
     | '/admin/categories'
-    | '/admin/reports'
-    | '/admin/settings'
-    | '/admin/students'
-    | '/admin/teachers'
-    | '/checkout/$courseId'
+    | '/auth/callback'
+    | '/auth/reset-password'
     | '/courses/$id'
     | '/dashboard/student'
     | '/dashboard/teacher'
-    | '/payment/$courseId'
     | '/admin/'
     | '/courses/'
     | '/admin/courses/$id'
-    | '/admin/payments/$id'
-    | '/admin/subscriptions/$id'
-    | '/admin/users/$id'
-    | '/dashboard/student/assignments'
-    | '/dashboard/student/calendar'
-    | '/dashboard/student/certificates'
     | '/dashboard/student/live'
-    | '/dashboard/student/notifications'
     | '/dashboard/student/orders'
-    | '/dashboard/student/profile'
     | '/dashboard/student/progress'
-    | '/dashboard/student/resources'
-    | '/dashboard/student/wishlist'
-    | '/dashboard/teacher/analytics'
-    | '/dashboard/teacher/assignments'
     | '/dashboard/teacher/courses'
-    | '/dashboard/teacher/help'
     | '/dashboard/teacher/lessons'
     | '/dashboard/teacher/live'
-    | '/dashboard/teacher/notifications'
-    | '/dashboard/teacher/profile'
     | '/dashboard/teacher/progress'
-    | '/dashboard/teacher/revenue'
-    | '/dashboard/teacher/students'
     | '/dashboard/teacher/uploads'
-    | '/orders/$id/confirmation'
-    | '/orders/$id/failed'
-    | '/orders/$id/receipt'
-    | '/orders/$id/success'
     | '/admin/courses/'
-    | '/admin/payments/'
     | '/admin/subscriptions/'
     | '/admin/users/'
     | '/dashboard/student/'
@@ -836,19 +490,14 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
   AdminRoute: typeof AdminRouteWithChildren
-  ContactRoute: typeof ContactRoute
   DashboardRoute: typeof DashboardRouteWithChildren
   LoginRoute: typeof LoginRoute
   PricingRoute: typeof PricingRoute
   RegisterRoute: typeof RegisterRoute
-  CheckoutCourseIdRoute: typeof CheckoutCourseIdRoute
+  AuthCallbackRoute: typeof AuthCallbackRoute
+  AuthResetPasswordRoute: typeof AuthResetPasswordRoute
   CoursesIdRoute: typeof CoursesIdRoute
-  PaymentCourseIdRoute: typeof PaymentCourseIdRoute
   CoursesIndexRoute: typeof CoursesIndexRoute
-  OrdersIdConfirmationRoute: typeof OrdersIdConfirmationRoute
-  OrdersIdFailedRoute: typeof OrdersIdFailedRoute
-  OrdersIdReceiptRoute: typeof OrdersIdReceiptRoute
-  OrdersIdSuccessRoute: typeof OrdersIdSuccessRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -872,13 +521,6 @@ declare module '@tanstack/react-router' {
       path: '/admin'
       fullPath: '/admin'
       preLoaderRoute: typeof AdminRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/contact': {
-      id: '/contact'
-      path: '/contact'
-      fullPath: '/contact'
-      preLoaderRoute: typeof ContactRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard': {
@@ -916,13 +558,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof AdminRoute
     }
-    '/admin/announcements': {
-      id: '/admin/announcements'
-      path: '/announcements'
-      fullPath: '/admin/announcements'
-      preLoaderRoute: typeof AdminAnnouncementsRouteImport
-      parentRoute: typeof AdminRoute
-    }
     '/admin/categories': {
       id: '/admin/categories'
       path: '/categories'
@@ -930,39 +565,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminCategoriesRouteImport
       parentRoute: typeof AdminRoute
     }
-    '/admin/reports': {
-      id: '/admin/reports'
-      path: '/reports'
-      fullPath: '/admin/reports'
-      preLoaderRoute: typeof AdminReportsRouteImport
-      parentRoute: typeof AdminRoute
+    '/auth/callback': {
+      id: '/auth/callback'
+      path: '/auth/callback'
+      fullPath: '/auth/callback'
+      preLoaderRoute: typeof AuthCallbackRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/admin/settings': {
-      id: '/admin/settings'
-      path: '/settings'
-      fullPath: '/admin/settings'
-      preLoaderRoute: typeof AdminSettingsRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/students': {
-      id: '/admin/students'
-      path: '/students'
-      fullPath: '/admin/students'
-      preLoaderRoute: typeof AdminStudentsRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/teachers': {
-      id: '/admin/teachers'
-      path: '/teachers'
-      fullPath: '/admin/teachers'
-      preLoaderRoute: typeof AdminTeachersRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/checkout/$courseId': {
-      id: '/checkout/$courseId'
-      path: '/checkout/$courseId'
-      fullPath: '/checkout/$courseId'
-      preLoaderRoute: typeof CheckoutCourseIdRouteImport
+    '/auth/reset-password': {
+      id: '/auth/reset-password'
+      path: '/auth/reset-password'
+      fullPath: '/auth/reset-password'
+      preLoaderRoute: typeof AuthResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/courses/': {
@@ -993,13 +607,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardTeacherRouteImport
       parentRoute: typeof DashboardRoute
     }
-    '/payment/$courseId': {
-      id: '/payment/$courseId'
-      path: '/payment/$courseId'
-      fullPath: '/payment/$courseId'
-      preLoaderRoute: typeof PaymentCourseIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/admin/courses/': {
       id: '/admin/courses/'
       path: '/courses'
@@ -1014,32 +621,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminCoursesIdRouteImport
       parentRoute: typeof AdminRoute
     }
-    '/admin/payments/': {
-      id: '/admin/payments/'
-      path: '/payments'
-      fullPath: '/admin/payments/'
-      preLoaderRoute: typeof AdminPaymentsIndexRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/payments/$id': {
-      id: '/admin/payments/$id'
-      path: '/payments/$id'
-      fullPath: '/admin/payments/$id'
-      preLoaderRoute: typeof AdminPaymentsIdRouteImport
-      parentRoute: typeof AdminRoute
-    }
     '/admin/subscriptions/': {
       id: '/admin/subscriptions/'
       path: '/subscriptions'
       fullPath: '/admin/subscriptions/'
       preLoaderRoute: typeof AdminSubscriptionsIndexRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/subscriptions/$id': {
-      id: '/admin/subscriptions/$id'
-      path: '/subscriptions/$id'
-      fullPath: '/admin/subscriptions/$id'
-      preLoaderRoute: typeof AdminSubscriptionsIdRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/users/': {
@@ -1049,39 +635,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminUsersIndexRouteImport
       parentRoute: typeof AdminRoute
     }
-    '/admin/users/$id': {
-      id: '/admin/users/$id'
-      path: '/users/$id'
-      fullPath: '/admin/users/$id'
-      preLoaderRoute: typeof AdminUsersIdRouteImport
-      parentRoute: typeof AdminRoute
-    }
     '/dashboard/student/': {
       id: '/dashboard/student/'
       path: '/'
       fullPath: '/dashboard/student/'
       preLoaderRoute: typeof DashboardStudentIndexRouteImport
-      parentRoute: typeof DashboardStudentRoute
-    }
-    '/dashboard/student/assignments': {
-      id: '/dashboard/student/assignments'
-      path: '/assignments'
-      fullPath: '/dashboard/student/assignments'
-      preLoaderRoute: typeof DashboardStudentAssignmentsRouteImport
-      parentRoute: typeof DashboardStudentRoute
-    }
-    '/dashboard/student/calendar': {
-      id: '/dashboard/student/calendar'
-      path: '/calendar'
-      fullPath: '/dashboard/student/calendar'
-      preLoaderRoute: typeof DashboardStudentCalendarRouteImport
-      parentRoute: typeof DashboardStudentRoute
-    }
-    '/dashboard/student/certificates': {
-      id: '/dashboard/student/certificates'
-      path: '/certificates'
-      fullPath: '/dashboard/student/certificates'
-      preLoaderRoute: typeof DashboardStudentCertificatesRouteImport
       parentRoute: typeof DashboardStudentRoute
     }
     '/dashboard/student/live': {
@@ -1091,25 +649,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardStudentLiveRouteImport
       parentRoute: typeof DashboardStudentRoute
     }
-    '/dashboard/student/notifications': {
-      id: '/dashboard/student/notifications'
-      path: '/notifications'
-      fullPath: '/dashboard/student/notifications'
-      preLoaderRoute: typeof DashboardStudentNotificationsRouteImport
-      parentRoute: typeof DashboardStudentRoute
-    }
     '/dashboard/student/orders': {
       id: '/dashboard/student/orders'
       path: '/orders'
       fullPath: '/dashboard/student/orders'
       preLoaderRoute: typeof DashboardStudentOrdersRouteImport
-      parentRoute: typeof DashboardStudentRoute
-    }
-    '/dashboard/student/profile': {
-      id: '/dashboard/student/profile'
-      path: '/profile'
-      fullPath: '/dashboard/student/profile'
-      preLoaderRoute: typeof DashboardStudentProfileRouteImport
       parentRoute: typeof DashboardStudentRoute
     }
     '/dashboard/student/progress': {
@@ -1119,20 +663,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardStudentProgressRouteImport
       parentRoute: typeof DashboardStudentRoute
     }
-    '/dashboard/student/resources': {
-      id: '/dashboard/student/resources'
-      path: '/resources'
-      fullPath: '/dashboard/student/resources'
-      preLoaderRoute: typeof DashboardStudentResourcesRouteImport
-      parentRoute: typeof DashboardStudentRoute
-    }
-    '/dashboard/student/wishlist': {
-      id: '/dashboard/student/wishlist'
-      path: '/wishlist'
-      fullPath: '/dashboard/student/wishlist'
-      preLoaderRoute: typeof DashboardStudentWishlistRouteImport
-      parentRoute: typeof DashboardStudentRoute
-    }
     '/dashboard/teacher/': {
       id: '/dashboard/teacher/'
       path: '/'
@@ -1140,32 +670,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardTeacherIndexRouteImport
       parentRoute: typeof DashboardTeacherRoute
     }
-    '/dashboard/teacher/analytics': {
-      id: '/dashboard/teacher/analytics'
-      path: '/analytics'
-      fullPath: '/dashboard/teacher/analytics'
-      preLoaderRoute: typeof DashboardTeacherAnalyticsRouteImport
-      parentRoute: typeof DashboardTeacherRoute
-    }
-    '/dashboard/teacher/assignments': {
-      id: '/dashboard/teacher/assignments'
-      path: '/assignments'
-      fullPath: '/dashboard/teacher/assignments'
-      preLoaderRoute: typeof DashboardTeacherAssignmentsRouteImport
-      parentRoute: typeof DashboardTeacherRoute
-    }
     '/dashboard/teacher/courses': {
       id: '/dashboard/teacher/courses'
       path: '/courses'
       fullPath: '/dashboard/teacher/courses'
       preLoaderRoute: typeof DashboardTeacherCoursesRouteImport
-      parentRoute: typeof DashboardTeacherRoute
-    }
-    '/dashboard/teacher/help': {
-      id: '/dashboard/teacher/help'
-      path: '/help'
-      fullPath: '/dashboard/teacher/help'
-      preLoaderRoute: typeof DashboardTeacherHelpRouteImport
       parentRoute: typeof DashboardTeacherRoute
     }
     '/dashboard/teacher/lessons': {
@@ -1182,39 +691,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardTeacherLiveRouteImport
       parentRoute: typeof DashboardTeacherRoute
     }
-    '/dashboard/teacher/notifications': {
-      id: '/dashboard/teacher/notifications'
-      path: '/notifications'
-      fullPath: '/dashboard/teacher/notifications'
-      preLoaderRoute: typeof DashboardTeacherNotificationsRouteImport
-      parentRoute: typeof DashboardTeacherRoute
-    }
-    '/dashboard/teacher/profile': {
-      id: '/dashboard/teacher/profile'
-      path: '/profile'
-      fullPath: '/dashboard/teacher/profile'
-      preLoaderRoute: typeof DashboardTeacherProfileRouteImport
-      parentRoute: typeof DashboardTeacherRoute
-    }
     '/dashboard/teacher/progress': {
       id: '/dashboard/teacher/progress'
       path: '/progress'
       fullPath: '/dashboard/teacher/progress'
       preLoaderRoute: typeof DashboardTeacherProgressRouteImport
-      parentRoute: typeof DashboardTeacherRoute
-    }
-    '/dashboard/teacher/revenue': {
-      id: '/dashboard/teacher/revenue'
-      path: '/revenue'
-      fullPath: '/dashboard/teacher/revenue'
-      preLoaderRoute: typeof DashboardTeacherRevenueRouteImport
-      parentRoute: typeof DashboardTeacherRoute
-    }
-    '/dashboard/teacher/students': {
-      id: '/dashboard/teacher/students'
-      path: '/students'
-      fullPath: '/dashboard/teacher/students'
-      preLoaderRoute: typeof DashboardTeacherStudentsRouteImport
       parentRoute: typeof DashboardTeacherRoute
     }
     '/dashboard/teacher/uploads': {
@@ -1223,34 +704,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/dashboard/teacher/uploads'
       preLoaderRoute: typeof DashboardTeacherUploadsRouteImport
       parentRoute: typeof DashboardTeacherRoute
-    }
-    '/orders/$id/confirmation': {
-      id: '/orders/$id/confirmation'
-      path: '/orders/$id/confirmation'
-      fullPath: '/orders/$id/confirmation'
-      preLoaderRoute: typeof OrdersIdConfirmationRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/orders/$id/failed': {
-      id: '/orders/$id/failed'
-      path: '/orders/$id/failed'
-      fullPath: '/orders/$id/failed'
-      preLoaderRoute: typeof OrdersIdFailedRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/orders/$id/receipt': {
-      id: '/orders/$id/receipt'
-      path: '/orders/$id/receipt'
-      fullPath: '/orders/$id/receipt'
-      preLoaderRoute: typeof OrdersIdReceiptRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/orders/$id/success': {
-      id: '/orders/$id/success'
-      path: '/orders/$id/success'
-      fullPath: '/orders/$id/success'
-      preLoaderRoute: typeof OrdersIdSuccessRouteImport
-      parentRoute: typeof rootRouteImport
     }
     '/dashboard/student/courses/': {
       id: '/dashboard/student/courses/'
@@ -1319,37 +772,19 @@ declare module '@tanstack/react-router' {
 }
 
 interface AdminRouteChildren {
-  AdminAnnouncementsRoute: typeof AdminAnnouncementsRoute
   AdminCategoriesRoute: typeof AdminCategoriesRoute
-  AdminReportsRoute: typeof AdminReportsRoute
-  AdminSettingsRoute: typeof AdminSettingsRoute
-  AdminStudentsRoute: typeof AdminStudentsRoute
-  AdminTeachersRoute: typeof AdminTeachersRoute
   AdminIndexRoute: typeof AdminIndexRoute
   AdminCoursesIdRoute: typeof AdminCoursesIdRoute
-  AdminPaymentsIdRoute: typeof AdminPaymentsIdRoute
-  AdminSubscriptionsIdRoute: typeof AdminSubscriptionsIdRoute
-  AdminUsersIdRoute: typeof AdminUsersIdRoute
   AdminCoursesIndexRoute: typeof AdminCoursesIndexRoute
-  AdminPaymentsIndexRoute: typeof AdminPaymentsIndexRoute
   AdminSubscriptionsIndexRoute: typeof AdminSubscriptionsIndexRoute
   AdminUsersIndexRoute: typeof AdminUsersIndexRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
-  AdminAnnouncementsRoute: AdminAnnouncementsRoute,
   AdminCategoriesRoute: AdminCategoriesRoute,
-  AdminReportsRoute: AdminReportsRoute,
-  AdminSettingsRoute: AdminSettingsRoute,
-  AdminStudentsRoute: AdminStudentsRoute,
-  AdminTeachersRoute: AdminTeachersRoute,
   AdminIndexRoute: AdminIndexRoute,
   AdminCoursesIdRoute: AdminCoursesIdRoute,
-  AdminPaymentsIdRoute: AdminPaymentsIdRoute,
-  AdminSubscriptionsIdRoute: AdminSubscriptionsIdRoute,
-  AdminUsersIdRoute: AdminUsersIdRoute,
   AdminCoursesIndexRoute: AdminCoursesIndexRoute,
-  AdminPaymentsIndexRoute: AdminPaymentsIndexRoute,
   AdminSubscriptionsIndexRoute: AdminSubscriptionsIndexRoute,
   AdminUsersIndexRoute: AdminUsersIndexRoute,
 }
@@ -1357,16 +792,9 @@ const AdminRouteChildren: AdminRouteChildren = {
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
 interface DashboardStudentRouteChildren {
-  DashboardStudentAssignmentsRoute: typeof DashboardStudentAssignmentsRoute
-  DashboardStudentCalendarRoute: typeof DashboardStudentCalendarRoute
-  DashboardStudentCertificatesRoute: typeof DashboardStudentCertificatesRoute
   DashboardStudentLiveRoute: typeof DashboardStudentLiveRoute
-  DashboardStudentNotificationsRoute: typeof DashboardStudentNotificationsRoute
   DashboardStudentOrdersRoute: typeof DashboardStudentOrdersRoute
-  DashboardStudentProfileRoute: typeof DashboardStudentProfileRoute
   DashboardStudentProgressRoute: typeof DashboardStudentProgressRoute
-  DashboardStudentResourcesRoute: typeof DashboardStudentResourcesRoute
-  DashboardStudentWishlistRoute: typeof DashboardStudentWishlistRoute
   DashboardStudentIndexRoute: typeof DashboardStudentIndexRoute
   DashboardStudentCoursesIdRoute: typeof DashboardStudentCoursesIdRoute
   DashboardStudentQuizzesIdRoute: typeof DashboardStudentQuizzesIdRoute
@@ -1375,16 +803,9 @@ interface DashboardStudentRouteChildren {
 }
 
 const DashboardStudentRouteChildren: DashboardStudentRouteChildren = {
-  DashboardStudentAssignmentsRoute: DashboardStudentAssignmentsRoute,
-  DashboardStudentCalendarRoute: DashboardStudentCalendarRoute,
-  DashboardStudentCertificatesRoute: DashboardStudentCertificatesRoute,
   DashboardStudentLiveRoute: DashboardStudentLiveRoute,
-  DashboardStudentNotificationsRoute: DashboardStudentNotificationsRoute,
   DashboardStudentOrdersRoute: DashboardStudentOrdersRoute,
-  DashboardStudentProfileRoute: DashboardStudentProfileRoute,
   DashboardStudentProgressRoute: DashboardStudentProgressRoute,
-  DashboardStudentResourcesRoute: DashboardStudentResourcesRoute,
-  DashboardStudentWishlistRoute: DashboardStudentWishlistRoute,
   DashboardStudentIndexRoute: DashboardStudentIndexRoute,
   DashboardStudentCoursesIdRoute: DashboardStudentCoursesIdRoute,
   DashboardStudentQuizzesIdRoute: DashboardStudentQuizzesIdRoute,
@@ -1414,17 +835,10 @@ const DashboardTeacherCoursesRouteWithChildren =
   )
 
 interface DashboardTeacherRouteChildren {
-  DashboardTeacherAnalyticsRoute: typeof DashboardTeacherAnalyticsRoute
-  DashboardTeacherAssignmentsRoute: typeof DashboardTeacherAssignmentsRoute
   DashboardTeacherCoursesRoute: typeof DashboardTeacherCoursesRouteWithChildren
-  DashboardTeacherHelpRoute: typeof DashboardTeacherHelpRoute
   DashboardTeacherLessonsRoute: typeof DashboardTeacherLessonsRoute
   DashboardTeacherLiveRoute: typeof DashboardTeacherLiveRoute
-  DashboardTeacherNotificationsRoute: typeof DashboardTeacherNotificationsRoute
-  DashboardTeacherProfileRoute: typeof DashboardTeacherProfileRoute
   DashboardTeacherProgressRoute: typeof DashboardTeacherProgressRoute
-  DashboardTeacherRevenueRoute: typeof DashboardTeacherRevenueRoute
-  DashboardTeacherStudentsRoute: typeof DashboardTeacherStudentsRoute
   DashboardTeacherUploadsRoute: typeof DashboardTeacherUploadsRoute
   DashboardTeacherIndexRoute: typeof DashboardTeacherIndexRoute
   DashboardTeacherQuizzesIdRoute: typeof DashboardTeacherQuizzesIdRoute
@@ -1432,17 +846,10 @@ interface DashboardTeacherRouteChildren {
 }
 
 const DashboardTeacherRouteChildren: DashboardTeacherRouteChildren = {
-  DashboardTeacherAnalyticsRoute: DashboardTeacherAnalyticsRoute,
-  DashboardTeacherAssignmentsRoute: DashboardTeacherAssignmentsRoute,
   DashboardTeacherCoursesRoute: DashboardTeacherCoursesRouteWithChildren,
-  DashboardTeacherHelpRoute: DashboardTeacherHelpRoute,
   DashboardTeacherLessonsRoute: DashboardTeacherLessonsRoute,
   DashboardTeacherLiveRoute: DashboardTeacherLiveRoute,
-  DashboardTeacherNotificationsRoute: DashboardTeacherNotificationsRoute,
-  DashboardTeacherProfileRoute: DashboardTeacherProfileRoute,
   DashboardTeacherProgressRoute: DashboardTeacherProgressRoute,
-  DashboardTeacherRevenueRoute: DashboardTeacherRevenueRoute,
-  DashboardTeacherStudentsRoute: DashboardTeacherStudentsRoute,
   DashboardTeacherUploadsRoute: DashboardTeacherUploadsRoute,
   DashboardTeacherIndexRoute: DashboardTeacherIndexRoute,
   DashboardTeacherQuizzesIdRoute: DashboardTeacherQuizzesIdRoute,
@@ -1470,19 +877,14 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
   AdminRoute: AdminRouteWithChildren,
-  ContactRoute: ContactRoute,
   DashboardRoute: DashboardRouteWithChildren,
   LoginRoute: LoginRoute,
   PricingRoute: PricingRoute,
   RegisterRoute: RegisterRoute,
-  CheckoutCourseIdRoute: CheckoutCourseIdRoute,
+  AuthCallbackRoute: AuthCallbackRoute,
+  AuthResetPasswordRoute: AuthResetPasswordRoute,
   CoursesIdRoute: CoursesIdRoute,
-  PaymentCourseIdRoute: PaymentCourseIdRoute,
   CoursesIndexRoute: CoursesIndexRoute,
-  OrdersIdConfirmationRoute: OrdersIdConfirmationRoute,
-  OrdersIdFailedRoute: OrdersIdFailedRoute,
-  OrdersIdReceiptRoute: OrdersIdReceiptRoute,
-  OrdersIdSuccessRoute: OrdersIdSuccessRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

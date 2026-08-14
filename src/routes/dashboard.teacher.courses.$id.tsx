@@ -369,7 +369,7 @@ function Builder() {
                     </Button>
                   </div>
                   <div className="mt-4 divide-y divide-border/60">
-                    {(mod.lessons || []).map((l, li) => (
+                    {(mod.lessons || []).map((l:any, li) => (
                       <div key={l.id || li} className="flex flex-wrap items-center gap-3 py-2">
                         {l.kind === "quiz" ? <ListChecks className="h-4 w-4 text-primary" /> : <FileVideo className="h-4 w-4 text-primary" />}
                         <Input

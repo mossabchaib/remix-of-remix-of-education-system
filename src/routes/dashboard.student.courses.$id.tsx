@@ -84,7 +84,7 @@ function CoursePlayer() {
   // --- Progress state (async) ---
   const [progressMap, setProgressMap] = useState<Record<string, boolean>>({});
   const [progressLoaded, setProgressLoaded] = useState(false);
-  const [currentId, setCurrentId] = useState<string | undefined>(allLessons[0]?.id);
+  const [currentId, setCurrentId]:any = useState<string | undefined>(allLessons[0]?.id);
   const [selectedVideoId, setSelectedVideoId] = useState<string | undefined>(undefined);
 
   // Tracks which lesson is currently being saved, to show inline "Saving…" state
@@ -124,10 +124,9 @@ function CoursePlayer() {
     return () => {
       cancelled = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [course.id]);
 
-  const current = allLessons.find((l) => l.id === currentId);
+  const current:any = allLessons.find((l) => l.id === currentId);
   const idx = current ? allLessons.findIndex((l) => l.id === current.id) : -1;
   const module = modules.find((m) => current && m.lessons.some((l) => l.id === current.id));
 
@@ -397,7 +396,7 @@ function CoursePlayer() {
                 </p>
               </div>
               <div className="space-y-2">
-                {lessonVideos.map((r) => (
+                {lessonVideos.map((r:any) => (
                   <ResourceRow
                     key={r.id}
                     resource={r}
@@ -432,7 +431,7 @@ function CoursePlayer() {
                     {m.title}
                   </p>
                   <ul className="space-y-2.5">
-                    {m.lessons.map((l) => {
+                    {m.lessons.map((l:any) => {
                       const done = !!progressMap[l.id];
                       const active = l.id === current.id;
                       const lessonFiles = uploadsByLesson[l.id] ?? [];

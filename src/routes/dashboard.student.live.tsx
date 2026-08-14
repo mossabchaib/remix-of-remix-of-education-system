@@ -485,7 +485,7 @@ function LockedView({ subscription }: { subscription: Subscription | null }) {
         </div>
         {!pending && (
           <Button asChild size="lg" className="mt-2">
-            <Link to="/dashboard/student/subscription">
+            <Link to="/dashboard/student/orders">
               <Sparkles className="mr-1.5 h-4 w-4" />
               {expired ? t("liveClasses.locked.renew") : t("liveClasses.locked.viewPlans")}
             </Link>

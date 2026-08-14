@@ -349,7 +349,7 @@ function StudentOverview() {
               <div className="flex items-center justify-between">
                 <p className="text-sm font-semibold">{t("student.wishlist")}</p>
                 <Button asChild variant="ghost" size="sm">
-                  <Link to="/dashboard/student/wishlist">{t("common.viewAll")}</Link>
+                  <Link to="/dashboard/student/courses">{t("common.viewAll")}</Link>
                 </Button>
               </div>
               <div className="mt-3 divide-y divide-border/60">

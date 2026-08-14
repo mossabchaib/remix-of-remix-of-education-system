@@ -15,6 +15,7 @@
 
 import { api, storeTokens } from "./api-client";
 
+import { REFRESH_TOKEN_KEY } from "./api-client";
 export type BackendRole = "admin" | "teacher" | "student";
 
 export interface BackendProfile {
@@ -52,6 +53,7 @@ export async function signUpRequest(params: {
   password: string;
   role: BackendRole;
 }): Promise<SignUpResult> {
+  console.log("signUpRequest params:", params);
   const res = await api.post<ApiEnvelope<SignUpData>>("/api/auth/signup", {
     email: params.email,
     password: params.password,
@@ -78,10 +80,20 @@ export async function signInRequest(params: {
   return fetchProfileRequest();
 }
 
+
 export async function signOutRequest(): Promise<void> {
-  await api.post("/api/auth/signout");
+  const refreshToken =
+    typeof window !== "undefined" ? window.localStorage.getItem(REFRESH_TOKEN_KEY) : null;
+  await api.post("/api/auth/signout", { refreshToken });
 }
 
+export async function resetPasswordRequest(params: {
+  accessToken: string;
+  refreshToken: string;
+  newPassword: string;
+}): Promise<void> {
+  await api.post("/api/auth/reset-password", params);
+}
 export async function fetchProfileRequest(): Promise<BackendProfile> {
   const res = await api.get<ApiEnvelope<BackendProfile>>("/api/users/me");
   return res.data;

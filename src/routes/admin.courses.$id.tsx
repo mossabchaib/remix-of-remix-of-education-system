@@ -294,7 +294,7 @@ function CourseAdminDetail() {
 
                             {lessonCount > 0 && (
                               <ul className="mt-3 space-y-0.5">
-                                {m.lessons.map((l) => (
+                                {m.lessons.map((l:any) => (
                                   <li
                                     key={l.id}
                                     className="flex items-center gap-3 rounded-md px-2 py-2 text-sm hover:bg-teal-600/[0.04]"

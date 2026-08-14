@@ -184,57 +184,10 @@ function Home() {
               <div className="flex items-center gap-1.5"><ShieldCheck className="h-4 w-4" /> {t("home.trustedTeams")}</div>
             </div>
           </div>
-
-          {/* Preview mock (app.lumen.school/dashboard) */}
-          {/* <div className="relative mx-auto mt-16 max-w-5xl">
-            <Card className="overflow-hidden rounded-2xl border-white/15 bg-white shadow-2xl">
-              <div className="flex items-center gap-1.5 border-b border-black/10 bg-black px-4 py-3">
-                <span className="h-2.5 w-2.5 rounded-full bg-white/30" />
-                <span className="h-2.5 w-2.5 rounded-full bg-white/30" />
-                <span className="h-2.5 w-2.5 rounded-full bg-sky-400" />
-                <span className="ms-3 text-xs text-white/70">{t("home.previewUrl")}</span>
-              </div>
-              <div className="grid gap-4 p-6 sm:grid-cols-3">
-                {coursesLoading ? (
-                  <Loader className="col-span-full" />
-                ) : featured.length === 0 ? (
-                  <p className="col-span-full text-sm text-black/50">No courses found.</p>
-                ) : (
-                  featured.slice(0, 3).map((c: any) => (
-                    <CourseCard key={c.id} course={c} isAuthenticated={isAuthenticated} />
-                  ))
-                )}
-              </div>
-            </Card>
-          </div>*/}
         </div> 
       </section>
 
-      {/* Features */}
-      {/* <section className="border-t border-black/10 bg-white py-20 sm:py-24">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="mx-auto max-w-2xl text-center">
-            <p className="text-sm font-semibold uppercase tracking-wider text-sky-500">{t("home.whyLumen")}</p>
-            <h2 className="mt-2 text-3xl font-semibold tracking-tight text-black sm:text-4xl">{t("home.featuresTitle")}</h2>
-            <p className="mt-3 text-black/60">{t("home.featuresSubtitle")}</p>
-          </div>
-          <div className="mt-14 grid gap-6 md:grid-cols-3">
-            {features.map((f) => (
-              <Card
-                key={f.title}
-                className="border-black/10 p-7 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-sky-300 hover:shadow-lg"
-              >
-                <div className="grid h-11 w-11 place-items-center rounded-xl bg-sky-50 text-sky-500">
-                  <f.icon className="h-5 w-5" />
-                </div>
-                <h3 className="mt-5 text-lg font-semibold text-black">{f.title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-black/60">{f.desc}</p>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section> */}
-
+    
       {/* Categories */}
       <section className="bg-[#f3f9ff] py-20 sm:py-24">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -325,14 +278,7 @@ function Home() {
                     <Button asChild size="lg" className="bg-sky-400 text-black hover:bg-sky-300">
                       <Link to="/register">{t("home.startFreeTrial")}</Link>
                     </Button>
-                    <Button
-                      asChild
-                      size="lg"
-                      variant="outline"
-                      className="border-white/30 bg-transparent text-white hover:bg-white/10 hover:text-white"
-                    >
-                      <Link to="/contact">{t("home.talkToSales")}</Link>
-                    </Button>
+                 
                   </div>
                 </div>
                 <ul className="space-y-3 text-sm">

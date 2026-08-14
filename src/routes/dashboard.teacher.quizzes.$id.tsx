@@ -321,7 +321,6 @@ function QuizEditor({
             initial={editingQuestion ?? undefined}
             onSubmit={handleFormSubmit}
             onCancel={() => setDialogOpen(false)}
-            submitting={submittingQuestion}
           />
         </DialogContent>
       </Dialog>

@@ -141,7 +141,6 @@ function AdminDashboard() {
     return () => {
       cancelled = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // --- KPIs built from live data ---
