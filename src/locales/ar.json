@@ -885,7 +885,7 @@
       "createFailed": "فشل إنشاء الدرس"
     }
   },
-   "teacherUploads": {
+   "teacherUploadsr": {
     "title": "الملفات المرفوعة",
     "description": "أدر فيديوهات مقرراتك وموارد PDF وتسجيلات الجلسات المباشرة.",
     "loadingCourses": "جارٍ التحميل...",
@@ -1133,6 +1133,10 @@
     }
   },
     "catalog": {
+       "rating": "التقييم",
+  "allRatings": "جميع التقييمات",
+  "ratingAndUp": "{{value}} نجوم فأكثر",
+  "noRatings": "لا توجد تقييمات بعد",
     "title": "تصفّح الكتالوج",
     "description": "كل دورة منشورة في لومين، متاحة لعضويتك.",
     "descriptionLocked": "كل دورة منشورة في لومين.",
@@ -1463,6 +1467,8 @@
     "byInstructor": "بواسطة {{name}}",
     "defaultInstructor": "المدرّس",
     "filters": {
+  "allRatings": "جميع التقييمات",
+  "ratingAndUp": "{{value}}+ نجوم",
       "category": "التصنيف",
       "allCategories": "جميع التصنيفات",
       "level": "المستوى",
@@ -1494,6 +1500,11 @@
     }
   },
   "courseDetails": {
+    "learnSmarterGrowFaster": "تعلّم بذكاء وتطوّر بشكل أسرع.",
+     "expertLedCourses": "دورات بإشراف خبراء",
+    "learnAtYourOwnPace": "تعلّم بالوتيرة التي تناسبك",
+    "trackYourProgress": "تابع تقدّمك",
+    "add_wishlist": "أضف إلى المفضلة",
   "subsicription_now": "اشترك الآن",
     "backToCourses": "كل الدورات",
     "newCourse": "دورة جديدة",
@@ -1551,7 +1562,88 @@
       "trackingAndOrders": "التقدم والطلبات",
       "explore": "استكشاف"
     }
-  }
+  },
+  "forgotPassword": {
+    "title": "نسيت كلمة المرور؟",
+    "subtitle": "لا تقلق، أدخل بريدك الإلكتروني وسنرسل لك تعليمات إعادة التعيين.",
+    "emailLabel": "البريد الإلكتروني",
+    "emailPlaceholder": "name@example.com",
+    "sendBtn": "إرسال رابط إعادة التعيين",
+    "sending": "جاري الإرسال...",
+    "backToLogin": "العودة إلى تسجيل الدخول",
+    "checkEmailTitle": "تفقد بريدك الإلكتروني",
+    "checkEmailBody": "لقد أرسلنا رابط إعادة تعيين كلمة المرور إلى البريد الإلكتروني {{email}}.",
+    "errorGeneric": "حدث خطأ ما، يرجى المحاولة مرة أخرى."
+  },
+  "resetPassword": {
+    "title": "تعيين كلمة مرور جديدة",
+    "subtitle": "يرجى إدخال كلمة المرور الجديدة الخاصة بك أدناه.",
+    "passwordLabel": "كلمة المرور الجديدة",
+    "placeholder": "أدخل كلمة مرور قوية",
+    "submitBtn": "تحديث كلمة المرور",
+    "loading": "جاري التحديث...",
+    "successMessage": "تم تحديث كلمة المرور بنجاح، يمكنك الآن تسجيل الدخول.",
+    "errorInvalidToken": "رابط إعادة التعيين غير صالح أو منتهي الصلاحية.",
+    "errorGeneric": "فشل تحديث كلمة المرور، يرجى المحاولة لاحقاً."
+  },
+   "teacherUploads": {
+     "title": "الملفات والمحتوى",
+    "description": "إدارة ورفع محتوى الدروس والمواد التعليمية",
+    "coursePlaceholder": "اختر دورة",
+    "destination": {
+      "lessonField": "اختر درسًا",
+      "module": "اختر وحدة"
+    },
+     "deleteDialog": {
+      "cancel": "إلغاء",
+      "confirm": "حذف"
+    },
+      "addContent": "إضافة محتوى",
+      "filters": {
+        "allCourses": "كل الدورات",
+        "allTypes": "كل الأنواع",
+        "video": "فيديو",
+        "pdf": "PDF",
+        "allStatus": "كل الحالات",
+        "linked": "مرتبط",
+        "unlinked": "غير مرتبط",
+        "clear": "مسح الفلاتر"
+      },
+      "table": {
+        "name": "الاسم",
+        "type": "النوع",
+        "course": "الدورة",
+        "status": "الحالة",
+        "date": "التاريخ",
+        "actions": "إجراءات"
+      },
+      "empty": {
+        "title": "لا يوجد محتوى بعد",
+        "description": "اضغط على \"إضافة محتوى\" لبدء رفع فيديو أو PDF أو تسجيل جلسة."
+      },
+      "wizard": {
+        "title": "إضافة محتوى جديد",
+        "saved": "تم الحفظ بنجاح",
+        "saveFailed": "فشل الحفظ",
+        "chooseFile": "اختر ملف PDF",
+        "back": "رجوع",
+        "next": "التالي",
+        "save": "حفظ",
+        "saving": "جارٍ الحفظ...",
+        "cancel": "إلغاء",
+        "steps": {
+          "type": "نوع المحتوى",
+          "course": "اختر الدورة",
+          "destination": "اختر الوجهة",
+          "content": "أضف المحتوى"
+        },
+        "type": {
+          "pdf": "درس PDF",
+          "video": "رابط فيديو لدرس",
+          "recording": "تسجيل جلسة مباشرة"
+        }
+      }
+    }
 
   
 }

@@ -20,12 +20,23 @@ export class ApiError extends Error {
 // tokens are kept.
 export const ACCESS_TOKEN_KEY = "lms.access_token";
 export const REFRESH_TOKEN_KEY = "lms.refresh_token";
-
+export const SESSION_ID_KEY = "lms.session_id"; 
 export function getAccessToken(): string | null {
   if (typeof window === "undefined") return null;
   return window.localStorage.getItem(ACCESS_TOKEN_KEY);
 }
+export function getSessionId(): string | null {
+  if (typeof window === "undefined") return null;
+  return window.localStorage.getItem(SESSION_ID_KEY);
+}
 
+export function storeSessionId(sessionId: string) {
+  window.localStorage.setItem(SESSION_ID_KEY, sessionId);
+}
+
+export function clearSessionId() {
+  window.localStorage.removeItem(SESSION_ID_KEY);
+}
 export function storeTokens(accessToken: string, refreshToken: string) {
   window.localStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
   window.localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
@@ -33,10 +44,12 @@ export function storeTokens(accessToken: string, refreshToken: string) {
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const token = getAccessToken();
+  const sessionId = getSessionId(); // ← جديد
 
   const headers: HeadersInit = {
     "Content-Type": "application/json",
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...(sessionId ? { "x-session-id": sessionId } : {}), // ← جديد
     ...(options.headers || {}),
   };
 
@@ -48,6 +61,15 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   if (!res.ok) {
     const message =
       data?.message || data?.error || `Request failed with status ${res.status}`;
+
+    // ← جديد: لو الجلسة انطردت (جهاز آخر سجّل دخول)، نظّف كل حاجة محلياً
+    if (message === "SESSION_REVOKED") {
+      window.localStorage.removeItem(ACCESS_TOKEN_KEY);
+      window.localStorage.removeItem(REFRESH_TOKEN_KEY);
+      window.localStorage.removeItem(SESSION_ID_KEY);
+      window.location.href = "/login?reason=session_revoked";
+    }
+
     throw new ApiError(message, res.status);
   }
 
@@ -64,11 +86,15 @@ function uploadRequest<T>(
 ): Promise<T> {
   return new Promise((resolve, reject) => {
     const token = getAccessToken();
+    const sessionId = getSessionId(); // ← جديد
     const xhr = new XMLHttpRequest();
     xhr.open("POST", `${API_URL}${path}`);
 
     if (token) {
       xhr.setRequestHeader("Authorization", `Bearer ${token}`);
+    }
+    if (sessionId) {
+      xhr.setRequestHeader("x-session-id", sessionId); // ← جديد
     }
 
     xhr.upload.onprogress = (event) => {
@@ -89,12 +115,17 @@ function uploadRequest<T>(
       if (xhr.status >= 200 && xhr.status < 300) {
         resolve(parsed as T);
       } else {
-        reject(
-          new ApiError(
-            parsed?.message ?? parsed?.error ?? `Request failed with status ${xhr.status}`,
-            xhr.status
-          )
-        );
+        const message = parsed?.message ?? parsed?.error ?? `Request failed with status ${xhr.status}`;
+
+        // ← جديد: نفس معاملة SESSION_REVOKED الموجودة في request()
+        if (message === "SESSION_REVOKED") {
+          window.localStorage.removeItem(ACCESS_TOKEN_KEY);
+          window.localStorage.removeItem(REFRESH_TOKEN_KEY);
+          window.localStorage.removeItem(SESSION_ID_KEY);
+          window.location.href = "/login?reason=session_revoked";
+        }
+
+        reject(new ApiError(message, xhr.status));
       }
     };
 
@@ -344,58 +375,82 @@ export const lmsApi = {
       ),
 
     signIn: async (data: { email: string; password: string }) => {
-      const res = await api.post<{
-        message: string;
-        data: { user: any; session: { access_token: string; refresh_token: string } };
-      }>("/api/auth/signin", data);
+  const res = await api.post<{
+    message: string;
+    data: { user: any; session: { access_token: string; refresh_token: string }; sessionId: string };
+  }>("/api/auth/signin", data);
 
-      // نخزن التوكنات تلقائياً بعد نجاح تسجيل الدخول
-      if (res.data?.session?.access_token && res.data?.session?.refresh_token) {
-        storeTokens(res.data.session.access_token, res.data.session.refresh_token);
-      }
+  if (res.data?.session?.access_token && res.data?.session?.refresh_token) {
+    storeTokens(res.data.session.access_token, res.data.session.refresh_token);
+  }
 
-      return res;
-    },
+  if (res.data?.sessionId) {
+    storeSessionId(res.data.sessionId); // ← جديد
+  }
 
-    signOut: async () => {
-      const refreshToken =
-        typeof window !== "undefined" ? window.localStorage.getItem(REFRESH_TOKEN_KEY) : null;
+  return res;
+},
 
-      const res = await api.post<{ message: string }>("/api/auth/signout", {
-        refreshToken,
-      });
+   signOut: async () => {
+  const refreshToken =
+    typeof window !== "undefined" ? window.localStorage.getItem(REFRESH_TOKEN_KEY) : null;
 
-      // نمسح التوكنات محلياً بعد تسجيل الخروج
-      if (typeof window !== "undefined") {
-        window.localStorage.removeItem(ACCESS_TOKEN_KEY);
-        window.localStorage.removeItem(REFRESH_TOKEN_KEY);
-      }
+  const res = await api.post<{ message: string }>("/api/auth/signout", {
+    refreshToken,
+  });
 
-      return res;
-    },
+  if (typeof window !== "undefined") {
+    window.localStorage.removeItem(ACCESS_TOKEN_KEY);
+    window.localStorage.removeItem(REFRESH_TOKEN_KEY);
+    window.localStorage.removeItem(SESSION_ID_KEY); // ← جديد
+  }
 
-    refresh: async () => {
-      const refreshToken =
-        typeof window !== "undefined" ? window.localStorage.getItem(REFRESH_TOKEN_KEY) : null;
+  return res;
+},
 
-      if (!refreshToken) {
-        throw new ApiError("No refresh token found.", 401);
-      }
+   refresh: async () => {
+  const refreshToken =
+    typeof window !== "undefined" ? window.localStorage.getItem(REFRESH_TOKEN_KEY) : null;
+  const sessionId = getSessionId(); // ← جديد
 
-      const res = await api.post<{ message: string; data: { session: any } }>(
-        "/api/auth/refresh",
-        { refreshToken }
-      );
+  if (!refreshToken) {
+    throw new ApiError("No refresh token found.", 401);
+  }
 
-      if (res.data?.session?.access_token && res.data?.session?.refresh_token) {
-        storeTokens(res.data.session.access_token, res.data.session.refresh_token);
-      }
+  const res = await api.post<{ message: string; data: { session: any } }>(
+    "/api/auth/refresh",
+    { refreshToken, sessionId } // ← أضفنا sessionId
+  );
 
-      return res;
-    },
+  if (res.data?.session?.access_token && res.data?.session?.refresh_token) {
+    storeTokens(res.data.session.access_token, res.data.session.refresh_token);
+  }
+
+  return res;
+},
 
     forgotPassword: (data: { email: string; redirectTo?: string }) =>
       api.post<{ message: string }>("/api/auth/forgot-password", data),
+  },
+  // --- Ratings ---
+  // Maps to the `course_ratings` table: id, course_id, student_id, rating.
+  ratings: {
+    // معدل التقييم وعدد الأصوات لكورس معين (عام، بلا auth)
+    getCourseRatings: (courseId: string) =>
+      api.get<{ data: { course_id: string; average_rating: number; total_ratings: number } }>(
+        `/api/ratings/course/${courseId}`
+      ),
+
+    // تقييم الطالب الحالي لكورس معين (null إذا ما قيّمش بعد)
+    getMyRating: (courseId: string) =>
+      api.get<{ data: any }>(`/api/ratings/course/${courseId}/mine`),
+
+    // إضافة أو تعديل تقييم (1 إلى 5)
+    rateCourse: (courseId: string, rating: number) =>
+      api.post<{ data: any }>(`/api/ratings/course/${courseId}`, { rating }),
+
+    // حذف تقييم الطالب لكورس معين
+    deleteRating: (courseId: string) => api.del<any>(`/api/ratings/course/${courseId}`),
   },
   // --- Uploads ---
   // Maps to the `uploads` table: id, file_url, file_key, file_name, mime_type,

@@ -12,7 +12,7 @@
 // do NOT call setSession. The caller (Register page) must check `status`
 // and show a "check your email" message instead of navigating away.
 
-import { signInRequest, signUpRequest, signOutRequest, type SignUpResult } from "@/services/auth.service";
+import { signInRequest, signUpRequest, signOutRequest, type SignUpResult,forgotPasswordRequest } from "@/services/auth.service";
 import { ApiError, ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY } from "@/services/api-client";
 
 export type SessionRole = "admin" | "teacher" | "student";
@@ -125,4 +125,9 @@ export async function signOut(): Promise<void> {
   } finally {
     clearSession();
   }
+}
+;
+export async function forgotPassword(email: string): Promise<string> {
+  const { message } = await forgotPasswordRequest({ email });
+  return message;
 }

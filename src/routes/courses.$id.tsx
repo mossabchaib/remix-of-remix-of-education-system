@@ -2,6 +2,7 @@ import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-ro
 import { useState, useEffect, useCallback } from "react";
 import {
   ArrowLeft, BookOpen, Clock, FileText, Globe,
+  Heart,
   HelpCircle, Loader2, Lock, PlayCircle, Star,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -24,7 +25,7 @@ import {
   STORAGE_EVENT,
 } from "@/lib/lms-storage";
 import type { Lesson } from "@/lib/lms-storage";
-import { useAuth } from "@/hooks/useAuth";
+import { useSession } from "@/hooks/useSession";
 
 export const Route = createFileRoute("/courses/$id")({
   loader: async ({ params }) => {
@@ -109,7 +110,10 @@ function CourseDetail() {
   const modules = loaderData?.modules ?? [];
 
   const navigate = useNavigate();
-  const { isAuthenticated }: any = useAuth();
+
+  // ---------- auth state (via useSession, same hook used in Navbar) ----------
+  const session = useSession();
+  const isAuthenticated = !!session;
 
   // ---------- enrollment state (replaces useEnrollments / useKeyedStorage) ----------
   // We read the enrollment ids directly from lms-storage and subscribe to its
@@ -211,7 +215,7 @@ function CourseDetail() {
     setIsRedirectingToCheckout(true);
     try {
       lumenOrderService.beginCheckout(course);
-      navigate({ to: "/login"});
+      navigate({ to: "/login" });
     } finally {
       setIsRedirectingToCheckout(false);
     }
@@ -382,23 +386,39 @@ function CourseDetail() {
                 </div>
 
                 <div className="p-6">
-                  <Button
-                    className="w-full"
-                    size="lg"
-                    onClick={onPrimaryCta}
-                    disabled={isPrimaryCtaBusy}
-                  >
-                    {isPrimaryCtaBusy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    {t("courseDetails.subsicription_now")}
-                  </Button>
+                  {/* Primary CTA + wishlist button side by side, wishlist only shown when signed in */}
+                 <div className="flex items-stretch gap-2">
+  {isAuthenticated ? (
+    <Button
+      className="flex-1"
+      size="lg"
+      variant="outline"
+      // onClick={onWishlistClick}
+    >
+      <CourseWishlistButton
+        courseId={course.id}
+        courseTitle={course.title}
+        className="shrink-0"
+      />
+      {t("courseDetails.add_wishlist")}
+    </Button>
+  ) : (
+    <Button
+      className="flex-1"
+      size="lg"
+      onClick={onPrimaryCta}
+      disabled={isPrimaryCtaBusy}
+    >
+      {isPrimaryCtaBusy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+      {t("courseDetails.subscription_now")}
+    </Button>
+  )}
+</div>
+
                   {enrolled && (
                     <div className="mt-1 flex justify-center">
                       <CourseUnenrollDialog courseId={course.id} courseTitle={course.title} />
                     </div>
-                  )}
-
-                  {isAuthenticated && (
-                    <CourseWishlistButton courseId={course.id} courseTitle={course.title} variant="full" className="mt-2" />
                   )}
 
                   {/* Every item here is backed by a real course field or computed from actual lessons —

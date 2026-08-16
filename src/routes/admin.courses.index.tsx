@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { Star, BookOpen, Loader2, AlertTriangle } from "lucide-react";
@@ -8,9 +8,11 @@ import { StatusPill } from "@/components/admin/StatusPill";
 import {
   getAllCourses,
   deleteTeacherCourse,
+  getCourseRatings,
   storageKeys,
   STORAGE_EVENT,
 } from "@/lib/lms-storage";
+import type { CourseRatingSummary } from "@/lib/lms-storage";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin/courses/")({
@@ -29,6 +31,7 @@ interface CourseRow {
   students_count?: number;
   students?: number;
   rating?: number;
+  ratingBucket?: string;
   price?: number;
   status?: "published" | "draft" | "archived";
 }
@@ -37,13 +40,26 @@ function CoursesAdmin() {
   const navigate = useNavigate();
   const { t } = useTranslation();
 
-  const [courses, setCourses] = useState<CourseRow[]>([]);
+  const [rawCourses, setRawCourses] = useState<CourseRow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+
+  // Ratings — fetched once courses are loaded, keyed by course id.
+  const [ratings, setRatings] = useState<Record<string, CourseRatingSummary>>({});
+  const [ratingsLoaded, setRatingsLoaded] = useState(false);
 
   // Delete confirmation modal state
   const [courseToDelete, setCourseToDelete] = useState<CourseRow | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // Labels used both as the rating filter's exact-match "bucket" value
+  // AND as the option list shown to the user — this avoids needing any
+  // separate value→label mapping prop on the filter itself.
+  const noRatingsLabel = t("admin.noRatings");
+  const ratingBucketLabels = useMemo(
+    () => [5, 4, 3, 2, 1].map((v) => t("admin.ratingAndUp", { value: v })),
+    [t],
+  );
 
 const loadCourses = useCallback(async () => {
     try {
@@ -59,11 +75,11 @@ const loadCourses = useCallback(async () => {
       
       console.log("Normalized courses data:", normalized);
 
-      setCourses(normalized);
+      setRawCourses(normalized);
     } catch (err: any) {
       console.error(`Error loading storage key ${storageKeys.adminCourses}:`, err);
       setLoadError(err?.message || t("admin.coursesLoadError"));
-      setCourses([]);
+      setRawCourses([]);
     } finally {
       setIsLoading(false);
     }
@@ -93,6 +109,57 @@ const loadCourses = useCallback(async () => {
       window.removeEventListener("storage", handleStorageSync);
     };
   }, [loadCourses]);
+
+  // Fetch a rating summary for every course, in parallel. A failed lookup
+  // for a single course falls back to "no ratings" instead of breaking
+  // the whole table. Only the average is kept — the number of raters is
+  // intentionally not surfaced.
+  useEffect(() => {
+    if (rawCourses.length === 0) {
+      setRatingsLoaded(true);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      setRatingsLoaded(false);
+      const results = await Promise.all(
+        rawCourses.map((c) =>
+          getCourseRatings(c.id).catch(
+            () => ({ course_id: c.id, average_rating: 0, total_ratings: 0 }) as CourseRatingSummary,
+          ),
+        ),
+      );
+      if (cancelled) return;
+      const map: Record<string, CourseRatingSummary> = {};
+      results.forEach((r) => {
+        map[r.course_id] = r;
+      });
+      setRatings(map);
+      setRatingsLoaded(true);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [rawCourses]);
+
+  // Merge each course with its rating average. `ratingBucket` holds the
+  // exact translated label ("4+ stars", "No ratings"...) so it can plug
+  // straight into DataTable's plain string-options filter, the same way
+  // "level" and "status" already do — no extra label-mapping needed.
+  const courses: CourseRow[] = useMemo(() => {
+    return rawCourses.map((c) => {
+      const summary = ratings[c.id];
+      const hasRating = !!summary?.total_ratings;
+      const average = hasRating ? summary!.average_rating : 0;
+      return {
+        ...c,
+        rating: average,
+        ratingBucket: hasRating
+          ? t("admin.ratingAndUp", { value: Math.floor(average) })
+          : noRatingsLabel,
+      };
+    });
+  }, [rawCourses, ratings, t, noRatingsLabel]);
 
   const handleConfirmDelete = async () => {
     if (!courseToDelete) return;
@@ -143,6 +210,22 @@ const loadCourses = useCallback(async () => {
       render: (c:any) => c.profiles?.full_name || (typeof c.teacher === "object" ? c.teacher?.full_name : c.teacher) || c.teacher_name || "—",
     },
     {
+      key: "rating",
+      header: t("admin.rating"),
+      sortable: true,
+      render: (c: CourseRow) =>
+        ratingsLoaded && c.ratingBucket !== noRatingsLabel ? (
+          <div className="flex items-center gap-1.5">
+            <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+            <span className="text-sm font-medium">{c.rating!.toFixed(1)}</span>
+          </div>
+        ) : ratingsLoaded ? (
+          <span className="text-xs text-muted-foreground">{noRatingsLabel}</span>
+        ) : (
+          <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />
+        ),
+    },
+    {
       key: "status",
       header: t("common.status"),
       sortable: true,
@@ -185,6 +268,11 @@ const loadCourses = useCallback(async () => {
               key: "status",
               label: t("common.status"),
               options: ["published", "draft", "archived"],
+            },
+            {
+              key: "ratingBucket",
+              label: t("admin.rating"),
+              options: [...ratingBucketLabels, noRatingsLabel],
             },
           ]}
           onView={(c) => navigate({ to: "/admin/courses/$id", params: { id: c.id } })}

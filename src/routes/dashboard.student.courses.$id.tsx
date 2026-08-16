@@ -1,18 +1,24 @@
 import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
-import { useMemo, useState, useEffect, useCallback } from "react";
+import { useMemo, useState, useEffect, useCallback, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import {
   BookOpen,
+  Check,
   CheckCircle2,
   ChevronLeft,
   Download,
   FileText,
   Loader2,
   ListChecks,
+  Maximize2,
+  Pause,
   Paperclip,
   PlayCircle,
+  Settings,
   ShieldOff,
   Video as VideoIcon,
+  Volume2,
+  VolumeX,
 } from "lucide-react";
 import { RoleDashboardLayout } from "@/components/dashboard/RoleDashboardLayout";
 import { Card } from "@/components/ui/card";
@@ -33,7 +39,7 @@ import {
   type Quiz,
   type Upload,
 } from "@/lib/lms-storage";
-
+import { CourseRatingCard } from "@/components/course/CourseRatingCard";
 export const Route = createFileRoute("/dashboard/student/courses/$id")({
   head: () => ({
     meta: [{ title: "Course player — Lumen" }, { name: "robots", content: "noindex" }],
@@ -71,6 +77,541 @@ function uploadLessonId(u: Upload): string | undefined {
 
 function uploadUrl(u: Upload): string | undefined {
   return (u as any).url ?? (u as any).content_url ?? undefined;
+}
+
+/**
+ * Security note (frontend-only mitigation):
+ * ------------------------------------------------------------
+ * This function extracts ONLY the bare YouTube video ID. The raw
+ * YouTube URL itself is never stored anywhere it could be rendered
+ * as text, placed in an href/title/data-* attribute, or otherwise
+ * surfaced in the DOM.
+ *
+ * This is NOT a complete protection: someone who opens DevTools'
+ * Network tab can still see the underlying request. That part is
+ * inherent to using YouTube as a video host and cannot be solved
+ * from the frontend alone.
+ * ------------------------------------------------------------
+ */
+function getYouTubeVideoId(value?: string): string | undefined {
+  if (!value) return undefined;
+
+  const input = value.trim();
+
+  // Already a bare YouTube video ID.
+  if (/^[a-zA-Z0-9_-]{11}$/.test(input)) {
+    return input;
+  }
+
+  // Defensive fallback: some stored records may have a YouTube link
+  // concatenated after another URL (e.g. a storage base URL). Look
+  // for any recognizable YouTube pattern embedded anywhere in the
+  // string before falling back to strict URL parsing.
+  const embeddedMatch = input.match(
+    /https?:\/\/(?:www\.|m\.)?(?:youtube(?:-nocookie)?\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/,
+  );
+  if (embeddedMatch) {
+    return embeddedMatch[1];
+  }
+
+  try {
+    const url = new URL(input);
+    const host = url.hostname.replace(/^www\./, "").replace(/^m\./, "");
+
+    if (host === "youtu.be") {
+      const id = url.pathname.split("/").filter(Boolean)[0];
+      return id && /^[a-zA-Z0-9_-]{11}$/.test(id) ? id : undefined;
+    }
+
+    if (host === "youtube.com" || host === "youtube-nocookie.com") {
+      const id = url.searchParams.get("v");
+      if (id && /^[a-zA-Z0-9_-]{11}$/.test(id)) return id;
+
+      const parts = url.pathname.split("/").filter(Boolean);
+      const embedIndex = parts.indexOf("embed");
+      const shortsIndex = parts.indexOf("shorts");
+      const candidate =
+        embedIndex >= 0 ? parts[embedIndex + 1] :
+        shortsIndex >= 0 ? parts[shortsIndex + 1] :
+        undefined;
+
+      return candidate && /^[a-zA-Z0-9_-]{11}$/.test(candidate)
+        ? candidate
+        : undefined;
+    }
+  } catch {
+    // Ignore invalid URLs. The existing UI will simply show the fallback state.
+  }
+
+  return undefined;
+}
+
+/* ============ YouTube IFrame Player API loader (singleton) ============ */
+// Loaded once and reused across every lesson/video mount. We talk to the
+// player exclusively through this API (postMessage under the hood) instead
+// of letting the student interact with YouTube's own iframe UI directly.
+let youTubeApiPromise: Promise<void> | null = null;
+function loadYouTubeIframeApi(): Promise<void> {
+  if (typeof window === "undefined") return Promise.resolve();
+  const w = window as any;
+  if (w.YT && w.YT.Player) return Promise.resolve();
+  if (youTubeApiPromise) return youTubeApiPromise;
+
+  youTubeApiPromise = new Promise((resolve) => {
+    const previous = w.onYouTubeIframeAPIReady;
+    w.onYouTubeIframeAPIReady = () => {
+      previous?.();
+      resolve();
+    };
+    if (!document.getElementById("youtube-iframe-api")) {
+      const tag = document.createElement("script");
+      tag.id = "youtube-iframe-api";
+      tag.src = "https://www.youtube.com/iframe_api";
+      document.head.appendChild(tag);
+    }
+  });
+  return youTubeApiPromise;
+}
+
+function formatTime(totalSeconds: number): string {
+  if (!Number.isFinite(totalSeconds) || totalSeconds < 0) return "0:00";
+  const m = Math.floor(totalSeconds / 60);
+  const s = Math.floor(totalSeconds % 60);
+  return `${m}:${s.toString().padStart(2, "0")}`;
+}
+
+const QUALITY_LABELS: Record<string, string> = {
+  auto: "Auto",
+  highres: "4K+",
+  hd2160: "2160p",
+  hd1440: "1440p",
+  hd1080: "1080p",
+  hd720: "720p",
+  large: "480p",
+  medium: "360p",
+  small: "240p",
+  tiny: "144p",
+};
+function qualityLabel(level: string): string {
+  return QUALITY_LABELS[level] ?? level;
+}
+
+/**
+ * Fully custom video player.
+ * ------------------------------------------------------------
+ * YouTube's own UI is completely hidden (`controls: 0`), so the
+ * student never sees YouTube's title/channel link, YouTube logo,
+ * or default control bar. Instead, an entirely custom, in-house
+ * control layer (its own DOM, not the YouTube iframe) handles
+ * play/pause, seeking, mute and fullscreen via the IFrame Player
+ * API. Because that overlay lives in our own document (not inside
+ * YouTube's cross-origin iframe), we CAN reliably block the
+ * right-click "Copy video URL" context menu — something that was
+ * previously impossible once a click reached YouTube's own iframe.
+ *
+ * Still not solvable from the frontend: someone using the browser's
+ * DevTools Network tab, or reading this component's compiled source,
+ * can find the underlying request. No client-side technique can
+ * prevent that.
+ * ------------------------------------------------------------
+ */
+function YouTubePlayer({
+  video,
+  title,
+  poster,
+}: {
+  video: Upload;
+  title: string;
+  poster?: string;
+}) {
+  const source = uploadUrl(video);
+  const videoId = getYouTubeVideoId(source);
+
+  const containerRef = useRef<HTMLDivElement>(null);
+  const mountRef = useRef<HTMLDivElement>(null);
+  const playerRef = useRef<any>(null);
+  const guardTimerRef:any = useRef<ReturnType<typeof setTimeout>>();
+
+  const [ready, setReady] = useState(false);
+  const [started, setStarted] = useState(false);
+  const [playing, setPlaying] = useState(false);
+  const [muted, setMuted] = useState(false);
+  const [duration, setDuration] = useState(0);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [playbackRate, setPlaybackRateState] = useState(1);
+  const [availableRates, setAvailableRates] = useState<number[]>([0.5, 0.75, 1, 1.25, 1.5, 1.75, 2]);
+  const [quality, setQualityState] = useState<string>("auto");
+  const [availableQualities, setAvailableQualities] = useState<string[]>([]);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  // Opaque cover shown whenever YouTube would otherwise render its own
+  // chrome (title/channel name + "copy link" icon on pause, suggested-
+  // videos grid on end). Both appear regardless of controls=0 / rel=0 —
+  // they are not controls, they're YouTube's pause/end-screen overlays.
+  // The only reliable fix is to visually hide the player behind our own
+  // opaque layer whenever it is not actively, cleanly playing.
+  const [coverVisible, setCoverVisible] = useState(true);
+
+  useEffect(() => {
+    setReady(false);
+    setStarted(false);
+    setPlaying(false);
+    setCurrentTime(0);
+    setDuration(0);
+    setCoverVisible(true);
+
+    if (!videoId) return;
+    let cancelled = false;
+    let progressTimer: ReturnType<typeof setInterval> | undefined;
+
+    loadYouTubeIframeApi().then(() => {
+      if (cancelled || !mountRef.current) return;
+      const YT = (window as any).YT;
+
+      playerRef.current = new YT.Player(mountRef.current, {
+        videoId,
+        // Belt-and-suspenders: also ask for a 100% box up front. The real
+        // fix is below in onReady, because the API replaces our styled
+        // mount div with its own <iframe> that otherwise defaults to a
+        // fixed 640x390 pixel box — which is why the video used to render
+        // small, pinned to the top-left corner, especially in fullscreen.
+        width: "100%",
+        height: "100%",
+        playerVars: {
+          controls: 0,        // hide YouTube's own control bar entirely
+          modestbranding: 1,
+          rel: 0,              // no related videos from other channels
+          iv_load_policy: 3,   // hide annotations/cards
+          disablekb: 1,        // our overlay handles interaction, not the iframe
+          fs: 0,                // fullscreen handled by our own button
+          cc_load_policy: 0,   // no captions/subtitles shown by default
+          playsinline: 1,
+          origin: typeof window !== "undefined" ? window.location.origin : undefined,
+        },
+        events: {
+          onReady: (e: any) => {
+            if (cancelled) return;
+            // The API's own <iframe> ignores our Tailwind classes, so we
+            // pin it to fill its (positioned) parent directly via inline
+            // styles. This is what actually makes fullscreen work correctly.
+            const iframeEl: HTMLIFrameElement | undefined = e.target?.getIframe?.();
+            if (iframeEl) {
+              iframeEl.style.position = "absolute";
+              iframeEl.style.inset = "0";
+              iframeEl.style.width = "100%";
+              iframeEl.style.height = "100%";
+              iframeEl.style.border = "0";
+            }
+            setReady(true);
+            setDuration(e.target.getDuration?.() ?? 0);
+
+            // Playback speed options this specific video actually supports.
+            const rates = e.target.getAvailablePlaybackRates?.();
+            if (Array.isArray(rates) && rates.length) setAvailableRates(rates);
+
+            // Best-effort: YouTube's adaptive streaming means manual quality
+            // selection isn't honored for every video, but we still expose
+            // it when the API reports levels for this one.
+            const qualities = e.target.getAvailableQualityLevels?.();
+            if (Array.isArray(qualities) && qualities.length) setAvailableQualities(qualities);
+
+            // Defensive: make sure no caption track got auto-enabled.
+            try {
+              e.target.unloadModule?.("captions");
+            } catch {
+              /* ignore */
+            }
+          },
+          onStateChange: (e: any) => {
+            if (cancelled) return;
+            const State = (window as any).YT.PlayerState;
+            if (e.data === State.PLAYING) {
+              setPlaying(true);
+              setStarted(true);
+              // YouTube briefly shows its own title/channel overlay for a
+              // moment right after playback starts (and after every seek).
+              // Keep our cover up through that window, then fade it out.
+              setCoverVisible(true);
+              clearTimeout(guardTimerRef.current);
+              guardTimerRef.current = setTimeout(() => setCoverVisible(false), 1200);
+              if (!progressTimer) {
+                progressTimer = setInterval(() => {
+                  const p = playerRef.current;
+                  if (p?.getCurrentTime) {
+                    setCurrentTime(p.getCurrentTime());
+                    setDuration(p.getDuration?.() ?? 0);
+                  }
+                }, 400);
+              }
+            } else if (e.data === State.PAUSED || e.data === State.ENDED) {
+              setPlaying(false);
+              // Re-cover immediately: this is exactly when YouTube shows the
+              // title/channel/"copy link" overlay (on pause) or the
+              // suggested-videos end screen (on end) — neither is affected
+              // by controls=0 or rel=0.
+              clearTimeout(guardTimerRef.current);
+              setCoverVisible(true);
+              if (progressTimer) {
+                clearInterval(progressTimer);
+                progressTimer = undefined;
+              }
+            }
+          },
+        },
+      });
+    });
+
+    return () => {
+      cancelled = true;
+      if (progressTimer) clearInterval(progressTimer);
+      clearTimeout(guardTimerRef.current);
+      try {
+        playerRef.current?.destroy?.();
+      } catch {
+        /* ignore */
+      }
+      playerRef.current = null;
+    };
+  }, [videoId]);
+
+  if (!videoId) {
+    return (
+      <div className="flex h-full items-center justify-center bg-black">
+        <p className="px-6 text-center text-sm text-white/70">
+          Unable to load this video.
+        </p>
+      </div>
+    );
+  }
+
+  const handleStart = () => {
+    setStarted(true);
+    playerRef.current?.playVideo?.();
+  };
+
+  const togglePlay = () => {
+    const p = playerRef.current;
+    if (!p) return;
+    if (playing) p.pauseVideo();
+    else p.playVideo();
+  };
+
+  const toggleMute = () => {
+    const p = playerRef.current;
+    if (!p) return;
+    if (muted) {
+      p.unMute();
+      setMuted(false);
+    } else {
+      p.mute();
+      setMuted(true);
+    }
+  };
+
+  const toggleFullscreen = () => {
+    const el = containerRef.current;
+    if (!el) return;
+    if (document.fullscreenElement) {
+      document.exitFullscreen();
+    } else {
+      el.requestFullscreen?.();
+    }
+  };
+
+  const changeSpeed = (rate: number) => {
+    const p = playerRef.current;
+    if (!p) return;
+    p.setPlaybackRate(rate);
+    setPlaybackRateState(p.getPlaybackRate?.() ?? rate);
+  };
+
+  const changeQuality = (level: string) => {
+    const p = playerRef.current;
+    if (!p) return;
+    p.setPlaybackQuality(level);
+    setQualityState(level);
+  };
+
+  const seekToRatio = (ratio: number) => {
+    const p = playerRef.current;
+    if (!p || !duration) return;
+    p.seekTo(duration * Math.min(1, Math.max(0, ratio)), true);
+  };
+
+  const progressPct = duration > 0 ? Math.min(100, (currentTime / duration) * 100) : 0;
+
+  return (
+    <div
+      ref={containerRef}
+      className="relative h-full w-full select-none bg-black"
+      onContextMenu={(e) => e.preventDefault()}
+    >
+      {/* YouTube's IFrame API renders its (UI-less, controls=0) player here.
+          It is never interacted with directly by the student. */}
+      <div ref={mountRef} className="absolute inset-0" />
+
+      {/* Our own transparent, same-origin click-catcher. Sits above the
+          YouTube iframe at all times, so any click/right-click lands here
+          first rather than on YouTube's own UI. */}
+      <div
+        className="absolute inset-0 z-10"
+        onContextMenu={(e) => e.preventDefault()}
+        onClick={started && !coverVisible ? togglePlay : undefined}
+      >
+        {started && !ready && (
+          <div className="flex h-full items-center justify-center">
+            <Loader2 className="h-6 w-6 animate-spin text-white/80" />
+          </div>
+        )}
+      </div>
+
+      {/* Opaque cover — shown whenever the player is not cleanly, actively
+          playing (before first play, while paused, right after a seek, and
+          when the video ends). This is what actually hides YouTube's own
+          title/channel-name overlay, its "copy video link" icon, and its
+          end-of-video suggested-videos screen: none of those are affected
+          by the controls=0 / rel=0 embed parameters, so blocking clicks
+          alone isn't enough — the pixels themselves have to be covered. */}
+      {coverVisible && (
+        <button
+          type="button"
+          onClick={started ? togglePlay : handleStart}
+          onContextMenu={(e) => e.preventDefault()}
+          className="absolute inset-0 z-20 flex h-full w-full items-center justify-center bg-cover bg-center"
+          style={poster ? { backgroundImage: `url(${poster})` } : undefined}
+          aria-label={title}
+        >
+          <div className="absolute inset-0 bg-black/40" />
+          {(!started || (!playing && ready)) && (
+            <div className="relative mx-auto grid h-16 w-16 place-items-center rounded-full bg-white/95 text-primary shadow-elegant">
+              <PlayCircle className="h-8 w-8" />
+            </div>
+          )}
+        </button>
+      )}
+
+      {/* Fully custom control bar — replaces YouTube's native controls.
+          Kept above the cover (z-30) so it stays visible and usable even
+          while paused, matching normal player expectations. */}
+      {started && ready && (
+        <div
+          className="absolute inset-x-0 bottom-0 z-30 flex items-center gap-3 bg-gradient-to-t from-black/80 to-transparent px-4 py-3"
+          onClick={(e) => e.stopPropagation()}
+          onContextMenu={(e) => e.preventDefault()}
+        >
+          <button
+            type="button"
+            onClick={togglePlay}
+            className="text-white/90 transition-colors hover:text-white"
+            aria-label={playing ? "Pause" : "Play"}
+          >
+            {playing ? <Pause className="h-5 w-5" /> : <PlayCircle className="h-5 w-5" />}
+          </button>
+
+          <div
+            className="relative h-1.5 flex-1 cursor-pointer rounded-full bg-white/25"
+            onClick={(e) => {
+              const rect = e.currentTarget.getBoundingClientRect();
+              seekToRatio((e.clientX - rect.left) / rect.width);
+            }}
+          >
+            <div
+              className="absolute inset-y-0 left-0 rounded-full bg-primary"
+              style={{ width: `${progressPct}%` }}
+            />
+          </div>
+
+          <span className="text-xs tabular-nums text-white/80">
+            {formatTime(currentTime)} / {formatTime(duration)}
+          </span>
+
+          <button
+            type="button"
+            onClick={toggleMute}
+            className="text-white/90 transition-colors hover:text-white"
+            aria-label={muted ? "Unmute" : "Mute"}
+          >
+            {muted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
+          </button>
+
+          {/* Our own speed/quality menu — replaces YouTube's gear icon,
+              which is gone now that controls=0 hides YouTube's native UI. */}
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setSettingsOpen((v) => !v)}
+              className="text-white/90 transition-colors hover:text-white"
+              aria-label="Playback settings"
+            >
+              <Settings className="h-5 w-5" />
+            </button>
+
+            {settingsOpen && (
+              <>
+                {/* Backdrop: closes the menu on outside click. */}
+                <div className="fixed inset-0 z-40" onClick={() => setSettingsOpen(false)} />
+                <div
+                  className="absolute bottom-full right-0 z-50 mb-2 w-44 rounded-lg border border-white/10 bg-black/90 p-2 text-xs shadow-elegant"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <p className="px-2 pb-1 pt-1 font-semibold text-white/60">Speed</p>
+                  <div className="grid grid-cols-4 gap-1 pb-2">
+                    {availableRates.map((rate) => (
+                      <button
+                        key={rate}
+                        type="button"
+                        onClick={() => changeSpeed(rate)}
+                        className={cn(
+                          "rounded-md px-1.5 py-1 text-center transition-colors",
+                          playbackRate === rate
+                            ? "bg-primary text-primary-foreground"
+                            : "text-white/80 hover:bg-white/10",
+                        )}
+                      >
+                        {rate}x
+                      </button>
+                    ))}
+                  </div>
+
+                  {availableQualities.length > 0 && (
+                    <>
+                      <p className="border-t border-white/10 px-2 pb-1 pt-2 font-semibold text-white/60">
+                        Quality
+                      </p>
+                      <div className="max-h-40 space-y-0.5 overflow-y-auto">
+                        {availableQualities.map((level) => (
+                          <button
+                            key={level}
+                            type="button"
+                            onClick={() => changeQuality(level)}
+                            className={cn(
+                              "flex w-full items-center justify-between rounded-md px-2 py-1 text-left transition-colors",
+                              quality === level ? "text-primary" : "text-white/80 hover:bg-white/10",
+                            )}
+                          >
+                            {qualityLabel(level)}
+                            {quality === level && <Check className="h-3.5 w-3.5" />}
+                          </button>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+
+          <button
+            type="button"
+            onClick={toggleFullscreen}
+            className="text-white/90 transition-colors hover:text-white"
+            aria-label="Fullscreen"
+          >
+            <Maximize2 className="h-5 w-5" />
+          </button>
+        </div>
+      )}
+    </div>
+  );
 }
 
 function CoursePlayer() {
@@ -297,18 +838,12 @@ function CoursePlayer() {
               onContextMenu={(e) => e.preventDefault()}
             >
               {isVideo ? (
-                <video
+                <YouTubePlayer
                   key={activeVideo?.id ?? current.id}
-                  controls
-                  controlsList="nodownload noremoteplayback"
-                  disablePictureInPicture
-                  playsInline
-                  className="h-full w-full object-contain"
+                  video={activeVideo!}
+                  title={current.title}
                   poster={course.image_cover || undefined}
-                  src={uploadUrl(activeVideo!)}
-                >
-                  {t("coursePlayer.videoUnsupported")}
-                </video>
+                />
               ) : (
                 <div
                   className="flex h-full items-center justify-center bg-cover bg-center"
@@ -386,7 +921,7 @@ function CoursePlayer() {
               </div>
             </div>
           </Card>
-
+          <CourseRatingCard courseId={course.id} />
           {resourcesLoaded && lessonUploads.length > 0 && (
             <Card className="border-border/60 p-5 shadow-card">
               <div className="mb-3 flex items-center gap-2">

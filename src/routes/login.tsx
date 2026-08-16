@@ -53,7 +53,7 @@ function Login() {
         <div className="space-y-1.5">
           <div className="flex items-center justify-between">
             <Label htmlFor="pw">{t("login.passwordLabel")}</Label>
-            <Link to="/login" className="text-xs text-primary hover:underline">{t("login.forgot")}</Link>
+            <Link to="/forgot-password" className="text-xs text-primary hover:underline">{t("login.forgot")}</Link>
           </div>
           <Input id="pw" type="password" required minLength={4} autoComplete="current-password"
             value={password} onChange={(e) => setPassword(e.target.value)} />

@@ -94,6 +94,13 @@ export async function resetPasswordRequest(params: {
 }): Promise<void> {
   await api.post("/api/auth/reset-password", params);
 }
+export async function forgotPasswordRequest(params: {
+  email: string;
+  redirectTo?: string;
+}): Promise<{ message: string }> {
+  const res = await api.post<ApiEnvelope<null>>("/api/auth/forgot-password", params);
+  return { message: res.message };
+}
 export async function fetchProfileRequest(): Promise<BackendProfile> {
   const res = await api.get<ApiEnvelope<BackendProfile>>("/api/users/me");
   return res.data;

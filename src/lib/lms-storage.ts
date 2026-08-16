@@ -1024,21 +1024,90 @@ export async function getStoredUploads(params?: {
 }
 
 /** Upload a file (with progress) and store it against an optional course/lesson. */
+// export async function addStoredUpload(
+//   file: File,
+//   options?: {
+//     course_id?: string;
+//     courseTitle?: string;
+//     lesson_id?: string;
+//     onProgress?: (pct: number) => void;
+//   }
+// ): Promise<Upload> {
+//   const isVideo = file.type.startsWith("video/") || /\.(mp4|mov|webm|mkv)$/i.test(file.name);
+//   const kind: "video" | "pdf" = isVideo ? "video" : "pdf";
+
+//   try {
+//     console.log("Uploading file:", file,options);
+//     // 1) اطلب من الباك اند رابط رفع موقّع (بدون إرسال أي بايت من الملف)
+//     const signRes: any = await lmsApi.uploads.sign({
+//       fileName: file.name,
+//       kind,
+//       courseId: options?.course_id,
+//     });
+//     const { path, signedUrl } = signRes?.data ?? signRes;
+
+//     // 2) ارفع الملف مباشرة إلى Supabase — هنا يُقاس الـ progress الحقيقي بالكامل
+//     await api.uploadToSignedUrl(signedUrl, file, options?.onProgress);
+// console.log("File uploaded to signed URL:", file, options);
+//     // 3) بلّغ الباك اند بالاكتمال ليسجّل الميتاداتا فقط
+//     const confirmRes: any = await lmsApi.uploads.confirm({
+//       key: path,
+//       fileName: file.name,
+//       mimeType: file.type,
+//       fileSize: file.size,
+//       kind,
+//       course_id: options?.course_id,
+//       lesson_id: options?.lesson_id,
+//     });
+
+//     emit(K.teacherUploads);
+//     return toUpload(confirmRes?.data ?? confirmRes, options?.courseTitle);
+//   } catch (err) {
+//     console.error("Failed to upload file:", err);
+//     throw err;
+//   }
+// }
 export async function addStoredUpload(
-  file: File,
+  fileOrUrl: File | string,
   options?: {
     course_id?: string;
     courseTitle?: string;
     lesson_id?: string;
+    kind?: "video" | "pdf";
     onProgress?: (pct: number) => void;
   }
 ): Promise<Upload> {
+  // ---- حالة: رابط فيديو خارجي (بلا رفع بايتات، بلا sign) ----
+  if (typeof fileOrUrl === "string") {
+    const url = fileOrUrl.trim();
+    const kind: "video" | "pdf" = options?.kind ?? "video";
+    const fileName = url.split("/").pop() || "video-link";
+
+    try {
+      const confirmRes: any = await lmsApi.uploads.confirm({
+        key: url,               // بيانات حقيقية: الرابط نفسه
+        fileName,                // بيانات حقيقية: مستخرج من الرابط
+        mimeType: "video/external-url", // بيانات وهمية — ماعندناش mimeType حقيقي
+        fileSize: 0,              // بيانات وهمية — ماعندناش حجم حقيقي
+        kind,                    // بيانات حقيقية
+        course_id: options?.course_id,
+        lesson_id: options?.lesson_id,
+      });
+
+      emit(K.teacherUploads);
+      return toUpload(confirmRes?.data ?? confirmRes, options?.courseTitle);
+    } catch (err) {
+      console.error("Failed to save video link:", err);
+      throw err;
+    }
+  }
+
+  // ---- حالة: ملف حقيقي (بلا تغيير) ----
+  const file = fileOrUrl;
   const isVideo = file.type.startsWith("video/") || /\.(mp4|mov|webm|mkv)$/i.test(file.name);
   const kind: "video" | "pdf" = isVideo ? "video" : "pdf";
 
   try {
-    console.log("Uploading file:", file,options);
-    // 1) اطلب من الباك اند رابط رفع موقّع (بدون إرسال أي بايت من الملف)
     const signRes: any = await lmsApi.uploads.sign({
       fileName: file.name,
       kind,
@@ -1046,10 +1115,8 @@ export async function addStoredUpload(
     });
     const { path, signedUrl } = signRes?.data ?? signRes;
 
-    // 2) ارفع الملف مباشرة إلى Supabase — هنا يُقاس الـ progress الحقيقي بالكامل
     await api.uploadToSignedUrl(signedUrl, file, options?.onProgress);
-console.log("File uploaded to signed URL:", file, options);
-    // 3) بلّغ الباك اند بالاكتمال ليسجّل الميتاداتا فقط
+
     const confirmRes: any = await lmsApi.uploads.confirm({
       key: path,
       fileName: file.name,
@@ -1067,7 +1134,6 @@ console.log("File uploaded to signed URL:", file, options);
     throw err;
   }
 }
-
 export async function deleteStoredUpload(id: string) {
   try {
     const res = await lmsApi.uploads.remove(id);
@@ -1238,5 +1304,63 @@ export async function getTeacherProgressRollup() {
   } catch (err) {
     console.error("Failed to fetch teacher progress rollup:", err);
     return [];
+  }
+}
+export type CourseRating = {
+  id: string;
+  course_id: string;
+  student_id: string;
+  rating: number; // 1 إلى 5
+  created_at?: string;
+  updated_at?: string;
+};
+
+export type CourseRatingSummary = {
+  course_id: string;
+  average_rating: number;
+  total_ratings: number;
+};
+
+/** جلب معدل التقييم وعدد الأصوات لكورس معين. */
+export async function getCourseRatings(courseId: string): Promise<CourseRatingSummary> {
+  try {
+    const res: any = await lmsApi.ratings.getCourseRatings(courseId);
+    return res?.data || { course_id: courseId, average_rating: 0, total_ratings: 0 };
+  } catch (err) {
+    console.error(`Failed to fetch ratings for course ${courseId}:`, err);
+    return { course_id: courseId, average_rating: 0, total_ratings: 0 };
+  }
+}
+
+/** جلب تقييم الطالب الحالي لكورس معين (null إذا ما قيّمش بعد). */
+export async function getMyRating(courseId: string): Promise<CourseRating | null> {
+  try {
+    const res: any = await lmsApi.ratings.getMyRating(courseId);
+    return res?.data ?? null;
+  } catch (err) {
+    console.error(`Failed to fetch my rating for course ${courseId}:`, err);
+    return null;
+  }
+}
+
+/** إضافة أو تعديل تقييم (upsert) — rating بين 1 و5. */
+export async function rateCourse(courseId: string, rating: number): Promise<CourseRating | null> {
+  try {
+    const res: any = await lmsApi.ratings.rateCourse(courseId, rating);
+    return res?.data || null;
+  } catch (err) {
+    console.error(`Failed to rate course ${courseId}:`, err);
+    throw err;
+  }
+}
+
+/** حذف تقييم الطالب لكورس معين. */
+export async function deleteRating(courseId: string): Promise<boolean> {
+  try {
+    await lmsApi.ratings.deleteRating(courseId);
+    return true;
+  } catch (err) {
+    console.error(`Failed to delete rating for course ${courseId}:`, err);
+    throw err;
   }
 }

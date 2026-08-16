@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { useEffect, useMemo, useState } from "react";
 import {
-  BookOpen, GraduationCap, Globe2, Lock, Search, Sparkles, ShieldCheck, Heart,
+  BookOpen, GraduationCap, Globe2, Lock, Search, Sparkles, ShieldCheck, Heart, Star,
 } from "lucide-react";
 import { RoleDashboardLayout } from "@/components/dashboard/RoleDashboardLayout";
 import { PageHeader } from "@/components/admin/PageHeader";
@@ -21,7 +21,9 @@ import {
   getAdminCategories,
   getWishlist,
   toggleWishlist,
+  getCourseRatings,
   type Subscription,
+  type CourseRatingSummary,
 } from "@/lib/lms-storage";
 
 export const Route = createFileRoute("/dashboard/student/courses/")({
@@ -85,6 +87,13 @@ function BrowseCourses() {
   const [query, setQuery] = useState("");
   const [level, setLevel] = useState<string>("all");
   const [category, setCategory] = useState<string>("all");
+  const [ratingFilter, setRatingFilter] = useState<string>("all"); // "all" | "1" | "2" | "3" | "4"
+
+  // Ratings — fetched once courses are loaded, keyed by course id. Kept
+  // separate from `courses` so a slow ratings fetch never blocks the
+  // course grid itself from rendering.
+  const [ratings, setRatings] = useState<Record<string, CourseRatingSummary>>({});
+  const [ratingsLoaded, setRatingsLoaded] = useState(false);
 
   // Wishlist — sourced from localStorage via lms-storage, never from mock data.
   const [wishlist, setWishlistState] = useState<string[]>([]);
@@ -136,6 +145,34 @@ function BrowseCourses() {
     };
   }, []);
 
+  // Fetch a rating summary per course, in parallel. A failed lookup for a
+  // single course falls back to "no ratings" instead of breaking the
+  // whole catalog.
+  useEffect(() => {
+    if (courses.length === 0) return;
+    let cancelled = false;
+    (async () => {
+      setRatingsLoaded(false);
+      const results = await Promise.all(
+        courses.map((c) =>
+          getCourseRatings(c.id).catch(
+            () => ({ course_id: c.id, average_rating: 0, total_ratings: 0 }) as CourseRatingSummary,
+          ),
+        ),
+      );
+      if (cancelled) return;
+      const map: Record<string, CourseRatingSummary> = {};
+      results.forEach((r) => {
+        map[r.course_id] = r;
+      });
+      setRatings(map);
+      setRatingsLoaded(true);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [courses]);
+
   const categoryName = (c: RawCourse) =>
     c.categories?.name ?? c.category ?? categories.find((x) => x.id === c.category_id)?.name ?? t("catalog.defaultCategory");
   const teacherName = (c: RawCourse) => c.profiles?.full_name ?? c.teacher ?? t("catalog.defaultInstructor");
@@ -147,16 +184,26 @@ function BrowseCourses() {
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return published.filter((c) => {
+    const minRating = ratingFilter === "all" ? 0 : Number(ratingFilter);
+
+    const result = published.filter((c) => {
       const matchesQ =
         !q || c.title.toLowerCase().includes(q) || (c.subtitle ?? "").toLowerCase().includes(q);
       const matchesLevel = level === "all" || (c.level ?? "").toLowerCase() === level;
       const matchesCat = category === "all" || categoryName(c) === category;
       const matchesWishlist = !wishlistOnly || wishlist.includes(c.id);
-      return matchesQ && matchesLevel && matchesCat && matchesWishlist;
+      const matchesRating = minRating === 0 || (ratings[c.id]?.average_rating ?? 0) >= minRating;
+      return matchesQ && matchesLevel && matchesCat && matchesWishlist && matchesRating;
     });
+
+    // Sort by average rating, highest first. Array.prototype.sort is stable
+    // in modern JS engines, so courses that share the same rating simply
+    // keep their existing relative order — no secondary tie-break needed.
+    return [...result].sort(
+      (a, b) => (ratings[b.id]?.average_rating ?? 0) - (ratings[a.id]?.average_rating ?? 0),
+    );
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [published, query, level, category, categories, wishlistOnly, wishlist]);
+  }, [published, query, level, category, categories, wishlistOnly, wishlist, ratingFilter, ratings]);
 
   const categoryOptions = useMemo(
     () => ["all", ...Array.from(new Set(published.map((c) => categoryName(c))))],
@@ -169,6 +216,7 @@ function BrowseCourses() {
     setLevel("all");
     setCategory("all");
     setWishlistOnly(false);
+    setRatingFilter("all");
   };
 
   if (checking) {
@@ -229,6 +277,18 @@ function BrowseCourses() {
                 ))}
               </SelectContent>
             </Select>
+            <Select value={ratingFilter} onValueChange={setRatingFilter}>
+              <SelectTrigger className="w-40">
+                <SelectValue placeholder={t("catalog.rating")} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t("catalog.allRatings")}</SelectItem>
+                <SelectItem value="4">{t("catalog.ratingAndUp", { value: 4 })}</SelectItem>
+                <SelectItem value="3">{t("catalog.ratingAndUp", { value: 3 })}</SelectItem>
+                <SelectItem value="2">{t("catalog.ratingAndUp", { value: 2 })}</SelectItem>
+                <SelectItem value="1">{t("catalog.ratingAndUp", { value: 1 })}</SelectItem>
+              </SelectContent>
+            </Select>
             <Button
               type="button"
               variant={wishlistOnly ? "default" : "outline"}
@@ -275,6 +335,7 @@ function BrowseCourses() {
             const spine = spineFor(categoryName(c));
             const wished = wishlist.includes(c.id);
             const isPending = wishlistPendingId === c.id;
+            const courseRating = ratings[c.id];
             return (
               <Card
                 key={c.id}
@@ -299,14 +360,28 @@ function BrowseCourses() {
                   />
                 </button>
                 <div className="space-y-3 p-5 pl-6">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Badge variant="outline" style={{ borderColor: spine.bg, color: spine.bg }}>
-                      {categoryName(c)}
-                    </Badge>
-                    <Badge variant="outline" className="text-xs">
-                      {levelLabel(c.level)}
-                    </Badge>
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Badge variant="outline" style={{ borderColor: spine.bg, color: spine.bg }}>
+                        {categoryName(c)}
+                      </Badge>
+                      <Badge variant="outline" className="text-xs">
+                        {levelLabel(c.level)}
+                      </Badge>
+                    </div>
+
+                    <div className="flex items-center gap-1 text-xs font-medium">
+                      <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+                      {ratingsLoaded && courseRating?.total_ratings ? (
+                        <span className="text-foreground">
+                          {courseRating.average_rating.toFixed(1)}
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground">{t("catalog.noRatings")}</span>
+                      )}
+                    </div>
                   </div>
+
                   <div>
                     <p className="text-base font-semibold leading-snug">{c.title}</p>
                     {c.subtitle && <p className="mt-0.5 text-xs text-muted-foreground">{c.subtitle}</p>}

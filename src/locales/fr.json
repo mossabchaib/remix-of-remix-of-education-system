@@ -102,6 +102,10 @@
     "description": "Une erreur s'est produite de notre côté. Vous pouvez essayer d'actualiser ou revenir à l'accueil."
   },
   "home": {
+     "learnSmarterGrowFaster": "Apprenez intelligemment Progressez plus vite.",
+    "expertLedCourses": "Cours encadrés par des experts",
+    "learnAtYourOwnPace": "Apprenez à votre rythme",
+    "trackYourProgress": "Suivez votre progression",
     "badge": "Nouveau — Session d'hiver ouverte",
     "heroTitle1": "Apprenez avec",
     "heroHighlight": "clarté",
@@ -886,7 +890,7 @@
       "createFailed": "Échec de la création de la leçon"
     }
   },
-  "teacherUploads": {
+  "teacherUploadsr": {
     "title": "Téléversements",
     "description": "Gérez les vidéos de vos cours, les ressources PDF et les enregistrements de sessions en direct.",
     "loadingCourses": "Chargement...",
@@ -1134,6 +1138,10 @@
     }
   },
   "catalog": {
+     "rating": "Évaluation",
+  "allRatings": "Toutes les évaluations",
+  "ratingAndUp": "{{value}} étoiles et plus",
+  "noRatings": "Aucune évaluation pour le moment",
     "title": "Parcourir le catalogue",
     "description": "Chaque cours publié sur EL MANARA, ouvert à votre abonnement.",
     "descriptionLocked": "Chaque cours publié sur EL MANARA.",
@@ -1464,6 +1472,8 @@
     "byInstructor": "par {{name}}",
     "defaultInstructor": "Instructeur",
     "filters": {
+       "allRatings": "Toutes les évaluations",
+  "ratingAndUp": "{{value}}+ étoiles",
       "category": "Catégorie",
       "allCategories": "Toutes les catégories",
       "level": "Niveau",
@@ -1495,6 +1505,7 @@
     }
   },
   "courseDetails": {
+    "add_wishlist": "Ajouter à la liste de souhaits",
     "subsicription_now": "Abonnez-vous maintenant",
     "backToCourses": "Tous les cours",
     "newCourse": "Nouveau cours",
@@ -1552,5 +1563,86 @@
       "trackingAndOrders": "Progression et commandes",
       "explore": "Découverte"
     }
-  }
+  },
+  "forgotPassword": {
+    "title": "Mot de passe oublié ?",
+    "subtitle": "Ne vous inquiétez pas, entrez votre e-mail et nous vous enverrons les instructions.",
+    "emailLabel": "Adresse e-mail",
+    "emailPlaceholder": "nom@exemple.com",
+    "sendBtn": "Envoyer le lien de réinitialisation",
+    "sending": "Envoi en cours...",
+    "backToLogin": "Retour à la connexion",
+    "checkEmailTitle": "Vérifiez vos e-mails",
+    "checkEmailBody": "Nous avons envoyé un lien de réinitialisation de mot de passe à l'adresse {{email}}.",
+    "errorGeneric": "Une erreur est survenue, veuillez réessayer."
+  },
+  "resetPassword": {
+    "title": "Définir un nouveau mot de passe",
+    "subtitle": "Veuillez entrer votre nouveau mot de passe ci-dessous.",
+    "passwordLabel": "Nouveau mot de passe",
+    "placeholder": "Entrez un mot de passe fort",
+    "submitBtn": "Mettre à jour le mot de passe",
+    "loading": "Mise à jour en cours...",
+    "successMessage": "Mot de passe mis à jour avec succès, vous pouvez maintenant vous connecter.",
+    "errorInvalidToken": "Le lien de réinitialisation est invalide ou a expiré.",
+    "errorGeneric": "Échec de la mise à jour, veuillez réessayer plus tard."
+  },
+   "teacherUploads": {
+       "title": "Fichiers et contenu",
+    "description": "Gérez et téléchargez le contenu des leçons et les supports pédagogiques",
+    "coursePlaceholder": "Sélectionnez un cours",
+    "destination": {
+      "lessonField": "Sélectionnez une leçon",
+      "module": "Sélectionnez un module"
+    },
+    "deleteDialog": {
+      "cancel": "Annuler",
+      "confirm": "Supprimer"
+    },
+      "addContent": "Ajouter un contenu",
+      "filters": {
+        "allCourses": "Tous les cours",
+        "allTypes": "Tous les types",
+        "video": "Vidéo",
+        "pdf": "PDF",
+        "allStatus": "Tous les statuts",
+        "linked": "Lié",
+        "unlinked": "Non lié",
+        "clear": "Effacer les filtres"
+      },
+      "table": {
+        "name": "Nom",
+        "type": "Type",
+        "course": "Cours",
+        "status": "Statut",
+        "date": "Date",
+        "actions": "Actions"
+      },
+      "empty": {
+        "title": "Aucun contenu pour le moment",
+        "description": "Cliquez sur \"Ajouter un contenu\" pour ajouter une vidéo, un PDF ou un enregistrement de session."
+      },
+      "wizard": {
+        "title": "Ajouter un nouveau contenu",
+        "saved": "Enregistré avec succès",
+        "saveFailed": "Échec de l'enregistrement",
+        "chooseFile": "Choisir un fichier PDF",
+        "back": "Retour",
+        "next": "Suivant",
+        "save": "Enregistrer",
+        "saving": "Enregistrement...",
+        "cancel": "Annuler",
+        "steps": {
+          "type": "Type de contenu",
+          "course": "Choisir le cours",
+          "destination": "Choisir la destination",
+          "content": "Ajouter le contenu"
+        },
+        "type": {
+          "pdf": "Leçon PDF",
+          "video": "Lien vidéo pour une leçon",
+          "recording": "Enregistrement de session en direct"
+        }
+      }
+    }
 }

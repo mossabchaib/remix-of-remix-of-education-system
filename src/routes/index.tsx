@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { useEffect, useState, useCallback } from "react";
 import { toast } from "sonner";
 import {
-  ArrowRight, BookOpen, GraduationCap, ShieldCheck, Sparkles,
+  ArrowRight, BookOpen, GraduationCap, ShieldCheck,
   Star, Users, Zap, PlayCircle, Award, TrendingUp, Check,
   Globe2, CalendarDays,
 } from "lucide-react";
@@ -14,8 +14,9 @@ import { Badge } from "@/components/ui/badge";
 import { CourseWishlistButton } from "@/components/client/CourseWishlistButton";
 import { useAuth } from "@/hooks/useAuth";
 import { CourseService } from "@/services";
-import { getAdminCategories, getAllCourses } from "@/lib/lms-storage";
+import { getAdminCategories, getAllCourses, getCourseRatings } from "@/lib/lms-storage";
 import type { Course } from "@/lib/mock-data";
+import type { CourseRatingSummary } from "@/lib/lms-storage";
 
 export interface Category {
   id: string;
@@ -40,7 +41,7 @@ export const Route = createFileRoute("/")({
   component: Home,
 });
 
-// ---- Helpers (same as /courses) ----
+// ---- Helpers ----
 function isNewCourse(createdAt?: string) {
   if (!createdAt) return false;
   const days = (Date.now() - new Date(createdAt).getTime()) / (1000 * 60 * 60 * 24);
@@ -52,37 +53,86 @@ function formatDate(createdAt?: string) {
   return new Date(createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
 
-// Education-themed hero background (design/UI only — no data, no new imports)
 const HERO_BG_URL =
-  "https://images.unsplash.com/photo-1523240795612-9a054b0db644?q=80&w=2400&auto=format&fit=crop";
+  "background.png";
 
-// ---- Simple Loader (used for categories & courses loading states) ----
-function Loader({ className = "" }: { className?: string }) {
+// ---- Skeleton Loaders المطابقة للـ Components الحقيقية ----
+function CategorySkeleton() {
   return (
-    <div className={`flex w-full items-center justify-center py-16 ${className}`}>
-      <div className="h-8 w-8 animate-spin rounded-full border-2 border-sky-200 border-t-sky-500" />
+    <div className="group">
+      <Card className="flex flex-col items-center justify-center border-black/10 bg-white p-5 text-center shadow-sm animate-pulse">
+        <div className="mx-auto flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gray-200" />
+        <div className="mt-4 w-full flex justify-center">
+          <div className="h-4 w-3/4 bg-gray-200 rounded" />
+        </div>
+      </Card>
     </div>
   );
+}
+
+function CourseCardSkeleton() {
+  return (
+    <Card className="group relative flex h-full flex-col overflow-hidden border-black/10 bg-white shadow-sm animate-pulse">
+      <div className="relative h-40 overflow-hidden bg-gray-200" />
+
+      <div className="flex flex-1 flex-col p-5 space-y-3">
+        <div className="h-3 w-1/3 bg-gray-200 rounded" />
+
+        <div className="space-y-2">
+          <div className="h-4 w-full bg-gray-200 rounded" />
+          <div className="h-4 w-2/3 bg-gray-200 rounded" />
+        </div>
+
+        <div className="h-3 w-full bg-gray-200 rounded" />
+
+        <div className="mt-auto flex items-center justify-between border-t border-black/10 pt-4">
+          <div className="h-3 w-1/4 bg-gray-200 rounded" />
+          <div className="h-3 w-1/4 bg-gray-200 rounded" />
+        </div>
+      </div>
+    </Card>
+  );
+}
+
+// ---- Module-level cache (يبقى محفوظ بمدة حياة الـ SPA، يتصفر فقط عند full page reload) ----
+let categoriesCache: Category[] | null = null;
+let coursesCache: Course[] | null = null;
+
+// دالة مساعدة، تقدر تناديها بعد ما الأدمن يزيد/يعدل كورس أو تصنيف
+// باش تجبر الصفحة تعاود تجيب البيانات فالمرة الجاية
+export function invalidateHomeCache() {
+  categoriesCache = null;
+  coursesCache = null;
 }
 
 function Home() {
   const { t } = useTranslation();
   const { isAuthenticated }: any = useAuth();
 
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [categoriesLoading, setCategoriesLoading] = useState(true);
+  const [categories, setCategories] = useState<Category[]>(categoriesCache || []);
+  const [categoriesLoading, setCategoriesLoading] = useState(!categoriesCache);
 
-  const [courses, setCourses] = useState<Course[]>([]);
-  const [coursesLoading, setCoursesLoading] = useState(true);
+  const [courses, setCourses] = useState<Course[]>(coursesCache || []);
+  const [coursesLoading, setCoursesLoading] = useState(!coursesCache);
+
+  // Ratings — fetched once the course list is available, keyed by course id.
+  const [ratings, setRatings] = useState<Record<string, CourseRatingSummary>>({});
+  const [ratingsLoaded, setRatingsLoaded] = useState(false);
 
   // جلب التصنيفات
   const loadCategories = useCallback(async () => {
+    if (categoriesCache) {
+      setCategories(categoriesCache);
+      setCategoriesLoading(false);
+      return;
+    }
     try {
       setCategoriesLoading(true);
       const data: any = await getAdminCategories();
       const categoriesList = Array.isArray(data)
         ? data
         : data?.categories || data?.data || [];
+      categoriesCache = categoriesList;
       setCategories(categoriesList);
     } catch (err: any) {
       console.error("Failed to load categories:", err);
@@ -92,14 +142,20 @@ function Home() {
     }
   }, []);
 
-  // جلب الكورسات من نفس المصدر المستخدم في صفحة /courses
+  // جلب الكورسات
   const loadCourses = useCallback(async () => {
+    if (coursesCache) {
+      setCourses(coursesCache);
+      setCoursesLoading(false);
+      return;
+    }
     try {
       setCoursesLoading(true);
       const data: any = await getAllCourses();
       const coursesList = Array.isArray(data)
         ? data
         : data?.courses || data?.data || [];
+      coursesCache = coursesList;
       setCourses(coursesList);
     } catch (err: any) {
       console.error("Failed to load courses:", err);
@@ -114,18 +170,63 @@ function Home() {
     loadCourses();
   }, [loadCategories, loadCourses]);
 
-  const featured = courses
-    .filter((c: any) => String(c.status || "").toLowerCase() === "published")
-    .slice(0, 6);
+  // Fetch a rating summary for every published course, in parallel. A
+  // failed lookup for a single course falls back to "no ratings" instead
+  // of breaking the whole homepage.
+  useEffect(() => {
+    if (courses.length === 0) return;
+    let cancelled = false;
+    (async () => {
+      setRatingsLoaded(false);
+      const results = await Promise.all(
+        courses.map((c: any) =>
+          getCourseRatings(c.id).catch(
+            () => ({ course_id: c.id, average_rating: 0, total_ratings: 0 }) as CourseRatingSummary,
+          ),
+        ),
+      );
+      if (cancelled) return;
+      const map: Record<string, CourseRatingSummary> = {};
+      results.forEach((r) => {
+        map[r.course_id] = r;
+      });
+      setRatings(map);
+      setRatingsLoaded(true);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [courses]);
 
-  const features = [
-    { icon: BookOpen, title: t("home.featureCurriculum"), desc: t("home.featureCurriculumDesc") },
-    { icon: GraduationCap, title: t("home.featureInstructors"), desc: t("home.featureInstructorsDesc") },
-    { icon: Zap, title: t("home.featureUx"), desc: t("home.featureUxDesc") },
-    { icon: TrendingUp, title: t("home.featureProgress"), desc: t("home.featureProgressDesc") },
-    { icon: Award, title: t("home.featureCredentials"), desc: t("home.featureCredentialsDesc") },
-    { icon: ShieldCheck, title: t("home.featureEnterprise"), desc: t("home.featureEnterpriseDesc") },
-  ];
+  const published = courses.filter(
+    (c: any) => String(c.status || "").toLowerCase() === "published",
+  );
+
+  // Featured section: show the top 5 rated courses. If none of the
+  // published courses have any ratings yet, fall back to the 5 most
+  // recently added courses instead.
+  const ratedCourses = ratingsLoaded
+    ? published
+        .filter((c: any) => (ratings[c.id]?.total_ratings ?? 0) > 0)
+        .sort(
+          (a: any, b: any) =>
+            (ratings[b.id]?.average_rating ?? 0) - (ratings[a.id]?.average_rating ?? 0),
+        )
+        .slice(0, 5)
+    : [];
+
+  const latestCourses = [...published]
+    .sort(
+      (a: any, b: any) =>
+        new Date(b.created_at ?? 0).getTime() - new Date(a.created_at ?? 0).getTime(),
+    )
+    .slice(0, 5);
+
+  const featured = !ratingsLoaded
+    ? published.slice(0, 5)
+    : ratedCourses.length > 0
+      ? ratedCourses
+      : latestCourses;
 
   const ctaPoints = [
     t("home.ctaFeature1"),
@@ -136,58 +237,113 @@ function Home() {
 
   return (
     <SiteLayout>
-      {/* Hero — education background image with overlay for legibility */}
-      <section className="relative isolate overflow-hidden">
-        <div
-          className="absolute inset-0 -z-20 bg-cover bg-center"
-          style={{ backgroundImage: `url(${HERO_BG_URL})` }}
-          aria-hidden="true"
-        />
-        {/* Dark tint + gradient so white text stays crisp over any part of the photo */}
-        <div
-          className="absolute inset-0 -z-10 bg-gradient-to-b from-black/80 via-black/70 to-black/90"
-          aria-hidden="true"
-        />
+      {/* Hero */}
+    <section className="relative isolate flex min-h-[520px] items-center overflow-hidden sm:min-h-[620px] lg:min-h-[700px]">
+  {/* Background */}
+ <div
+  className="absolute inset-0 -z-30 bg-cover bg-center bg-no-repeat"
+  style={{
+    backgroundImage: `url(${HERO_BG_URL})`,
+    backgroundSize: "cover",
+    imageRendering: "auto",
+  }}
+  aria-hidden="true"
+/>
 
-        <div className="mx-auto max-w-7xl px-4 pt-24 pb-28 sm:px-6 sm:pt-28 sm:pb-32 lg:px-8">
-          <div className="mx-auto max-w-3xl text-center">
-            {/* <Badge className="mb-5 rounded-full border border-white/25 bg-white/10 px-3 py-1 text-white backdrop-blur">
-              <Sparkles className="me-1.5 h-3.5 w-3.5 text-sky-300" /> {t("home.badge")}
-            </Badge> */}
-            <h1 className="text-4xl font-semibold tracking-tight text-white sm:text-6xl">
-              {t("home.heroTitle1")} <span className="text-sky-300">{t("home.heroHighlight")}</span>.
-              <br className="hidden sm:block" /> {t("home.heroTitle2")}
-            </h1>
-            <p className="mx-auto mt-6 max-w-2xl text-lg text-white/80">
-              {t("home.heroSubtitle")}
-            </p>
-            <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
-              <Button
-                asChild
-                size="lg"
-                className="bg-sky-400 text-black shadow-lg shadow-sky-400/30 hover:bg-sky-300"
-              >
-                <Link to="/courses">{t("home.browseCourses")} <ArrowRight className="ms-2 h-4 w-4 rtl:rotate-180" /></Link>
-              </Button>
-              <Button
-                asChild
-                size="lg"
-                variant="outline"
-                className="border-white/30 bg-transparent text-white hover:bg-white/10 hover:text-white"
-              >
-                <Link to="/pricing"><PlayCircle className="me-2 h-4 w-4" /> {t("home.watchDemo")}</Link>
-              </Button>
-            </div>
-            <div className="mt-10 flex flex-wrap items-center justify-center gap-x-8 gap-y-2 text-sm text-white/70">
-              <div className="flex items-center gap-1.5"><Star className="h-4 w-4 fill-sky-300 text-sky-300" /> {t("home.avgRating")}</div>
-              <div className="flex items-center gap-1.5"><Users className="h-4 w-4" /> {t("home.learnersCount")}</div>
-              <div className="flex items-center gap-1.5"><ShieldCheck className="h-4 w-4" /> {t("home.trustedTeams")}</div>
-            </div>
-          </div>
-        </div> 
-      </section>
+  {/* Gradient overlay */}
+  <div
+    className="absolute inset-0 -z-20 bg-[linear-gradient(90deg,rgba(2,6,23,0.96)_0%,rgba(2,6,23,0.82)_38%,rgba(2,6,23,0.55)_68%,rgba(2,6,23,0.72)_100%)]"
+    aria-hidden="true"
+  />
 
-    
+  {/* Bottom fade */}
+  <div
+    className="absolute inset-x-0 bottom-0 -z-10 h-40 bg-gradient-to-t from-slate-950 to-transparent"
+    aria-hidden="true"
+  />
+
+  {/* Ambient glow */}
+  <div
+    className="pointer-events-none absolute -left-32 top-1/3 -z-10 h-80 w-80 rounded-full bg-sky-400/20 blur-[120px]"
+    aria-hidden="true"
+  />
+
+  <div className="mx-auto w-full max-w-7xl px-5 py-24 sm:px-8 lg:px-10">
+    <div className="max-w-3xl">
+
+      {/* Eyebrow */}
+      <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.07] px-4 py-2 text-sm font-medium text-sky-200 backdrop-blur-md">
+        <span className="h-2 w-2 rounded-full bg-sky-400 shadow-[0_0_12px_rgba(56,189,248,0.8)]" />
+        {t("home.learnSmarterGrowFaster")}
+      </div>
+
+      {/* Heading */}
+      <h1 className="max-w-3xl text-4xl font-bold leading-[1.08] tracking-tight text-white sm:text-6xl lg:text-7xl">
+        {t("home.heroTitle1")}{" "}
+        <span className="bg-gradient-to-r from-sky-300 via-cyan-300 to-blue-400 bg-clip-text text-transparent">
+          {t("home.heroHighlight")}
+        </span>
+        .
+        <br className="hidden sm:block" />{" "}
+        {t("home.heroTitle2")}
+      </h1>
+
+      {/* Subtitle */}
+      <p className="mt-7 max-w-2xl text-base leading-7 text-slate-300 sm:text-lg sm:leading-8">
+        {t("home.heroSubtitle")}
+      </p>
+
+      {/* CTA */}
+      <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:items-center">
+        <Button
+          asChild
+          size="lg"
+          className="h-12 rounded-xl bg-sky-400 px-6 font-semibold text-slate-950 shadow-[0_8px_30px_rgba(56,189,248,0.25)] transition-all hover:-translate-y-0.5 hover:bg-sky-300 hover:shadow-[0_12px_35px_rgba(56,189,248,0.35)]"
+        >
+          <Link to="/courses">
+            {t("home.browseCourses")}
+            <ArrowRight className="ms-2 h-4 w-4 rtl:rotate-180" />
+          </Link>
+        </Button>
+
+        <Button
+          asChild
+          size="lg"
+          variant="outline"
+          className="h-12 rounded-xl border-white/15 bg-white/[0.06] px-6 font-medium text-white backdrop-blur-md transition-all hover:-translate-y-0.5 hover:border-white/25 hover:bg-white/10 hover:text-white"
+        >
+          <Link to="/pricing">
+            <PlayCircle className="me-2 h-4 w-4" />
+            {t("home.watchDemo")}
+          </Link>
+        </Button>
+      </div>
+
+      {/* Trust indicators */}
+      <div className="mt-10 flex flex-wrap items-center gap-x-6 gap-y-3 text-sm text-white/55">
+        <div className="flex items-center gap-2">
+          <span className="text-sky-300">✓</span>
+         {t("home.expertLedCourses")}
+        </div>
+
+        <div className="hidden h-4 w-px bg-white/15 sm:block" />
+
+        <div className="flex items-center gap-2">
+          <span className="text-sky-300">✓</span>
+          {t("home.learnAtYourOwnPace")}
+        </div>
+
+        <div className="hidden h-4 w-px bg-white/15 sm:block" />
+
+        <div className="flex items-center gap-2">
+          <span className="text-sky-300">✓</span>
+          {t("home.trackYourProgress")}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
       {/* Categories */}
       <section className="bg-[#f3f9ff] py-20 sm:py-24">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -203,7 +359,11 @@ function Home() {
 
           <div className="mt-10">
             {categoriesLoading ? (
-              <Loader />
+              <div className="grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-6">
+                {[...Array(6)].map((_, i) => (
+                  <CategorySkeleton key={i} />
+                ))}
+              </div>
             ) : categories.length === 0 ? (
               <p className="text-sm text-black/50">No categories found.</p>
             ) : (
@@ -249,13 +409,23 @@ function Home() {
 
           <div className="mt-10">
             {coursesLoading ? (
-              <Loader />
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {[...Array(6)].map((_, i) => (
+                  <CourseCardSkeleton key={i} />
+                ))}
+              </div>
             ) : featured.length === 0 ? (
               <p className="text-sm text-black/50">No courses found.</p>
             ) : (
               <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 {featured.map((c: any) => (
-                  <CourseCard key={c.id} course={c} isAuthenticated={isAuthenticated} />
+                  <CourseCard
+                    key={c.id}
+                    course={c}
+                    isAuthenticated={isAuthenticated}
+                    rating={ratings[c.id]}
+                    ratingsLoaded={ratingsLoaded}
+                  />
                 ))}
               </div>
             )}
@@ -278,7 +448,6 @@ function Home() {
                     <Button asChild size="lg" className="bg-sky-400 text-black hover:bg-sky-300">
                       <Link to="/register">{t("home.startFreeTrial")}</Link>
                     </Button>
-                 
                   </div>
                 </div>
                 <ul className="space-y-3 text-sm">
@@ -300,8 +469,18 @@ function Home() {
   );
 }
 
-// ---- Unified CourseCard (identical design to /courses) ----
-function CourseCard({ course: c, isAuthenticated }: { course: any; isAuthenticated?: boolean }) {
+// ---- Unified CourseCard ----
+function CourseCard({
+  course: c,
+  isAuthenticated,
+  rating,
+  ratingsLoaded,
+}: {
+  course: any;
+  isAuthenticated?: boolean;
+  rating?: CourseRatingSummary;
+  ratingsLoaded?: boolean;
+}) {
   const coverStyle = c.image_cover
     ? c.image_cover.startsWith("linear-gradient")
       ? { background: c.image_cover }
@@ -334,7 +513,15 @@ function CourseCard({ course: c, isAuthenticated }: { course: any; isAuthenticat
 
       <Link to="/courses/$id" params={{ id: c.id }} className="flex flex-1 flex-col">
         <div className="flex flex-1 flex-col p-5">
-          <p className="text-sm text-black/50">by {c.profiles?.full_name || c.teacher || "Instructor"}</p>
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-sm text-black/50">by {c.profiles?.full_name || c.teacher || "Instructor"}</p>
+            {ratingsLoaded && rating?.total_ratings ? (
+              <span className="flex shrink-0 items-center gap-1 text-xs font-medium text-black/70">
+                <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+                {rating.average_rating.toFixed(1)}
+              </span>
+            ) : null}
+          </div>
           <h3 className="mt-1 line-clamp-2 text-base font-semibold leading-snug text-black transition-colors group-hover:text-sky-600">
             {c.title}
           </h3>

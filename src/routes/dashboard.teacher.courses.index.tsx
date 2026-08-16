@@ -1,7 +1,7 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
-import { Plus, BookOpen, Loader2, FolderOpen } from "lucide-react";
+import { Plus, BookOpen, Loader2, FolderOpen, Star } from "lucide-react";
 import { RoleDashboardLayout } from "@/components/dashboard/RoleDashboardLayout";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { DataTable, type Column } from "@/components/admin/DataTable";
@@ -19,7 +19,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { CourseService } from "@/services";
-import { getTeacherCourses } from "@/lib/lms-storage";
+import { getTeacherCourses, getCourseRatings } from "@/lib/lms-storage";
+import type { CourseRatingSummary } from "@/lib/lms-storage";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/dashboard/teacher/courses/")({
@@ -38,27 +39,35 @@ interface TeacherCourse {
   image_cover?: string;
   updated_at?: string;
   created_at?: string;
+  rating?: number;
+  ratingBucket?: string;
 }
+
+const RATING_BUCKET_UNRATED = "unrated";
 
 function TeacherCourses() {
   const nav = useNavigate();
   const { t } = useTranslation();
 
-  const [courses, setCourses] = useState<TeacherCourse[]>([]);
+  const [rawCourses, setRawCourses] = useState<TeacherCourse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [courseToDelete, setCourseToDelete] = useState<TeacherCourse | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // Ratings — fetched once courses are loaded, keyed by course id.
+  const [ratings, setRatings] = useState<Record<string, CourseRatingSummary>>({});
+  const [ratingsLoaded, setRatingsLoaded] = useState(false);
 
   // Fetch teacher courses directly from lms-storage, replacing the removed useTeacherCourses hook.
   const loadCourses = useCallback(async () => {
     setIsLoading(true);
     try {
       const result = await getTeacherCourses();
-      setCourses(Array.isArray(result) ? result : []);
+      setRawCourses(Array.isArray(result) ? result : []);
     } catch (err) {
       console.error("Failed to load teacher courses:", err);
       toast.error(t("teacher.coursesLoadError"));
-      setCourses([]);
+      setRawCourses([]);
     } finally {
       setIsLoading(false);
     }
@@ -67,6 +76,55 @@ function TeacherCourses() {
   useEffect(() => {
     loadCourses();
   }, [loadCourses]);
+
+  // Fetch a rating summary for every course, in parallel. A failed lookup
+  // for a single course falls back to "no ratings" instead of breaking
+  // the whole table.
+  useEffect(() => {
+    if (rawCourses.length === 0) {
+      setRatingsLoaded(true);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      setRatingsLoaded(false);
+      const results = await Promise.all(
+        rawCourses.map((c) =>
+          getCourseRatings(c.id).catch(
+            () => ({ course_id: c.id, average_rating: 0, total_ratings: 0 }) as CourseRatingSummary,
+          ),
+        ),
+      );
+      if (cancelled) return;
+      const map: Record<string, CourseRatingSummary> = {};
+      results.forEach((r) => {
+        map[r.course_id] = r;
+      });
+      setRatings(map);
+      setRatingsLoaded(true);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [rawCourses]);
+
+  // Merge each course with its rating average. `ratingBucket` is a
+  // rounded-down, exact-match string ("5".."1" or "unrated") so it plugs
+  // into DataTable's existing options-based filter pattern, same as
+  // "level" and "status" already do.
+  const courses: TeacherCourse[] = useMemo(() => {
+    return rawCourses.map((c) => {
+      const summary = ratings[c.id];
+      const hasRating = !!summary?.total_ratings;
+      return {
+        ...c,
+        rating: hasRating ? summary!.average_rating : 0,
+        ratingBucket: hasRating
+          ? String(Math.floor(summary!.average_rating))
+          : RATING_BUCKET_UNRATED,
+      };
+    });
+  }, [rawCourses, ratings]);
 
   const handleRequestDelete = (course: TeacherCourse) => {
     setCourseToDelete(course);
@@ -78,7 +136,7 @@ function TeacherCourses() {
     try {
       await CourseService.remove(courseToDelete.id);
       toast.success(t("teacher.courseRemoved"));
-      setCourses((prev) => prev.filter((c) => c.id !== courseToDelete.id));
+      setRawCourses((prev) => prev.filter((c) => c.id !== courseToDelete.id));
       setCourseToDelete(null);
     } catch (err: any) {
       toast.error(err?.message || t("teacher.courseRemoveError"));
@@ -126,7 +184,22 @@ function TeacherCourses() {
       sortable: true,
       render: (c) => <span className="text-sm text-muted-foreground">{c.language || "English"}</span>,
     },
-   
+    {
+      key: "rating",
+      header: t("admin.rating"),
+      sortable: true,
+      render: (c: TeacherCourse) =>
+        ratingsLoaded && c.ratingBucket !== RATING_BUCKET_UNRATED ? (
+          <div className="flex items-center gap-1.5">
+            <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+            <span className="text-sm font-medium">{c.rating!.toFixed(1)}</span>
+          </div>
+        ) : ratingsLoaded ? (
+          <span className="text-xs text-muted-foreground">{t("admin.noRatings")}</span>
+        ) : (
+          <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />
+        ),
+    },
     {
       key: "status",
       header: t("common.status"),
@@ -185,6 +258,15 @@ function TeacherCourses() {
           filters={[
             { key: "status", label: t("common.status"), options: ["published", "draft", "archived"] },
             { key: "level", label: t("teacher.courseLevel"), options: ["beginner", "intermediate", "advanced"] },
+            {
+              key: "ratingBucket",
+              label: t("admin.rating"),
+              options: ["5", "4", "3", "2", "1", RATING_BUCKET_UNRATED],
+              optionLabel: (value: string) =>
+                value === RATING_BUCKET_UNRATED
+                  ? t("admin.noRatings")
+                  : t("admin.ratingAndUp", { value }),
+            },
           ]}
           onView={(c) => nav({ to: "/courses/$id", params: { id: c.id } })}
           onEdit={(c) => nav({ to: "/dashboard/teacher/courses/$id", params: { id: c.id } })}

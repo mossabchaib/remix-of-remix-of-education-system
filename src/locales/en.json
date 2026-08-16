@@ -102,6 +102,10 @@
     "description": "Something went wrong on our end. You can try refreshing or head back home."
   },
   "home": {
+     "learnSmarterGrowFaster": "Learn smarter Grow faster.",
+     "expertLedCourses": "Expert-led courses",
+    "learnAtYourOwnPace": "Learn at your own pace",
+    "trackYourProgress": "Track your progress",
     "badge": "New — Winter cohort open",
     "heroTitle1": "Learn with",
     "heroHighlight": "clarity",
@@ -886,7 +890,7 @@
       "createFailed": "Failed to create lesson"
     }
   },
-  "teacherUploads": {
+  "teacherUploadsr": {
     "title": "Uploads",
     "description": "Manage your course videos, PDF resources, and live session recordings.",
     "loadingCourses": "Loading...",
@@ -1134,6 +1138,10 @@
     }
   },
    "catalog": {
+    "rating": "Rating",
+    "allRatings": "All ratings",
+    "ratingAndUp": "{{value}}+ stars",
+    "noRatings": "No ratings yet",
     "title": "Browse the catalog",
     "description": "Every published course in EL MANARA, open to your membership.",
     "descriptionLocked": "Every published course in EL MANARA.",
@@ -1469,7 +1477,9 @@
       "level": "Level",
       "allLevels": "All levels",
       "rating": "Rating",
-      "sort": "Sort"
+      "sort": "Sort",
+    "allRatings": "All ratings",
+    "ratingAndUp": "{{value}}+ stars"
     },
     "levels": {
       "beginner": "Beginner",
@@ -1495,6 +1505,7 @@
     }
   },
    "courseDetails": {
+    "add_wishlist": "Add to Wishlist",
     "subsicription_now": "Subscribe now",
     "backToCourses": "All courses",
     "newCourse": "New course",
@@ -1552,6 +1563,88 @@
       "trackingAndOrders": "Progress & Orders",
       "explore": "Discovery"
     }
-  }
+  },
+  "forgotPassword": {
+    "title": "Forgot your password?",
+    "subtitle": "No worries, enter your email and we'll send you reset instructions.",
+    "emailLabel": "Email address",
+    "emailPlaceholder": "name@example.com",
+    "sendBtn": "Send reset link",
+    "sending": "Sending...",
+    "backToLogin": "Back to login",
+    "checkEmailTitle": "Check your email",
+    "checkEmailBody": "We've sent a password reset link to {{email}}.",
+    "errorGeneric": "Something went wrong, please try again."
+  },
+  "resetPassword": {
+    "title": "Set new password",
+    "subtitle": "Please enter your new password below.",
+    "passwordLabel": "New password",
+    "placeholder": "Enter a strong password",
+    "submitBtn": "Update password",
+    "loading": "Updating...",
+    "successMessage": "Password updated successfully, you can now log in.",
+    "errorInvalidToken": "The reset link is invalid or has expired.",
+    "errorGeneric": "Failed to update password, please try again later."
+  },
+  "teacherUploads": {
+     "title": "Files & Content",
+    "description": "Manage and upload lesson content and educational materials",
+    "coursePlaceholder": "Select a course",
+    "destination": {
+      "lessonField": "Select a lesson",
+      "module": "Select a module"
+    },
+     "deleteDialog": {
+      "cancel": "Cancel",
+      "confirm": "Delete"
+    },
+      "addContent": "Add content",
+      "filters": {
+        "allCourses": "All courses",
+        "allTypes": "All types",
+        "video": "Video",
+        "pdf": "PDF",
+        "allStatus": "All statuses",
+        "linked": "Linked",
+        "unlinked": "Unlinked",
+        "clear": "Clear filters"
+      },
+      "table": {
+        "name": "Name",
+        "type": "Type",
+        "course": "Course",
+        "status": "Status",
+        "date": "Date",
+        "actions": "Actions"
+      },
+      "empty": {
+        "title": "No content yet",
+        "description": "Click \"Add content\" to upload a video, PDF, or session recording."
+      },
+      "wizard": {
+        "title": "Add new content",
+        "saved": "Saved successfully",
+        "saveFailed": "Failed to save",
+        "chooseFile": "Choose a PDF file",
+        "back": "Back",
+        "next": "Next",
+        "save": "Save",
+        "saving": "Saving...",
+        "cancel": "Cancel",
+        "steps": {
+          "type": "Content type",
+          "course": "Choose course",
+          "destination": "Choose destination",
+          "content": "Add content"
+        },
+        "type": {
+          "pdf": "PDF lesson",
+          "video": "Video link for a lesson",
+          "recording": "Live session recording"
+        }
+      }
+    }
+
 
 }

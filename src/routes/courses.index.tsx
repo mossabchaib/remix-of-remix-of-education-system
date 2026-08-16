@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import { Search, Globe2, GraduationCap, CalendarDays } from "lucide-react";
+import { Search, Globe2, GraduationCap, CalendarDays, Star } from "lucide-react";
 import { toast } from "sonner";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { Input } from "@/components/ui/input";
@@ -14,8 +14,9 @@ import {
 import { EmptyState } from "@/components/common/EmptyState";
 import { CourseWishlistButton } from "@/components/client/CourseWishlistButton";
 import { useAuth } from "@/hooks/useAuth";
-import { getAdminCategories, getAllCourses } from "@/lib/lms-storage";
+import { getAdminCategories, getAllCourses, getCourseRatings } from "@/lib/lms-storage";
 import type { Course } from "@/lib/mock-data";
+import type { CourseRatingSummary } from "@/lib/lms-storage";
 
 export const Route = createFileRoute("/courses/")({
   head: () => ({
@@ -46,6 +47,11 @@ function CoursesPage() {
   const [q, setQ] = useState("");
   const [cat, setCat] = useState<string>("all");
   const [level, setLevel] = useState<string>("all");
+  const [ratingFilter, setRatingFilter] = useState<string>("all"); // "all" | "1" | "2" | "3" | "4"
+
+  // Ratings — fetched once the course list is available, keyed by course id.
+  const [ratings, setRatings] = useState<Record<string, CourseRatingSummary>>({});
+  const [ratingsLoaded, setRatingsLoaded] = useState(false);
 
   function formatDate(createdAt?: string) {
     if (!createdAt) return "";
@@ -97,12 +103,41 @@ function CoursesPage() {
     }
   }, []);
 
-  const hasActiveFilters = q !== "" || cat !== "all" || level !== "all";
+  // Fetch a rating summary for every course, in parallel. A failed lookup
+  // for a single course falls back to "no ratings" instead of breaking
+  // the whole page.
+  useEffect(() => {
+    if (courses.length === 0) return;
+    let cancelled = false;
+    (async () => {
+      setRatingsLoaded(false);
+      const results = await Promise.all(
+        courses.map((c: any) =>
+          getCourseRatings(c.id).catch(
+            () => ({ course_id: c.id, average_rating: 0, total_ratings: 0 }) as CourseRatingSummary,
+          ),
+        ),
+      );
+      if (cancelled) return;
+      const map: Record<string, CourseRatingSummary> = {};
+      results.forEach((r) => {
+        map[r.course_id] = r;
+      });
+      setRatings(map);
+      setRatingsLoaded(true);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [courses]);
+
+  const hasActiveFilters = q !== "" || cat !== "all" || level !== "all" || ratingFilter !== "all";
 
   function resetFilters() {
     setQ("");
     setCat("all");
     setLevel("all");
+    setRatingFilter("all");
   }
 
   const filtered = useMemo(() => {
@@ -125,8 +160,22 @@ function CoursesPage() {
       list = list.filter((c: any) => c.level?.toLowerCase() === level.toLowerCase());
     }
 
+    // 4. Minimum rating
+    if (ratingFilter !== "all") {
+      const minRating = Number(ratingFilter);
+      list = list.filter((c: any) => (ratings[c.id]?.average_rating ?? 0) >= minRating);
+    }
+
+    // 5. Sort by average rating, highest first. Array.prototype.sort is
+    // stable in modern JS engines, so courses that share the same rating
+    // simply keep their existing relative order — no secondary tie-break
+    // needed.
+    list.sort(
+      (a: any, b: any) => (ratings[b.id]?.average_rating ?? 0) - (ratings[a.id]?.average_rating ?? 0),
+    );
+
     return list;
-  }, [courses, q, cat, level]);
+  }, [courses, q, cat, level, ratingFilter, ratings]);
 
   return (
     <SiteLayout>
@@ -160,6 +209,16 @@ function CoursesPage() {
                 <SelectItem value="beginner">{t("coursesPage.levels.beginner")}</SelectItem>
                 <SelectItem value="intermediate">{t("coursesPage.levels.intermediate")}</SelectItem>
                 <SelectItem value="advanced">{t("coursesPage.levels.advanced")}</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={ratingFilter} onValueChange={setRatingFilter}>
+              <SelectTrigger className="h-11 w-[160px] bg-background"><SelectValue placeholder={t("coursesPage.filters.rating")} /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t("coursesPage.filters.allRatings")}</SelectItem>
+                <SelectItem value="4">{t("coursesPage.filters.ratingAndUp", { value: 4 })}</SelectItem>
+                <SelectItem value="3">{t("coursesPage.filters.ratingAndUp", { value: 3 })}</SelectItem>
+                <SelectItem value="2">{t("coursesPage.filters.ratingAndUp", { value: 2 })}</SelectItem>
+                <SelectItem value="1">{t("coursesPage.filters.ratingAndUp", { value: 1 })}</SelectItem>
               </SelectContent>
             </Select>
             {hasActiveFilters && (
@@ -199,6 +258,8 @@ function CoursesPage() {
                     : { backgroundImage: `url(${c.image_cover})`, backgroundSize: "cover", backgroundPosition: "center" }
                   : { backgroundImage: c.cover };
 
+                const courseRating = ratings[c.id];
+
                 return (
                   <Card
                     key={c.id}
@@ -229,9 +290,17 @@ function CoursesPage() {
 
                     <Link to="/courses/$id" params={{ id: c.id }} className="flex flex-1 flex-col">
                       <div className="flex flex-1 flex-col p-5">
-                        <p className="text-sm text-muted-foreground">
-                          {t("coursesPage.byInstructor", { name: c.profiles?.full_name || c.teacher || t("coursesPage.defaultInstructor") })}
-                        </p>
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="text-sm text-muted-foreground">
+                            {t("coursesPage.byInstructor", { name: c.profiles?.full_name || c.teacher || t("coursesPage.defaultInstructor") })}
+                          </p>
+                          {ratingsLoaded && courseRating?.total_ratings ? (
+                            <span className="flex shrink-0 items-center gap-1 text-xs font-medium text-foreground">
+                              <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+                              {courseRating.average_rating.toFixed(1)}
+                            </span>
+                          ) : null}
+                        </div>
                         <h3 className="mt-1 line-clamp-2 text-base font-semibold leading-snug transition-colors group-hover:text-primary">
                           {c.title}
                         </h3>
