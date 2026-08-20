@@ -20,6 +20,7 @@ import {
   getAllCourses,
   getMyAttempts,
   getMySubscription,
+  hasActiveAccess,
   getQuizzesByCourse,
   type Quiz,
   type QuizAttempt,
@@ -52,16 +53,15 @@ type CourseRow = {
   quizzes: Quiz[];
 };
 
-function isSubscriptionActive(sub: Subscription | null): boolean {
-  if (!sub || sub.status !== "active" || !sub.ends_at) return false;
-  return new Date(sub.ends_at) > new Date();
-}
-
 function ProgressPage() {
   const { t } = useTranslation();
 
-  const [loading, setLoading] = useState(true);
+  const [checking, setChecking] = useState(true);
+  const [access, setAccess] = useState(false);
+  const [hasPlan, setHasPlan] = useState(false);
+  const [ownedCourseIds, setOwnedCourseIds] = useState<string[]>([]);
   const [subscription, setSubscription] = useState<Subscription | null>(null);
+
   const [rows, setRows] = useState<CourseRow[]>([]);
   const [attempts, setAttempts] = useState<QuizAttempt[]>([]);
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -70,45 +70,78 @@ function ProgressPage() {
     let cancelled = false;
 
     (async () => {
-      setLoading(true);
-      const sub = await getMySubscription();
-      if (cancelled) return;
-      setSubscription(sub);
+      setChecking(true);
+      try {
+        // Fetch subscription + access flag together, same as the live page.
+        const [sub, ok]: any = await Promise.all([getMySubscription(), hasActiveAccess()]);
+        if (cancelled) return;
 
-      const active = isSubscriptionActive(sub);
-      if (!active) {
-        setRows([]);
-        setAttempts([]);
-        setLoading(false);
-        return;
+        // Store only the plan object, not the whole {plan, courses} shape.
+        setSubscription(sub.plan);
+
+        // Individually purchased courses that are currently active.
+        const activeCourseIds = (sub.courses ?? [])
+          .filter((c: any) => c.status === "active")
+          .map((c: any) => String(c.course_id));
+        setOwnedCourseIds(activeCourseIds);
+        setHasPlan(ok);
+
+        // Access is granted either via an active plan OR at least one active course purchase.
+        const hasAnyAccess = ok || activeCourseIds.length > 0;
+        setAccess(hasAnyAccess);
+        setChecking(false);
+
+        if (!hasAnyAccess) {
+          setRows([]);
+          setAttempts([]);
+          return;
+        }
+
+        const [allCourses, myAttempts] = await Promise.all([
+          getAllCourses().catch(() => []),
+          getMyAttempts().catch(() => []),
+        ]);
+        if (cancelled) return;
+
+        const allCourseList = (Array.isArray(allCourses) ? allCourses : []) as ApiCourse[];
+
+        // Plan holders see the full catalog. Course-only buyers only see
+        // (and get quizzes/progress for) the courses they actually purchased.
+        const courseList = ok
+          ? allCourseList
+          : allCourseList.filter((c) => activeCourseIds.includes(String(c.id)));
+
+        const built = await Promise.all(
+          courseList.map(async (c) => {
+            const [p, quizzes] = await Promise.all([courseProgress(c.id), getQuizzesByCourse(c.id)]);
+            return {
+              id: c.id,
+              title: c.title,
+              teacher: c.teacher,
+              level: c.level,
+              cover: c.cover,
+              done: p.done,
+              total: p.total,
+              pct: p.pct,
+              quizzes,
+            } as CourseRow;
+          })
+        );
+
+        if (cancelled) return;
+
+        // Quiz attempts scoped to the visible courses' quizzes only.
+        const visibleQuizIds = new Set(built.flatMap((r) => r.quizzes.map((q) => q.id)));
+        const scopedAttempts = ok
+          ? myAttempts
+          : myAttempts.filter((a: any) => visibleQuizIds.has(a.id));
+
+        setRows(built);
+        setAttempts(scopedAttempts);
+      } catch (err) {
+        console.error("Failed to load progress page data:", err);
+        if (!cancelled) setChecking(false);
       }
-
-      const [allCourses, myAttempts] = await Promise.all([getAllCourses(), getMyAttempts()]);
-      if (cancelled) return;
-
-      const courseList = (allCourses ?? []) as ApiCourse[];
-
-      const built = await Promise.all(
-        courseList.map(async (c) => {
-          const [p, quizzes] = await Promise.all([courseProgress(c.id), getQuizzesByCourse(c.id)]);
-          return {
-            id: c.id,
-            title: c.title,
-            teacher: c.teacher,
-            level: c.level,
-            cover: c.cover,
-            done: p.done,
-            total: p.total,
-            pct: p.pct,
-            quizzes,
-          } as CourseRow;
-        })
-      );
-
-      if (cancelled) return;
-      setRows(built);
-      setAttempts(myAttempts);
-      setLoading(false);
     })();
 
     return () => {
@@ -133,23 +166,41 @@ function ProgressPage() {
     ? Math.max(0, Math.ceil((new Date(subscription.ends_at).getTime() - Date.now()) / 86400000))
     : null;
 
+  if (checking) {
+    return (
+      <RoleDashboardLayout role="student">
+        <ProgressSkeleton />
+      </RoleDashboardLayout>
+    );
+  }
+
   return (
     <RoleDashboardLayout role="student">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <PageHeader title={t("progressPage.title")} description={t("progressPage.description")} />
-        {subscription && isSubscriptionActive(subscription) && (
+        <PageHeader
+          title={t("progressPage.title")}
+          description={
+            hasPlan
+              ? t("progressPage.description")
+              : t("progressPage.descriptionCourseOnly", "Progress for the courses you have purchased.")
+          }
+        />
+        {access && (
           <Badge variant="secondary" className="gap-1.5 px-3 py-1.5">
             <Crown className="h-3.5 w-3.5" />
-            {t("progressPage.planDaysLeft", { plan: subscription.plan_name, days: daysLeft })}
+            {hasPlan
+              ? t("progressPage.planDaysLeft", { plan: subscription?.plan_name, days: daysLeft })
+              : t("progressPage.courseAccessOnly", {
+                  count: ownedCourseIds.length,
+                  defaultValue: `You have access to ${ownedCourseIds.length} course(s)`,
+                })}
           </Badge>
         )}
       </div>
 
-      {loading && <ProgressSkeleton />}
+      {!access && <NoSubscriptionState subscription={subscription} />}
 
-      {!loading && !isSubscriptionActive(subscription) && <NoSubscriptionState subscription={subscription} />}
-
-      {!loading && isSubscriptionActive(subscription) && (
+      {access && (
         <>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <StatCard label={t("progressPage.stats.averageProgress")} value={`${avg}%`} icon={TrendingUp} />

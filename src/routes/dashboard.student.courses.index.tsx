@@ -78,6 +78,8 @@ function BrowseCourses() {
 
   const [checking, setChecking] = useState(true);
   const [access, setAccess] = useState(false);
+  const [hasPlan, setHasPlan] = useState(false);
+  const [ownedCourseIds, setOwnedCourseIds] = useState<string[]>([]);
   const [subscription, setSubscription] = useState<Subscription | null>(null);
 
   const [loadingCourses, setLoadingCourses] = useState(true);
@@ -124,18 +126,38 @@ function BrowseCourses() {
     (async () => {
       const [sub, ok] = await Promise.all([getMySubscription(), hasActiveAccess()]);
       if (cancelled) return;
-      setSubscription(sub);
-      setAccess(ok);
+
+      // Fixed: was storing the whole {plan, courses} object instead of just the plan.
+      setSubscription(sub.plan);
+
+      // Individually purchased courses that are currently active.
+      const activeCourseIds = sub.courses
+        .filter((c) => c.status === "active")
+        .map((c) => c.course_id);
+      setOwnedCourseIds(activeCourseIds);
+      setHasPlan(ok);
+
+      // Access is granted either via an active plan OR at least one active course purchase.
+      const hasAnyAccess = ok || activeCourseIds.length > 0;
+      setAccess(hasAnyAccess);
       setChecking(false);
 
-      if (ok) {
+      if (hasAnyAccess) {
         setLoadingCourses(true);
         const [all, cats] = await Promise.all([
           getAllCourses(),
           getAdminCategories().catch(() => []),
         ]);
         if (cancelled) return;
-        setCourses(Array.isArray(all) ? all : []);
+
+        const allCourses = Array.isArray(all) ? all : [];
+        // Plan holders see the full catalog. Course-only buyers see only
+        // the courses they actually purchased.
+        const visibleCourses = ok
+          ? allCourses
+          : allCourses.filter((c) => activeCourseIds.includes(c.id));
+
+        setCourses(visibleCourses);
         setCategories(Array.isArray(cats) ? (cats as CategoryRow[]) : []);
         setLoadingCourses(false);
       }
@@ -242,7 +264,7 @@ function BrowseCourses() {
     <RoleDashboardLayout role="student">
       <PageHeader
         title={t("catalog.title")}
-        description={t("catalog.description")}
+        description={hasPlan ? t("catalog.description") : t("catalog.descriptionCourseOnly", "Courses you have purchased.")}
         actions={
           <div className="flex flex-wrap items-center gap-2">
             <div className="relative w-56">
@@ -310,9 +332,18 @@ function BrowseCourses() {
       <div className="mb-5 flex items-center gap-2 text-xs text-muted-foreground">
         <ShieldCheck className="h-3.5 w-3.5 text-success" />
         <span>
-          {t("catalog.membershipActive")}
-          {subscription?.ends_at && (
-            <> · {t("catalog.accessThrough", { date: new Date(subscription.ends_at).toLocaleDateString() })}</>
+          {hasPlan ? (
+            <>
+              {t("catalog.membershipActive")}
+              {subscription?.ends_at && (
+                <> · {t("catalog.accessThrough", { date: new Date(subscription.ends_at).toLocaleDateString() })}</>
+              )}
+            </>
+          ) : (
+            t("catalog.courseAccessOnly", {
+              count: ownedCourseIds.length,
+              defaultValue: `You have access to ${ownedCourseIds.length} course(s)`,
+            })
           )}
         </span>
       </div>

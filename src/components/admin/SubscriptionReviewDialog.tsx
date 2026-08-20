@@ -49,7 +49,7 @@ export function SubscriptionReviewDialog({
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  subscription: Subscription | null;
+  subscription: any | null;
   onApprove: (days: number) => Promise<void>;
   onReject: () => Promise<void>;
   /** Optional external busy flag (e.g. set by the parent page) that also blocks the dialog from closing. */
@@ -72,13 +72,13 @@ export function SubscriptionReviewDialog({
     try {
       await onApprove(days);
       toast.success(
-        t("admin.subscriptions.review.toast.approved", {
-          name: subscription.profiles?.full_name ?? t("admin.subscriptions.review.defaultStudentName"),
+        t("admin.subscription.review.toast.approved", {
+          name: subscription.profiles?.full_name ?? t("admin.subscription.review.defaultStudentName"),
           days,
         })
       );
     } catch (err: any) {
-      toast.error(err?.message || t("admin.subscriptions.review.errors.approveFailed"));
+      toast.error(err?.message || t("admin.subscription.review.errors.approveFailed"));
     } finally {
       setBusy(null);
     }
@@ -89,9 +89,9 @@ export function SubscriptionReviewDialog({
     setBusy("reject");
     try {
       await onReject();
-      toast.success(t("admin.subscriptions.review.toast.rejected"));
+      toast.success(t("admin.subscription.review.toast.rejected"));
     } catch (err: any) {
-      toast.error(err?.message || t("admin.subscriptions.review.errors.rejectFailed"));
+      toast.error(err?.message || t("admin.subscription.review.errors.rejectFailed"));
     } finally {
       setBusy(null);
     }
@@ -108,9 +108,9 @@ export function SubscriptionReviewDialog({
     >
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>{t("admin.subscriptions.review.title")}</DialogTitle>
+          <DialogTitle>{t("admin.subscription.review.title")}</DialogTitle>
           <DialogDescription>
-            {t("admin.subscriptions.review.subtitle", {
+            {t("admin.subscription.review.subtitle", {
               name: subscription?.profiles?.full_name ?? "",
             })}{" "}
             <span className="font-medium text-foreground">
@@ -124,7 +124,7 @@ export function SubscriptionReviewDialog({
           {/* Payment proof */}
           <div>
             <Label className="mb-1.5 block text-xs uppercase tracking-wide text-muted-foreground">
-              {t("admin.subscriptions.review.paymentProof")}
+              {t("admin.subscription.review.paymentProof")}
             </Label>
             {subscription?.payment_proof_url ? (
               isImageUrl(subscription.payment_proof_url) ? (
@@ -136,7 +136,7 @@ export function SubscriptionReviewDialog({
                 >
                   <img
                     src={subscription.payment_proof_url}
-                    alt={t("admin.subscriptions.review.paymentProofAlt")}
+                    alt={t("admin.subscription.review.paymentProofAlt")}
                     className="max-h-72 w-full object-contain bg-muted/30"
                   />
                   <div className="absolute inset-0 flex items-center justify-center bg-black/0 opacity-0 transition-all group-hover:bg-black/40 group-hover:opacity-100">
@@ -152,7 +152,7 @@ export function SubscriptionReviewDialog({
                 >
                   <FileText className="h-6 w-6 text-muted-foreground" />
                   <span className="text-sm font-medium">
-                    {t("admin.subscriptions.review.openReceipt")}
+                    {t("admin.subscription.review.openReceipt")}
                   </span>
                   <ExternalLink className="ml-auto h-4 w-4 text-muted-foreground" />
                 </a>
@@ -160,7 +160,7 @@ export function SubscriptionReviewDialog({
             ) : (
               <div className="flex items-center gap-2 rounded-xl border border-dashed border-border/60 p-4 text-sm text-muted-foreground">
                 <FileImage className="h-4 w-4" />
-                {t("admin.subscriptions.review.noProof")}
+                {t("admin.subscription.review.noProof")}
               </div>
             )}
           </div>
@@ -172,7 +172,7 @@ export function SubscriptionReviewDialog({
                 htmlFor="days"
                 className="mb-1.5 block text-xs uppercase tracking-wide text-muted-foreground"
               >
-                {t("admin.subscriptions.review.accessDuration")}
+                {t("admin.subscription.review.accessDuration")}
               </Label>
               <div className="flex items-center gap-2">
                 <CalendarDays className="h-4 w-4 text-muted-foreground" />
@@ -186,7 +186,7 @@ export function SubscriptionReviewDialog({
                   className="w-28"
                 />
                 <span className="text-sm text-muted-foreground">
-                  {t("admin.subscriptions.review.defaultForPlan", {
+                  {t("admin.subscription.review.defaultForPlan", {
                     plan: subscription.plan_name,
                     days: defaultDaysFor(subscription.plan_name),
                   })}
@@ -198,10 +198,10 @@ export function SubscriptionReviewDialog({
           {subscription?.status !== "pending" && (
             <div className="rounded-lg bg-muted/40 px-3 py-2 text-sm text-muted-foreground">
               {subscription?.reviewed_at
-                ? t("admin.subscriptions.review.alreadyReviewedOn", {
+                ? t("admin.subscription.review.alreadyReviewedOn", {
                     date: subscription.reviewed_at.slice(0, 10),
                   })
-                : t("admin.subscriptions.review.alreadyReviewed")}
+                : t("admin.subscription.review.alreadyReviewed")}
             </div>
           )}
         </div>
@@ -219,7 +219,7 @@ export function SubscriptionReviewDialog({
               ) : (
                 <XCircle className="mr-1.5 h-4 w-4" />
               )}
-              {t("admin.subscriptions.review.rejectButton")}
+              {t("admin.subscription.review.rejectButton")}
             </Button>
             <Button onClick={handleApprove} disabled={isBusy || days < 1}>
               {busy === "approve" ? (
@@ -227,7 +227,7 @@ export function SubscriptionReviewDialog({
               ) : (
                 <CheckCircle2 className="mr-1.5 h-4 w-4" />
               )}
-              {t("admin.subscriptions.review.approveButton", { days })}
+              {t("admin.subscription.review.approveButton", { days })}
             </Button>
           </DialogFooter>
         )}

@@ -5,7 +5,7 @@
 //   VITE_API_URL=http://localhost:4000
 
 export const API_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
-
+import { setCookie, deleteCookie } from "@/lib/cookies";
 export class ApiError extends Error {
   status: number;
   constructor(message: string, status: number) {
@@ -32,14 +32,18 @@ export function getSessionId(): string | null {
 
 export function storeSessionId(sessionId: string) {
   window.localStorage.setItem(SESSION_ID_KEY, sessionId);
+  setCookie(SESSION_ID_KEY, sessionId);
 }
 
 export function clearSessionId() {
   window.localStorage.removeItem(SESSION_ID_KEY);
+  deleteCookie(SESSION_ID_KEY);
 }
+
 export function storeTokens(accessToken: string, refreshToken: string) {
   window.localStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
   window.localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
+  setCookie(ACCESS_TOKEN_KEY, accessToken);
 }
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
@@ -63,12 +67,14 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
       data?.message || data?.error || `Request failed with status ${res.status}`;
 
     // ← جديد: لو الجلسة انطردت (جهاز آخر سجّل دخول)، نظّف كل حاجة محلياً
-    if (message === "SESSION_REVOKED") {
-      window.localStorage.removeItem(ACCESS_TOKEN_KEY);
-      window.localStorage.removeItem(REFRESH_TOKEN_KEY);
-      window.localStorage.removeItem(SESSION_ID_KEY);
-      window.location.href = "/login?reason=session_revoked";
-    }
+  if (message === "SESSION_REVOKED") {
+  window.localStorage.removeItem(ACCESS_TOKEN_KEY);
+  window.localStorage.removeItem(REFRESH_TOKEN_KEY);
+  window.localStorage.removeItem(SESSION_ID_KEY);
+  deleteCookie(ACCESS_TOKEN_KEY);
+  deleteCookie(SESSION_ID_KEY);
+  window.location.href = "/login?reason=session_revoked";
+}
 
     throw new ApiError(message, res.status);
   }
@@ -118,12 +124,14 @@ function uploadRequest<T>(
         const message = parsed?.message ?? parsed?.error ?? `Request failed with status ${xhr.status}`;
 
         // ← جديد: نفس معاملة SESSION_REVOKED الموجودة في request()
-        if (message === "SESSION_REVOKED") {
-          window.localStorage.removeItem(ACCESS_TOKEN_KEY);
-          window.localStorage.removeItem(REFRESH_TOKEN_KEY);
-          window.localStorage.removeItem(SESSION_ID_KEY);
-          window.location.href = "/login?reason=session_revoked";
-        }
+      if (message === "SESSION_REVOKED") {
+  window.localStorage.removeItem(ACCESS_TOKEN_KEY);
+  window.localStorage.removeItem(REFRESH_TOKEN_KEY);
+  window.localStorage.removeItem(SESSION_ID_KEY);
+  deleteCookie(ACCESS_TOKEN_KEY);
+  deleteCookie(SESSION_ID_KEY);
+  window.location.href = "/login?reason=session_revoked";
+}
 
         reject(new ApiError(message, xhr.status));
       }
@@ -345,13 +353,18 @@ export const lmsApi = {
   // --- Subscriptions ---
   // Maps to the `subscriptions` table: id, user_id, plan_name, amount, status,
   // starts_at, ends_at, payment_proof_url, reviewed_by, reviewed_at.
-  subscriptions: {
-    // الطالب: إرسال طلب اشتراك مع إثبات الدفع (base64)
-    submit: (data: { plan_name: string; amount: number; payment_proof: string }) =>
-      api.post<{ subscription: any }>("/api/subscriptions", data),
+ subscriptions: {
+    // الطالب: إرسال طلب اشتراك (باقة أو كورسات محددة) مع إثبات الدفع (base64)
+    submit: (data: {
+      plan_name?: string;
+      course_ids?: string[];
+      amount: number;
+      payment_proof: string;
+    }) => api.post<{ subscription: any }>("/api/subscriptions", data),
 
-    // الطالب: جلب اشتراكي الحالي
-    getMine: () => api.get<{ subscription: any }>("/api/subscriptions/me"),
+    // الطالب: جلب اشتراكاتي الحالية (باقة + كورسات)
+    getMine: () =>
+      api.get<{ plan: any | null; courses: any[] }>("/api/subscriptions/me"),
 
     // admin: جلب الطلبات المعلّقة فقط
     listPending: () => api.get<{ subscriptions: any[] }>("/api/subscriptions/pending"),
@@ -359,13 +372,13 @@ export const lmsApi = {
     // admin: جلب كل الاشتراكات (كل الحالات)
     listAll: () => api.get<{ subscriptions: any[] }>("/api/subscriptions"),
 
-    // admin: قبول الاشتراك
-    approve: (id: string, days: number) =>
-  api.put<{ subscription: any }>(`/api/subscriptions/${id}/approve`, { days }),
+    // admin: قبول الاشتراك (days تُستخدم فقط لاشتراكات الباقة)
+    approve: (id: string, days?: number) =>
+      api.put<{ subscription: any }>(`/api/subscriptions/${id}/approve`, { days }),
 
     // admin: رفض الاشتراك
     reject: (id: string) => api.put<{ subscription: any }>(`/api/subscriptions/${id}/reject`),
-  },
+},
   // --- Auth ---
   auth: {
     signUp: (data: { email: string; password: string; fullName?: string }) =>
@@ -391,18 +404,18 @@ export const lmsApi = {
   return res;
 },
 
-   signOut: async () => {
+signOut: async () => {
   const refreshToken =
     typeof window !== "undefined" ? window.localStorage.getItem(REFRESH_TOKEN_KEY) : null;
 
-  const res = await api.post<{ message: string }>("/api/auth/signout", {
-    refreshToken,
-  });
+  const res = await api.post<{ message: string }>("/api/auth/signout", { refreshToken });
 
   if (typeof window !== "undefined") {
     window.localStorage.removeItem(ACCESS_TOKEN_KEY);
     window.localStorage.removeItem(REFRESH_TOKEN_KEY);
-    window.localStorage.removeItem(SESSION_ID_KEY); // ← جديد
+    window.localStorage.removeItem(SESSION_ID_KEY);
+    deleteCookie(ACCESS_TOKEN_KEY);
+    deleteCookie(SESSION_ID_KEY);
   }
 
   return res;

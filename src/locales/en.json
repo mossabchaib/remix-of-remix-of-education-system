@@ -257,6 +257,8 @@
     "copyright": "© {{year}} EL MANARA Learning, Inc. All rights reserved."
   },
   "admin": {
+    "noRatings": "No ratings yet",
+  "ratingAndUp": "{{value}} stars & up",
     "subscription": {
       "review": {
         "title": "Review subscription request",
@@ -281,44 +283,61 @@
           "rejectFailed": "Failed to reject subscription."
         }
       },
-      "title": "الاشتراكات",
-      "description": "راجع إثباتات الدفع وأدر وصول الطلاب إلى الخطط.",
+      "title": "Subscriptions",
+      "description": "Review payment proofs and manage student access to plans.",
       "stats": {
-        "pending": "بانتظار المراجعة",
-        "active": "المشتركون النشطون",
-        "revenue": "الإيرادات النشطة"
+        "courseBuyers": "Course Buyers",
+        "pending": "Pending Review",
+        "active": "Active Subscriptions",
+        "revenue": "Active Revenue"
       },
-      "tabs": { "pending": "قيد الانتظار", "all": "جميع الاشتراكات" },
+      "tabs": {
+        "pending": "Pending",
+        "all": "All Subscriptions"
+      },
       "table": {
-        "customer": "العميل",
-        "plan": "الخطة",
-        "amount": "المبلغ",
-        "status": "الحالة",
-        "submitted": "تاريخ التقديم",
-        "expires": "تاريخ الانتهاء"
+        "customer": "Customer",
+        "plan": "Plan",
+        "amount": "Amount",
+        "status": "Status",
+        "submitted": "Submitted",
+        "expires": "Expires",
+        "lifetime": "Lifetime"
       },
-      "actions": { "review": "مراجعة", "view": "عرض" },
-      "filters": { "plan": "الخطة", "status": "الحالة" },
+      "actions": {
+        "review": "Review",
+        "view": "View"
+      },
+      "filters": {
+        "plan": "Plan",
+        "status": "Status"
+      },
       "empty": {
-        "title": "لا توجد اشتراكات",
-        "pendingHint": "ستظهر إثباتات الدفع الجديدة هنا للمراجعة.",
-        "allHint": "ستظهر الاشتراكات هنا بمجرد أن يشترك الطلاب."
+        "title": "No subscriptions",
+        "pendingHint": "New payment proofs will appear here for review.",
+        "allHint": "Subscriptions will appear here once students subscribe."
       },
       "toast": {
-        "approved": "تمت الموافقة على الاشتراك",
-        "rejected": "تم رفض الاشتراك"
+        "approved": "Subscription approved",
+        "rejected": "Subscription rejected"
       },
       "errors": {
-        "loadFailed": "فشل تحميل الاشتراكات",
-        "approveFailed": "فشلت الموافقة على الاشتراك",
-        "rejectFailed": "فشل رفض الاشتراك"
+        "loadFailed": "Failed to load subscriptions",
+        "approveFailed": "Failed to approve subscription",
+        "rejectFailed": "Failed to reject subscription"
       }
     },
     "categorie": {
       "title": "Categories",
       "description": "Group courses into browsable categories.",
-      "actions": { "new": "New category" },
-      "table": { "image": "Image", "name": "Name", "slug": "Slug" },
+      "actions": {
+        "new": "New category"
+      },
+      "table": {
+        "image": "Image",
+        "name": "Name",
+        "slug": "Slug"
+      },
       "toast": {
         "created": "Category created",
         "updated": "Category updated",
@@ -355,14 +374,15 @@
         "saving": "Saving...",
         "saveButton": "Save Category",
         "updateButton": "Update Category"
-      }},
-     "untitledCourse": "Untitled Course",
-      "loadingCourses": "Loading courses...",
-      "coursesLoadError": "Failed to load courses. Please try again.",
-      "courseDeleteError": "Failed to remove course",
-      "deleteCourseTitle": "Delete this course?",
-      "deleteCourseDesc": "\"{{title}}\" will be permanently removed. This action cannot be undone.",
-        "userManagement": {
+      }
+    },
+    "untitledCourse": "Untitled Course",
+    "loadingCourses": "Loading courses...",
+    "coursesLoadError": "Failed to load courses. Please try again.",
+    "courseDeleteError": "Failed to delete course",
+    "deleteCourseTitle": "Delete this course?",
+    "deleteCourseDesc": "\"{{title}}\" will be permanently removed. This action cannot be undone.",
+    "userManagement": {
       "fetchError": "Failed to fetch users",
       "fetchErrorTitle": "Couldn't load users",
       "fetchErrorDescription": "Something went wrong while fetching the user list. Please try again.",
@@ -380,18 +400,18 @@
     "workspace": "Workspace",
     "overview": "Overview",
     "overviewDesc": "A snapshot of your learning platform this month.",
-    "totalRevenue": "Total revenue",
-    "activeLearners": "Active learners",
-    "publishedCourses": "Published courses",
-    "completionRate": "Completion rate",
-    "revenueTrend": "Revenue trend",
-    "mrr": "Monthly recurring revenue",
-    "newSignups": "New signups",
-    "last12Months": "Last 12 months",
-    "recentPayments": "Recent payments",
-    "latestTransactions": "Latest transactions",
-    "newUsers": "New users",
-    "recentlyJoined": "Recently joined",
+    "totalRevenue": "Total Revenue",
+    "activeLearners": "Active Learners",
+    "publishedCourses": "Published Courses",
+    "completionRate": "Completion Rate",
+    "revenueTrend": "Revenue Trend",
+    "mrr": "Monthly Recurring Revenue",
+    "newSignups": "New Signups",
+    "last12Months": "Last 12 Months",
+    "recentPayments": "Recent Payments",
+    "latestTransactions": "Latest Transactions",
+    "newUsers": "New Users",
+    "recentlyJoined": "Recently Joined",
     "users": "Users",
     "usersDesc": "Manage students, teachers, and system administrators.",
     "students": "Students",
@@ -405,7 +425,7 @@
     "reports": "Reports",
     "announcements": "Announcements",
     "settings": "Settings",
-    "exitAdmin": "Exit admin",
+    "exitAdmin": "Exit Admin",
     "courses": "Courses",
     "course": "Course",
     "instructor": "Instructor",
@@ -421,31 +441,31 @@
     "user": "User",
     "role": "Role",
     "joined": "Joined",
-    "addUser": "Add user",
-    "editUser": "Edit user",
+    "addUser": "Add User",
+    "editUser": "Edit User",
     "fillDetails": "Fill in the details below.",
-    "fullName": "Full name",
+    "fullName": "Full Name",
     "allFieldsRequired": "Please fill in all required fields.",
     "userUpdated": "User updated",
     "userAdded": "User added",
     "userDeleted": "User deleted",
-    "courseDetails": "Course details",
+    "courseDetails": "Course Details",
     "courseDetailsDesc": "Read-only view of course information.",
     "courseNotFound": "Course not found",
-    "backToCourses": "Back to courses",
-    "paymentDetails": "Payment details",
+    "backToCourses": "Back to Courses",
+    "paymentDetails": "Payment Details",
     "paymentDetailsDesc": "Read-only view of transaction information.",
     "subtotal": "Subtotal",
     "tax": "Tax",
-    "totalCharged": "Total charged",
+    "totalCharged": "Total Charged",
     "reportsDesc": "Understand what's working and where to invest next.",
     "revenue": "Revenue",
     "enrollments": "Enrollments",
     "completions": "Completions",
-    "avgProgress": "Avg. progress",
+    "avgProgress": "Avg. Progress",
     "revenueVsSignups": "Revenue vs Signups",
-    "enrollmentsByCategory": "Enrollments by category",
-    "topCategories": "Top categories by enrollment",
+    "enrollmentsByCategory": "Enrollments by Category",
+    "topCategories": "Top Categories by Enrollment",
     "settingsDesc": "Manage your workspace, branding, and preferences.",
     "studentsDesc": "Enrolled learners across your platform.",
     "teachersDesc": "Instructors creating and delivering courses.",
@@ -453,27 +473,27 @@
     "paymentsDesc": "Transactions processed across all plans.",
     "workspaceSection": "Workspace",
     "workspaceSectionDesc": "Public details visible to your learners.",
-    "workspaceName": "Workspace name",
-    "supportEmail": "Support email",
+    "workspaceName": "Workspace Name",
+    "supportEmail": "Support Email",
     "tagline": "Tagline",
-    "enableDarkMode": "Enable dark mode by default",
+    "enableDarkMode": "Enable Dark Mode by Default",
     "darkModeDescription": "Applies to new learners.",
-    "primaryColor": "Primary color",
+    "primaryColor": "Primary Color",
     "logoUrl": "Logo URL",
-    "currentPlan": "Current plan",
+    "currentPlan": "Current Plan",
     "upgradeEnterprise": "Upgrade to Enterprise",
-    "manageSeats": "Manage seats",
-    "weeklySummary": "Weekly summary",
-    "paymentReceipts": "Payment receipts",
-    "productUpdates": "Product updates",
+    "manageSeats": "Manage Seats",
+    "weeklySummary": "Weekly Summary",
+    "paymentReceipts": "Payment Receipts",
+    "productUpdates": "Product Updates",
     "general": "General",
     "branding": "Branding",
     "billing": "Billing",
     "notifications": "Notifications",
     "categoriesPageTitle": "Categories",
     "categoriesPageDesc": "Group courses into browsable categories.",
-    "newCategory": "New category",
-    "editCategory": "Edit category",
+    "newCategory": "New Category",
+    "editCategory": "Edit Category",
     "categoryFormDesc": "Give it a clear name, slug, and image.",
     "categoryName": "Name",
     "categorySlug": "Slug",
@@ -490,7 +510,7 @@
     "noPaymentsYet": "No payments yet.",
     "noUsersYet": "No users yet.",
     "unknownUser": "Unknown",
-    "untitledPlan": "Untitled plan",
+    "untitledPlan": "Untitled Plan",
     "subscriptionMethod": "Subscription",
     "loadErrorTitle": "Couldn't load dashboard data",
     "loadErrorDesc": "Something went wrong while fetching your dashboard. Please try again."
@@ -771,7 +791,7 @@
       "lifetimeAccess": "Full lifetime access"
     }
   },
-  "builder": {
+ "builder": {
     "backToCourses": "Courses",
     "subtitle": "Build your course structure and details.",
     "published": "Published",
@@ -1644,7 +1664,134 @@
           "recording": "Live session recording"
         }
       }
+    },
+    "subscriptionPaged": {
+    "title": "My Subscription",
+    "description": "Manage your subscription and purchase individual courses.",
+
+    "tabs": {
+      "plans": "Plans",
+      "courses": "Courses"
+    },
+
+    "stats": {
+      "currentPlan": "Current Plan",
+      "daysRemaining": "Days Remaining",
+      "status": "Status"
+    },
+
+    "status": {
+      "active": "Active",
+      "pending": "Pending",
+      "expired": "Expired",
+      "rejected": "Rejected",
+      "cancelled": "Cancelled"
+    },
+
+    "pending": {
+      "title": "Subscription Pending",
+      "description": "Your subscription is waiting for approval."
+    },
+
+    "noActive": {
+      "title": "No Active Subscription",
+      "description": "You don't currently have an active subscription."
+    },
+
+    "history": "Purchase History",
+
+    "empty": {
+      "title": "No Purchase History",
+      "description": "You haven't made any purchases yet."
+    },
+
+    "table": {
+      "plan": "Plan",
+      "amount": "Amount",
+      "status": "Status",
+      "submitted": "Submitted",
+      "expires": "Expires",
+      "course": "Course",
+      "lifetime": "Lifetime"
+    },
+
+    "badges": {
+      "save14": "Save 14%",
+      "bestValue": "Best Value"
+    },
+
+    "plans": {
+      "monthly": {
+        "name": "Monthly",
+        "period": "month",
+        "features": {
+          "0": "Full access to all courses",
+          "1": "Learn at your own pace",
+          "2": "Track your progress"
+        }
+      },
+      "quarterly": {
+        "name": "Quarterly",
+        "period": "3 months",
+        "features": {
+          "0": "Full access to all courses",
+          "1": "Learn at your own pace",
+          "2": "Track your progress"
+        }
+      },
+      "yearly": {
+        "name": "Yearly",
+        "period": "year",
+        "features": {
+          "0": "Full access to all courses",
+          "1": "Learn at your own pace",
+          "2": "Track your progress"
+        }
+      }
+    },
+
+    "choosePlan": "Choose {{plan}}",
+
+    "toast": {
+      "invalidFileType": "Invalid file type. Please upload an image or PDF.",
+      "fileTooLarge": "File is too large. Maximum size is 5 MB.",
+      "missingProof": "Please upload your payment proof.",
+      "submitSuccess": "Your request has been submitted successfully.",
+      "submitError": "Failed to submit your request."
+    },
+
+    "dialog": {
+      "title": "Subscribe to {{plan}}",
+      "descriptionPrefix": "Amount:",
+      "descriptionSuffix": "Please upload your payment proof.",
+      "cancel": "Cancel",
+      "submitting": "Submitting...",
+      "submit": "Submit",
+      "uploadPrompt": "Upload payment proof",
+      "uploadHint": "Image or PDF, maximum 5 MB",
+      "proofAlt": "Payment proof"
+    },
+
+    "courses": {
+      "title": "Individual Courses",
+      "description": "Purchase courses individually without a subscription.",
+      "browse": "Browse Courses",
+      "ownedLabel": "Your courses:",
+      "toast": {
+        "selectAtLeastOne": "Please select at least one course."
+      },
+      "dialog": {
+        "title": "Select Courses",
+        "description": "Choose the courses you want to purchase.",
+        "empty": "No courses available.",
+        "selectedCount": "{{count}} selected",
+        "proceed": "Proceed to Payment"
+      },
+      "paymentDialog": {
+        "title": "Purchase {{count}} Courses"
+      }
     }
+  }
 
 
 }

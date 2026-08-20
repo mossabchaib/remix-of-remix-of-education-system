@@ -1,4 +1,4 @@
-// src/hook/useAuth.ts
+ // src/hook/useAuth.ts
 //
 // React hook consumed by the login/register routes.
 

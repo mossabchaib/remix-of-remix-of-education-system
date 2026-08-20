@@ -23,6 +23,7 @@ import {
   getLiveSessions,
   getMyAttempts,
   getMySubscription,
+  hasActiveAccess,
   getWishlist,
   toggleWishlist,
   type LiveSession,
@@ -47,16 +48,15 @@ type ApiCourse = {
 
 type CourseRow = ApiCourse & { done: number; total: number; pct: number };
 
-function isSubscriptionActive(sub: Subscription | null): boolean {
-  if (!sub || sub.status !== "active" || !sub.ends_at) return false;
-  return new Date(sub.ends_at) > new Date();
-}
-
 function StudentOverview() {
   const { t } = useTranslation();
 
-  const [loading, setLoading] = useState(true);
+  const [checking, setChecking] = useState(true);
+  const [access, setAccess] = useState(false);
+  const [hasPlan, setHasPlan] = useState(false);
+  const [ownedCourseIds, setOwnedCourseIds] = useState<string[]>([]);
   const [subscription, setSubscription] = useState<Subscription | null>(null);
+
   const [rows, setRows] = useState<CourseRow[]>([]);
   const [attempts, setAttempts] = useState<QuizAttempt[]>([]);
   const [live, setLive] = useState<LiveSession[]>([]);
@@ -70,41 +70,84 @@ function StudentOverview() {
     let cancelled = false;
 
     (async () => {
-      setLoading(true);
+      setChecking(true);
       setWishlistState(getWishlist());
 
-      const sub = await getMySubscription();
-      if (cancelled) return;
-      setSubscription(sub);
+      try {
+        // Fetch subscription + access flag together, same as the live page.
+        const [sub, ok]: any = await Promise.all([getMySubscription(), hasActiveAccess()]);
+        if (cancelled) return;
 
-      if (!isSubscriptionActive(sub)) {
-        setRows([]);
-        setAttempts([]);
-        setLive([]);
-        setLoading(false);
-        return;
+        // Store only the plan object, not the whole {plan, courses} shape.
+        setSubscription(sub.plan);
+
+        // Individually purchased courses that are currently active.
+        const activeCourseIds = (sub.courses ?? [])
+          .filter((c: any) => c.status === "active")
+          .map((c: any) => String(c.course_id));
+        setOwnedCourseIds(activeCourseIds);
+        setHasPlan(ok);
+
+        // Access is granted either via an active plan OR at least one active course purchase.
+        const hasAnyAccess = ok || activeCourseIds.length > 0;
+        setAccess(hasAnyAccess);
+        setChecking(false);
+
+        if (!hasAnyAccess) {
+          setRows([]);
+          setAttempts([]);
+          setLive([]);
+          return;
+        }
+
+        const [allCourses, myAttempts, liveSessions] = await Promise.all([
+          getAllCourses().catch(() => []),
+          getMyAttempts().catch(() => []),
+          getLiveSessions({ status: false }).catch(() => []),
+        ]);
+        if (cancelled) return;
+
+        const allCourseList = (Array.isArray(allCourses) ? allCourses : []) as ApiCourse[];
+
+        // Plan holders see the full catalog. Course-only buyers only see
+        // (and get progress for) the courses they actually purchased.
+        const courseList = ok
+          ? allCourseList
+          : allCourseList.filter((c) => activeCourseIds.includes(String(c.id)));
+
+        const built = await Promise.all(
+          courseList.map(async (c) => {
+            const p = await courseProgress(c.id);
+            return { ...c, done: p.done, total: p.total, pct: p.pct } as CourseRow;
+          })
+        );
+
+        if (cancelled) return;
+
+        // Plan holders see every live session. Course-only buyers only see
+        // sessions that belong to a course they actually purchased.
+        const visibleLive = ok
+          ? liveSessions
+          : liveSessions.filter((s: any) => {
+              const courseId = String(s.course_id || s.courseId || "");
+              return activeCourseIds.includes(courseId);
+            });
+
+        // Quiz attempts scoped to the visible courses' quizzes only.
+        // (courseProgress doesn't return quiz ids here, so scope by course
+        // ownership directly when there's no plan.)
+        const visibleCourseIds = new Set(courseList.map((c) => String(c.id)));
+        const scopedAttempts = ok
+          ? myAttempts
+          : myAttempts.filter((a: any) => visibleCourseIds.has(String(a.course_id ?? a.courseId ?? "")));
+
+        setRows(built);
+        setAttempts(scopedAttempts);
+        setLive(visibleLive);
+      } catch (err) {
+        console.error("Failed to load student overview data:", err);
+        if (!cancelled) setChecking(false);
       }
-
-      const [allCourses, myAttempts, liveSessions] = await Promise.all([
-        getAllCourses(),
-        getMyAttempts(),
-        getLiveSessions({ status: false }),
-      ]);
-      if (cancelled) return;
-
-      const courseList = (allCourses ?? []) as ApiCourse[];
-      const built = await Promise.all(
-        courseList.map(async (c) => {
-          const p = await courseProgress(c.id);
-          return { ...c, done: p.done, total: p.total, pct: p.pct } as CourseRow;
-        })
-      );
-
-      if (cancelled) return;
-      setRows(built);
-      setAttempts(myAttempts);
-      setLive(liveSessions);
-      setLoading(false);
     })();
 
     return () => {
@@ -149,14 +192,26 @@ function StudentOverview() {
     ? Math.max(0, Math.ceil((new Date(subscription.ends_at).getTime() - Date.now()) / 86400000))
     : null;
 
+  if (checking) {
+    return (
+      <RoleDashboardLayout role="student">
+        <OverviewSkeleton />
+      </RoleDashboardLayout>
+    );
+  }
+
   return (
     <RoleDashboardLayout role="student">
       <PageHeader
         title={t("student.overview")}
-        description={t("student.overviewDesc")}
+        description={
+          hasPlan
+            ? t("student.overviewDesc")
+            : t("student.overviewDescCourseOnly", "An overview of the courses you have purchased.")
+        }
         actions={
           <div className="flex items-center gap-2">
-            {subscription && isSubscriptionActive(subscription) && (
+            {access && hasPlan && (
               <div
                 className={`flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium shadow-sm ${
                   daysLeft !== null && daysLeft <= 7
@@ -165,10 +220,21 @@ function StudentOverview() {
                 }`}
               >
                 <Crown className="h-3.5 w-3.5" />
-                <span className="font-semibold">{subscription.plan_name}</span>
+                <span className="font-semibold">{subscription?.plan_name}</span>
                 <span className="h-3 w-px bg-current opacity-30" />
                 <span className="tabular-nums">
                   {t("student.daysLeft", { count: daysLeft ?? 0 })}
+                </span>
+              </div>
+            )}
+            {access && !hasPlan && (
+              <div className="flex items-center gap-2 rounded-full border border-primary/20 bg-gradient-to-r from-primary/10 to-primary/5 px-3 py-1.5 text-xs font-medium text-primary shadow-sm">
+                <Crown className="h-3.5 w-3.5" />
+                <span className="font-semibold">
+                  {t("student.courseAccessOnly", {
+                    count: ownedCourseIds.length,
+                    defaultValue: `${ownedCourseIds.length} course(s) purchased`,
+                  })}
                 </span>
               </div>
             )}
@@ -181,11 +247,9 @@ function StudentOverview() {
         }
       />
 
-      {loading && <OverviewSkeleton />}
+      {!access && <NoSubscriptionState subscription={subscription} />}
 
-      {!loading && !isSubscriptionActive(subscription) && <NoSubscriptionState subscription={subscription} />}
-
-      {!loading && isSubscriptionActive(subscription) && (
+      {access && (
         <>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <StatCard label={t("student.myCourses")} value={String(rows.length)} icon={BookOpen} />
@@ -198,7 +262,11 @@ function StudentOverview() {
             <StatCard label={t("teacher.liveSessions")} value={String(upcoming.length)} icon={Video} />
             <StatCard label={t("student.quizzesTaken")} value={String(attempts.length)} icon={ListChecks} />
             <StatCard label={t("student.quizAverage")} value={`${avgScore}%`} icon={Award} />
-            <StatCard label={t("student.plan")} value={subscription?.plan_name ?? "—"} icon={Crown} />
+            <StatCard
+              label={t("student.plan")}
+              value={hasPlan ? subscription?.plan_name ?? "—" : t("student.coursesOnly", "Courses only")}
+              icon={Crown}
+            />
           </div>
 
           <div className="grid gap-4 lg:grid-cols-[1.6fr_1fr]">

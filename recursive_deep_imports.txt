@@ -1,0 +1,1027 @@
+=== التقرير الشامل والمتعمق للـ imports ===
+========================================
+الملف: src/routes/about.tsx
+========================================
+ import { createFileRoute } from "@tanstack/react-router";
+ import { Compass, Heart, Sparkles, Users } from "lucide-react";
+ import { useTranslation } from "react-i18next";
+ import { SiteLayout } from "@/components/site/SiteLayout";
+
+========================================
+الملف: src/components/site/SiteLayout.tsx
+========================================
+ import type { ReactNode } from "react";
+ import { Navbar } from "./Navbar";
+ import { Footer } from "./Footer";
+
+========================================
+الملف: src/components/site/Navbar.tsx
+========================================
+ import { Link, useNavigate } from "@tanstack/react-router";
+ import { GraduationCap, Menu, LayoutDashboard, LogOut, Globe, Check } from "lucide-react";
+ import { useState } from "react";
+ import { useTranslation } from "react-i18next";
+ import { useSession } from "@/hooks/useSession";
+ import { clearSession, dashboardPathForRole } from "@/lib/auth";
+ import { toast } from "sonner";
+
+========================================
+الملف: src/components/ui/button.tsx
+========================================
+ import * as React from "react";
+ import { Slot } from "@radix-ui/react-slot";
+ import { cva, type VariantProps } from "class-variance-authority";
+ import { cn } from "@/lib/utils";
+
+========================================
+الملف: src/lib/utils.ts
+========================================
+ import { clsx, type ClassValue } from "clsx";
+ import { twMerge } from "tailwind-merge";
+
+========================================
+الملف: src/components/ui/sheet.tsx
+========================================
+ import * as React from "react";
+ import * as SheetPrimitive from "@radix-ui/react-dialog";
+ import { cva, type VariantProps } from "class-variance-authority";
+ import { X } from "lucide-react";
+ import { cn } from "@/lib/utils";
+
+========================================
+الملف: src/components/ui/avatar.tsx
+========================================
+ import * as React from "react";
+ import * as AvatarPrimitive from "@radix-ui/react-avatar";
+ import { cn } from "@/lib/utils";
+
+========================================
+الملف: src/components/ui/dropdown-menu.tsx
+========================================
+ import * as React from "react";
+ import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu";
+ import { Check, ChevronRight, Circle } from "lucide-react";
+ import { cn } from "@/lib/utils";
+
+========================================
+الملف: src/hooks/useSession.ts
+========================================
+ import { useSyncExternalStore } from "react";
+ import { SESSION_EVENT, SESSION_KEY, type Session } from "@/lib/auth";
+
+========================================
+الملف: src/lib/auth.ts
+========================================
+ import { signInRequest, signUpRequest, signOutRequest, type SignUpResult,forgotPasswordRequest } from "@/services/auth.service";
+ import { ApiError, ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY, SESSION_ID_KEY } from "@/services/api-client";
+ import { setCookie, deleteCookie } from "@/lib/cookies";
+
+========================================
+الملف: src/services/auth.service.ts
+========================================
+ import { api, storeTokens, storeSessionId } from "./api-client";
+ import { REFRESH_TOKEN_KEY } from "./api-client";
+
+========================================
+الملف: src/services/api-client.ts
+========================================
+ import { setCookie, deleteCookie } from "@/lib/cookies";
+
+========================================
+الملف: src/lib/cookies.ts
+========================================
+========================================
+الملف: src/components/site/Footer.tsx
+========================================
+ import { Link } from "@tanstack/react-router";
+ import { GraduationCap, Github, Twitter, Linkedin } from "lucide-react";
+
+========================================
+الملف: src/components/ui/card.tsx
+========================================
+ import * as React from "react";
+ import { cn } from "@/lib/utils";
+
+========================================
+الملف: src/routes/admin.categories.tsx
+========================================
+ import { createFileRoute } from "@tanstack/react-router";
+ import { useEffect, useRef, useState, useCallback } from "react";
+ import { Plus, Tags, Upload, X, Loader2 } from "lucide-react";
+ import { toast } from "sonner";
+ import { useTranslation } from "react-i18next";
+ import { PageHeader } from "@/components/admin/PageHeader";
+ import { DataTable, type Column } from "@/components/admin/DataTable";
+ import {   getAdminCategories,   upsertCategory,   deleteAdminCategory, } from "@/lib/lms-storage";
+
+========================================
+الملف: src/components/admin/PageHeader.tsx
+========================================
+ import type { ReactNode } from "react";
+
+========================================
+الملف: src/components/admin/DataTable.tsx
+========================================
+ import { useMemo, useState } from "react";
+ import type { ReactNode } from "react";
+ import { useTranslation } from "react-i18next";
+ import {   ArrowDown,   ArrowUp,   ArrowUpDown,   ChevronLeft,   ChevronRight,   Loader2,   MoreHorizontal,   Search,   Eye,   Pencil,   Trash2, } from "lucide-react";
+ import { EmptyState } from "@/components/common/EmptyState";
+ import { cn } from "@/lib/utils";
+ import { toast } from "sonner";
+
+========================================
+الملف: src/components/ui/input.tsx
+========================================
+ import * as React from "react";
+ import { cn } from "@/lib/utils";
+
+========================================
+الملف: src/components/ui/table.tsx
+========================================
+ import * as React from "react";
+ import { cn } from "@/lib/utils";
+
+========================================
+الملف: src/components/ui/select.tsx
+========================================
+ import * as React from "react";
+ import * as SelectPrimitive from "@radix-ui/react-select";
+ import { Check, ChevronDown, ChevronUp } from "lucide-react";
+ import { cn } from "@/lib/utils";
+
+========================================
+الملف: src/components/ui/alert-dialog.tsx
+========================================
+ import * as React from "react";
+ import * as AlertDialogPrimitive from "@radix-ui/react-alert-dialog";
+ import { cn } from "@/lib/utils";
+
+========================================
+الملف: src/components/common/EmptyState.tsx
+========================================
+ import type { LucideIcon } from "lucide-react";
+ import { Inbox } from "lucide-react";
+ import type { ReactNode } from "react";
+
+========================================
+الملف: src/components/ui/dialog.tsx
+========================================
+ import * as React from "react";
+ import * as DialogPrimitive from "@radix-ui/react-dialog";
+ import { X } from "lucide-react";
+ import { cn } from "@/lib/utils";
+
+========================================
+الملف: src/components/ui/label.tsx
+========================================
+ import * as React from "react";
+ import * as LabelPrimitive from "@radix-ui/react-label";
+ import { cva, type VariantProps } from "class-variance-authority";
+ import { cn } from "@/lib/utils";
+
+========================================
+الملف: src/lib/lms-storage.ts
+========================================
+ import { courses as baseCourses, students as baseStudents, categories as baseCategories, users as baseUsers, type Category, type Course, type User } from "./mock-data";
+ import { lmsApi,api } from "@/services/api-client";
+
+========================================
+الملف: src/lib/mock-data.ts
+========================================
+========================================
+الملف: src/routes/admin.courses.$id.tsx
+========================================
+ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+ import { useTranslation } from "react-i18next";
+ import {   ArrowLeft,   Users,   Clock,   BookOpen,   Calendar,   GraduationCap,   FileVideo,   FileText,   HardDrive,   Radio,   PlayCircle,   FileQuestion,   ExternalLink,   Globe,   Lock,   Video,   FileDown,   Infinity as InfinityIcon, } from "lucide-react";
+ import { EmptyState } from "@/components/common/EmptyState";
+ import { StatusPill } from "@/components/admin/StatusPill";
+ import {   getTeacherCourseById,   resolvedModules,   getStoredUploads,   getLiveSessionsByCourse, } from "@/lib/lms-storage";
+
+========================================
+الملف: src/components/ui/badge.tsx
+========================================
+ import * as React from "react";
+ import { cva, type VariantProps } from "class-variance-authority";
+ import { cn } from "@/lib/utils";
+
+========================================
+الملف: src/components/ui/tabs.tsx
+========================================
+ import * as React from "react";
+ import * as TabsPrimitive from "@radix-ui/react-tabs";
+ import { cn } from "@/lib/utils";
+
+========================================
+الملف: src/components/admin/StatusPill.tsx
+========================================
+ import { cn } from "@/lib/utils";
+
+========================================
+الملف: src/routes/admin.courses.index.tsx
+========================================
+ import { useEffect, useState, useCallback, useMemo } from "react";
+ import { createFileRoute, useNavigate } from "@tanstack/react-router";
+ import { useTranslation } from "react-i18next";
+ import { Star, BookOpen, Loader2, AlertTriangle } from "lucide-react";
+ import { PageHeader } from "@/components/admin/PageHeader";
+ import { DataTable, type Column } from "@/components/admin/DataTable";
+ import { StatusPill } from "@/components/admin/StatusPill";
+ import {   getAllCourses,   deleteTeacherCourse,   getCourseRatings,   storageKeys,   STORAGE_EVENT, } from "@/lib/lms-storage";
+ import type { CourseRatingSummary } from "@/lib/lms-storage";
+ import { toast } from "sonner";
+
+========================================
+الملف: src/routes/admin.index.tsx
+========================================
+ import { useCallback, useEffect, useMemo, useState } from "react";
+ import { createFileRoute } from "@tanstack/react-router";
+ import {   BookOpen,   DollarSign,   TrendingUp,   Users,   Download,   ArrowUpRight,   ArrowDownRight,   MoreHorizontal,   RefreshCw,   AlertTriangle, } from "lucide-react";
+ import {   Area,   AreaChart,   Bar,   BarChart,   CartesianGrid,   ResponsiveContainer,   Tooltip,   XAxis,   YAxis, } from "recharts";
+ import { useTranslation } from "react-i18next";
+ import { PageHeader } from "@/components/admin/PageHeader";
+ import { StatCard } from "@/components/admin/StatCard";
+ import { StatusPill } from "@/components/admin/StatusPill";
+ import { downloadCsv } from "@/lib/export-csv";
+ import {   getAllCourses,   getAdminUsers,   getAllSubscriptions,   type ProfileData,   type Subscription, } from "@/lib/lms-storage";
+
+========================================
+الملف: src/components/admin/StatCard.tsx
+========================================
+ import type { LucideIcon } from "lucide-react";
+ import { ArrowDownRight, ArrowUpRight } from "lucide-react";
+ import { cn } from "@/lib/utils";
+
+========================================
+الملف: src/components/ui/skeleton.tsx
+========================================
+ import { cn } from "@/lib/utils";
+
+========================================
+الملف: src/lib/export-csv.ts
+========================================
+========================================
+الملف: src/routes/admin.subscriptions.index.tsx
+========================================
+ import { createFileRoute } from "@tanstack/react-router";
+ import { useCallback, useEffect, useState } from "react";
+ import { Clock, Wallet, Users, GraduationCap, Loader2 } from "lucide-react";
+ import { toast } from "sonner";
+ import { useTranslation } from "react-i18next";
+ import { PageHeader } from "@/components/admin/PageHeader";
+ import { DataTable, type Column } from "@/components/admin/DataTable";
+ import { StatusPill } from "@/components/admin/StatusPill";
+ import { StatCard } from "@/components/admin/StatCard";
+ import {   getPendingSubscriptions,   getAllSubscriptions,   approveSubscription,   rejectSubscription,   type Subscription, } from "@/lib/lms-storage";
+ import { SubscriptionReviewDialog } from "@/components/admin/SubscriptionReviewDialog";
+
+========================================
+الملف: src/components/admin/SubscriptionReviewDialog.tsx
+========================================
+ import { useEffect, useState } from "react";
+ import {   CheckCircle2,   XCircle,   Loader2,   FileImage,   FileText,   ExternalLink,   CalendarDays, } from "lucide-react";
+ import { useTranslation } from "react-i18next";
+ import { toast } from "sonner";
+ import type { Subscription } from "@/lib/lms-storage";
+
+========================================
+الملف: src/routes/admin.tsx
+========================================
+ import { createFileRoute, Outlet } from "@tanstack/react-router";
+ import { AdminLayout } from "@/components/admin/AdminLayout";
+ import { requireRole } from "@/lib/route-guards";
+
+========================================
+الملف: src/components/admin/AdminLayout.tsx
+========================================
+ import type { ReactNode } from "react";
+ import { useTranslation } from "react-i18next";
+ import { Bell, Search } from "lucide-react";
+ import { AdminSidebar } from "./AdminSidebar";
+
+========================================
+الملف: src/components/ui/sidebar.tsx
+========================================
+ import * as React from "react";
+ import { Slot } from "@radix-ui/react-slot";
+ import { cva, type VariantProps } from "class-variance-authority";
+ import { PanelLeft } from "lucide-react";
+ import { useIsMobile } from "@/hooks/use-mobile";
+ import { cn } from "@/lib/utils";
+
+========================================
+الملف: src/hooks/use-mobile.tsx
+========================================
+ import * as React from "react";
+
+========================================
+الملف: src/components/ui/separator.tsx
+========================================
+ import * as React from "react";
+ import * as SeparatorPrimitive from "@radix-ui/react-separator";
+ import { cn } from "@/lib/utils";
+
+========================================
+الملف: src/components/ui/tooltip.tsx
+========================================
+ import * as React from "react";
+ import * as TooltipPrimitive from "@radix-ui/react-tooltip";
+ import { cn } from "@/lib/utils";
+
+========================================
+الملف: src/components/admin/AdminSidebar.tsx
+========================================
+ import { Link, useRouterState } from "@tanstack/react-router";
+ import { useTranslation } from "react-i18next";
+ import {   LayoutDashboard, Users, GraduationCap, BookOpen, Tags, CreditCard,   Receipt, BarChart3, Settings as SettingsIcon, UserCog, LogOut, Megaphone, } from "lucide-react";
+ import { clearSession } from "@/lib/auth";
+ import { useNavigate } from "@tanstack/react-router";
+
+========================================
+الملف: src/lib/route-guards.ts
+========================================
+ import { redirect } from "@tanstack/react-router";
+ import {   getSession,   isAuthenticated,   dashboardPathForRole,   type Session,   type SessionRole, } from "@/lib/auth";
+ import { getServerSession } from "@/lib/server-session";
+
+========================================
+الملف: src/lib/server-session.ts
+========================================
+ import { createServerFn } from "@tanstack/react-start";
+ import { getCookie } from "@tanstack/react-start/server";
+ import type { Session } from "@/lib/auth";
+
+========================================
+الملف: src/routes/admin.users.index.tsx
+========================================
+ import { createFileRoute } from "@tanstack/react-router";
+ import { useTranslation } from "react-i18next";
+ import { UserManagement } from "@/components/admin/UserManagement";
+
+========================================
+الملف: src/components/admin/UserManagement.tsx
+========================================
+ import { useCallback, useEffect, useMemo, useState } from "react";
+ import { useTranslation } from "react-i18next";
+ import { toast } from "sonner";
+ import { AlertCircle, RefreshCw } from "lucide-react";
+ import { PageHeader } from "@/components/admin/PageHeader";
+ import { DataTable, type Column } from "@/components/admin/DataTable";
+ import { getAdminUsers, type ProfileData } from "@/lib/lms-storage";
+
+========================================
+الملف: src/routes/auth.callback.tsx
+========================================
+ import { createFileRoute, useNavigate } from "@tanstack/react-router";
+ import { useEffect } from "react";
+ import { storeTokens } from "@/services/api-client";
+ import { fetchProfileRequest } from "@/services/auth.service";
+ import { setSession, dashboardPathForRole } from "@/lib/auth";
+ import { toast } from "sonner";
+
+========================================
+الملف: src/routes/auth.reset-password.tsx
+========================================
+ import { createFileRoute, useNavigate } from "@tanstack/react-router";
+ import { useState } from "react";
+ import { useTranslation } from "react-i18next";
+ import { resetPasswordRequest } from "@/services/auth.service";
+ import { toast } from "sonner";
+ import { Lock } from "lucide-react";
+ import { AuthShell } from "./login"; // بافتراض وجود هذا المكون
+
+========================================
+الملف: src/routes/login.tsx
+========================================
+ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+ import { GraduationCap, ArrowRight } from "lucide-react";
+ import { useTranslation } from "react-i18next";
+ import { useState } from "react";
+ import { dashboardPathForRole } from "@/lib/auth";
+ import { useAuth } from "@/hooks/useAuth";
+ import { toast } from "sonner";
+
+========================================
+الملف: src/hooks/useAuth.ts
+========================================
+ import { useState, useCallback } from "react";
+ import {   signIn as signInLib,   signUp as signUpLib,   signOut as signOutLib,   authErrorMessage,   getSession,   type Session,   type SessionRole,   type SignUpOutcome, } from "@/lib/auth";
+
+========================================
+الملف: src/routes/courses.$id.tsx
+========================================
+ import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
+ import { useState, useEffect, useCallback } from "react";
+ import {   ArrowLeft, BookOpen, Clock, FileText, Globe,   Heart,   HelpCircle, Loader2, Lock, PlayCircle, Star, } from "lucide-react";
+ import { useTranslation } from "react-i18next";
+ import { SiteLayout } from "@/components/site/SiteLayout";
+ import { CourseWishlistButton } from "@/components/client/CourseWishlistButton";
+ import { CourseUnenrollDialog } from "@/components/client/CourseUnenrollDialog";
+ import { CourseCurriculumPreviewModal } from "@/components/client/CourseCurriculumPreviewModal";
+ import { lumenOrderService } from "@/services/lumenOrderService";
+ import { lumenEnrollmentService } from "@/services/lumenEnrollmentService";
+ import {   getTeacherCourseById,   resolvedModules,   getEnrollments,   storageKeys,   STORAGE_EVENT, } from "@/lib/lms-storage";
+ import type { Lesson } from "@/lib/lms-storage";
+ import { useSession } from "@/hooks/useSession";
+
+========================================
+الملف: src/components/client/CourseWishlistButton.tsx
+========================================
+ import { Heart } from "lucide-react";
+ import { cn } from "@/lib/utils";
+ import { useWishlist } from "@/hooks/useWishlist";
+
+========================================
+الملف: src/hooks/useWishlist.ts
+========================================
+ import { useCallback } from "react";
+ import { getWishlist, storageKeys } from "@/lib/lms-storage";
+ import { lumenWishlistService } from "@/services/lumenWishlistService";
+ import { useKeyedStorage } from "./useLmsStorage";
+
+========================================
+الملف: src/services/lumenWishlistService.ts
+========================================
+ import { toast } from "sonner";
+ import { getWishlist, toggleWishlist as toggleWishlistInStorage } from "@/lib/lms-storage";
+
+========================================
+الملف: src/hooks/useLmsStorage.ts
+========================================
+ import { useEffect, useRef, useState } from "react";
+ import { STORAGE_EVENT } from "@/lib/lms-storage";
+
+========================================
+الملف: src/components/client/CourseUnenrollDialog.tsx
+========================================
+ import { useState, type ReactNode } from "react";
+ import { AlertTriangle } from "lucide-react";
+ import { useEnrollments } from "@/hooks/Useenrollments";
+
+========================================
+الملف: src/hooks/Useenrollments.ts
+========================================
+ import { useCallback } from "react";
+ import { getEnrollments, storageKeys } from "@/lib/lms-storage";
+ import { lumenEnrollmentService } from "@/services/lumenEnrollmentService";
+ import type { Course } from "@/lib/mock-data";
+ import { useKeyedStorage } from "./useLmsStorage";
+
+========================================
+الملف: src/services/lumenEnrollmentService.ts
+========================================
+ import { toast } from "sonner";
+ import {   addOrder,   generateInvoice,   generateOrderId,   generateTxId,   getEnrollments,   setEnrollments, } from "@/lib/lms-storage";
+ import type { Course } from "@/lib/mock-data";
+
+========================================
+الملف: src/components/client/CourseCurriculumPreviewModal.tsx
+========================================
+ import { BookOpen, FileText, HelpCircle, Lock, PlayCircle } from "lucide-react";
+ import type { Lesson } from "@/lib/lms-storage";
+
+========================================
+الملف: src/services/lumenOrderService.ts
+========================================
+ import {   addOrder,   clearCheckout,   generateInvoice,   generateOrderId,   generateTxId,   getCheckout,   setCheckout,   type CheckoutDraft,   type Order, } from "@/lib/lms-storage";
+ import type { Course } from "@/lib/mock-data";
+
+========================================
+الملف: src/routes/courses.index.tsx
+========================================
+ import { createFileRoute, Link } from "@tanstack/react-router";
+ import { useMemo, useState, useEffect, useCallback } from "react";
+ import { useTranslation } from "react-i18next";
+ import { Search, Globe2, GraduationCap, CalendarDays, Star } from "lucide-react";
+ import { toast } from "sonner";
+ import { SiteLayout } from "@/components/site/SiteLayout";
+ import { EmptyState } from "@/components/common/EmptyState";
+ import { CourseWishlistButton } from "@/components/client/CourseWishlistButton";
+ import { useAuth } from "@/hooks/useAuth";
+ import { getAdminCategories, getAllCourses, getCourseRatings } from "@/lib/lms-storage";
+ import type { Course } from "@/lib/mock-data";
+ import type { CourseRatingSummary } from "@/lib/lms-storage";
+
+========================================
+الملف: src/routes/dashboard.student.courses.$id.tsx
+========================================
+ import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
+ import { useMemo, useState, useEffect, useCallback, useRef } from "react";
+ import { useTranslation } from "react-i18next";
+ import {   BookOpen,   Check,   CheckCircle2,   ChevronLeft,   Download,   FileText,   Loader2,   ListChecks,   Maximize2,   Pause,   Paperclip,   PlayCircle,   Settings,   ShieldOff,   Video as VideoIcon,   Volume2,   VolumeX, } from "lucide-react";
+ import { RoleDashboardLayout } from "@/components/dashboard/RoleDashboardLayout";
+ import { cn } from "@/lib/utils";
+ import {   getTeacherCourseById,   resolvedModules,   getProgress,   setLessonComplete,   courseProgress,   touchCourse,   getStoredUploads,   getQuizzesByCourse,   type Module,   type Quiz,   type Upload, } from "@/lib/lms-storage";
+ import { CourseRatingCard } from "@/components/course/CourseRatingCard";
+
+========================================
+الملف: src/components/dashboard/RoleDashboardLayout.tsx
+========================================
+ import type { ReactNode, ComponentType } from "react";
+ import { useTranslation } from "react-i18next";
+ import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
+ import {   BarChart3, Bell, BookOpen, ClipboardList, Compass, DollarSign, FileVideo,   GraduationCap, LayoutDashboard, LifeBuoy, ListChecks, LogOut, Award,   Plus, TrendingUp, UploadCloud,   UserCircle, Users, Video, Calendar, FileText, Heart, ShoppingBag, } from "lucide-react";
+ import { useReminders } from "@/hooks/useReminders";
+ import { clearSession, getSession } from "@/lib/auth";
+
+========================================
+الملف: src/hooks/useReminders.ts
+========================================
+ import { useEffect } from "react";
+ import { runReminderSweep } from "@/lib/notification-events";
+
+========================================
+الملف: src/lib/notification-events.ts
+========================================
+ import {   addNotification,   getAssignments,   getLiveSessions,   getProfile,   type NotifAudience,   type Assignment,   type LiveSession, } from "./lms-storage";
+ import { courses as allCourses } from "./mock-data";
+
+========================================
+الملف: src/components/ui/progress.tsx
+========================================
+ import * as React from "react";
+ import * as ProgressPrimitive from "@radix-ui/react-progress";
+ import { cn } from "@/lib/utils";
+
+========================================
+الملف: src/components/course/CourseRatingCard.tsx
+========================================
+ import { useState, useEffect, useCallback } from "react";
+ import { useTranslation } from "react-i18next";
+ import { Star, Loader2, Check } from "lucide-react";
+ import { cn } from "@/lib/utils";
+ import { getCourseRatings, getMyRating, rateCourse, type CourseRatingSummary } from "@/lib/lms-storage";
+
+========================================
+الملف: src/routes/dashboard.student.courses.index.tsx
+========================================
+ import { createFileRoute, Link } from "@tanstack/react-router";
+ import { useTranslation } from "react-i18next";
+ import { useEffect, useMemo, useState } from "react";
+ import {   BookOpen, GraduationCap, Globe2, Lock, Search, Sparkles, ShieldCheck, Heart, Star, } from "lucide-react";
+ import { RoleDashboardLayout } from "@/components/dashboard/RoleDashboardLayout";
+ import { PageHeader } from "@/components/admin/PageHeader";
+ import { EmptyState } from "@/components/common/EmptyState";
+ import {   getAllCourses,   hasActiveAccess,   getMySubscription,   getAdminCategories,   getWishlist,   toggleWishlist,   getCourseRatings,   type Subscription,   type CourseRatingSummary, } from "@/lib/lms-storage";
+
+========================================
+الملف: src/routes/dashboard.student.index.tsx
+========================================
+ import { createFileRoute, Link } from "@tanstack/react-router";
+ import { useEffect, useMemo, useState } from "react";
+ import {   Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis, } from "recharts";
+ import {   Award, BookOpen, CheckCircle2, Clock, Crown, Heart, ListChecks,   Lock, PlayCircle, Sparkles, Video, } from "lucide-react";
+ import { useTranslation } from "react-i18next";
+ import { RoleDashboardLayout } from "@/components/dashboard/RoleDashboardLayout";
+ import { PageHeader } from "@/components/admin/PageHeader";
+ import { StatCard } from "@/components/admin/StatCard";
+ import { revenueSeries } from "@/lib/mock-data";
+ import {   courseProgress,   getAllCourses,   getLiveSessions,   getMyAttempts,   getMySubscription,   hasActiveAccess,   getWishlist,   toggleWishlist,   type LiveSession,   type QuizAttempt,   type Subscription, } from "@/lib/lms-storage";
+ import { JoinLiveSessionDialog } from "@/components/student/JoinLiveSessionDialog";
+
+========================================
+الملف: src/components/student/JoinLiveSessionDialog.tsx
+========================================
+ import { useState } from "react";
+ import { Video, Users, Clock, CheckCircle2 } from "lucide-react";
+ import { LiveService } from "@/services";
+ import type { LiveSession } from "@/lib/lms-storage";
+
+========================================
+الملف: src/services/index.ts
+========================================
+export * as UserService from "./userService";
+export * as CourseService from "./courseService";
+export * as NotificationService from "./notificationService";
+export * as UploadService from "./uploadService";
+export * as QuizService from "./quizService";
+export * as AssignmentService from "./assignmentService";
+export * as LiveService from "./liveService";
+export { WishlistService } from "./wishlist";
+export { EnrollmentService } from "./enrollment";
+export { OrderService } from "./order"; 
+
+========================================
+الملف: src/services/userService.ts
+========================================
+ import {   getAdminUsers,   getAdminUser,   upsertAdminUser,   deleteAdminUser, } from "@/lib/lms-storage";
+ import type { ProfileData } from "@/lib/lms-storage";
+
+========================================
+الملف: src/services/courseService.ts
+========================================
+ import { getTeacherCourses, upsertTeacherCourse, deleteTeacherCourse, getTeacherCourse, resolvedModules, setStoredModules } from "@/lib/lms-storage";
+ import type { Course } from "@/lib/mock-data";
+ import type { Module } from "@/lib/lms-storage";
+
+========================================
+الملف: src/services/notificationService.ts
+========================================
+========================================
+الملف: src/services/uploadService.ts
+========================================
+ import { api, ApiError, API_URL, getAccessToken } from "./api-client";
+
+========================================
+الملف: src/services/quizService.ts
+========================================
+ import {   getQuizzes,   getQuiz as getQuizRaw,   upsertQuiz,   deleteQuiz,   type Quiz,   type Question,   type QuestionAnswer, } from "@/lib/lms-storage";
+
+========================================
+الملف: src/services/assignmentService.ts
+========================================
+ import {   getAssignments,   setAssignmentsList,   upsertAssignment,   deleteAssignment,   addSubmission,   addNotification,   type Assignment, } from "@/lib/lms-storage";
+
+========================================
+الملف: src/services/liveService.ts
+========================================
+ import {   getLiveSessions,   upsertLiveSession,   deleteLiveSession,   endLiveSession,   logActivity,   addNotification,   readJSON,   writeJSON,   type LiveSession, } from "@/lib/lms-storage";
+
+========================================
+الملف: src/services/wishlist.ts
+========================================
+ import {   toggleWishlist as _toggleWishlist,   getWishlist, } from "@/lib/lms-storage";
+
+========================================
+الملف: src/services/enrollment.ts
+========================================
+ import {   toggleEnrollment as _toggleEnrollment,   getEnrollments, } from "@/lib/lms-storage";
+
+========================================
+الملف: src/services/order.ts
+========================================
+ import {   getOrders,   getOrder,   addOrder,   generateOrderId,   generateInvoice,   generateTxId,   type Order, } from "@/lib/lms-storage";
+
+========================================
+الملف: src/routes/dashboard.student.live.tsx
+========================================
+ import { Link, createFileRoute } from "@tanstack/react-router";
+ import { useEffect, useMemo, useState } from "react";
+ import { useTranslation } from "react-i18next";
+ import {   CalendarClock,   Video,   History,   Radio,   Link as LinkIcon,   Loader2,   Lock,   Sparkles,   ShieldCheck,   Filter, } from "lucide-react";
+ import { RoleDashboardLayout } from "@/components/dashboard/RoleDashboardLayout";
+ import { PageHeader } from "@/components/admin/PageHeader";
+ import { EmptyState } from "@/components/common/EmptyState";
+ import {   getLiveSessions,   hasActiveAccess,   getMySubscription,   getAdminCategories,   getAllCourses,   type LiveSession,   type Subscription, } from "@/lib/lms-storage";
+ import { toast } from "sonner";
+
+========================================
+الملف: src/routes/dashboard.student.orders.tsx
+========================================
+ import { createFileRoute } from "@tanstack/react-router";
+ import { useTranslation } from "react-i18next";
+ import { useEffect, useMemo, useState, useRef } from "react";
+ import {   CreditCard,   Upload,   Clock,   CheckCircle2,   XCircle,   Sparkles,   History,   ShieldCheck,   Calendar,   FileImage,   X,   Loader2,   BookOpen,   Heart,   Search,   ShoppingCart, } from "lucide-react";
+ import { RoleDashboardLayout } from "@/components/dashboard/RoleDashboardLayout";
+ import { PageHeader } from "@/components/admin/PageHeader";
+ import { DataTable, type Column } from "@/components/admin/DataTable";
+ import { StatusPill } from "@/components/admin/StatusPill";
+ import { StatCard } from "@/components/admin/StatCard";
+ import { EmptyState } from "@/components/common/EmptyState";
+ import { cn } from "@/lib/utils";
+ import {   submitSubscription,   getMySubscription,   getAllCourses,   getWishlist,   toggleWishlist,   type MySubscriptions,   type Subscription,   type CourseAccess, } from "@/lib/lms-storage";
+ import { toast } from "sonner";
+
+========================================
+الملف: src/routes/dashboard.student.progress.tsx
+========================================
+ import { createFileRoute } from "@tanstack/react-router";
+ import { useEffect, useMemo, useState } from "react";
+ import { useTranslation } from "react-i18next";
+ import {   Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis, } from "recharts";
+ import {   CheckCircle2, Crown, ListChecks, Lock, Sparkles, TrendingUp, } from "lucide-react";
+ import { RoleDashboardLayout } from "@/components/dashboard/RoleDashboardLayout";
+ import { PageHeader } from "@/components/admin/PageHeader";
+ import { StatCard } from "@/components/admin/StatCard";
+ import {   courseProgress,   getAllCourses,   getMyAttempts,   getMySubscription,   hasActiveAccess,   getQuizzesByCourse,   type Quiz,   type QuizAttempt,   type Subscription, } from "@/lib/lms-storage";
+
+========================================
+الملف: src/routes/dashboard.student.quizzes.$id.tsx
+========================================
+ import { createFileRoute, Link } from "@tanstack/react-router";
+ import { useEffect, useMemo, useRef, useState } from "react";
+ import { useTranslation } from "react-i18next";
+ import { CheckCircle2, ChevronLeft, RotateCcw, Timer, XCircle, Loader2 } from "lucide-react";
+ import { RoleDashboardLayout } from "@/components/dashboard/RoleDashboardLayout";
+ import { cn } from "@/lib/utils";
+ import {   getQuiz, getMyAttempts, saveAttempt,   type Quiz, type Question, type QuestionAnswer, type QuizAttempt, } from "@/lib/lms-storage";
+ import { toast } from "sonner";
+
+========================================
+الملف: src/routes/dashboard.student.quizzes.index.tsx
+========================================
+ import { useEffect, useState, useMemo } from "react";
+ import { useTranslation } from "react-i18next";
+ import {   Clock,   ListChecks,   TrendingUp,   Lock,   Sparkles,   ShieldCheck,   CheckCircle2,   Filter, } from "lucide-react";
+ import { RoleDashboardLayout } from "@/components/dashboard/RoleDashboardLayout";
+ import { PageHeader } from "@/components/admin/PageHeader";
+ import { StatCard } from "@/components/admin/StatCard";
+ import { EmptyState } from "@/components/common/EmptyState";
+ import {   getMyAttempts,   getAllCourses,   getQuizzesByCourse,   hasActiveAccess,   getMySubscription,   getAdminCategories,   type Subscription,   type Quiz, } from "@/lib/lms-storage";
+
+========================================
+الملف: src/routes/dashboard.student.tsx
+========================================
+ import { createFileRoute, Outlet } from "@tanstack/react-router";
+ import { requireRole } from "@/lib/route-guards";
+
+========================================
+الملف: src/routes/dashboard.teacher.courses.$id.tsx
+========================================
+ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+ import { useMemo, useState, useEffect } from "react";
+ import { useTranslation } from "react-i18next";
+ import {   ChevronLeft, FileVideo, GripVertical, ListChecks, Loader2, Plus, Save, Trash2, } from "lucide-react";
+ import { RoleDashboardLayout } from "@/components/dashboard/RoleDashboardLayout";
+ import {   getTeacherCourseById, upsertTeacherCourse, getAdminCategories,   resolvedModules, setStoredModules, deleteStoredModule, deleteStoredLesson,   type Module, type Lesson, } from "@/lib/lms-storage";
+ import { toast } from "sonner";
+
+========================================
+الملف: src/components/ui/textarea.tsx
+========================================
+ import * as React from "react";
+ import { cn } from "@/lib/utils";
+
+========================================
+الملف: src/routes/dashboard.teacher.courses.index.tsx
+========================================
+ import { useCallback, useEffect, useMemo, useState } from "react";
+ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+ import { useTranslation } from "react-i18next";
+ import { Plus, BookOpen, Loader2, FolderOpen, Star } from "lucide-react";
+ import { RoleDashboardLayout } from "@/components/dashboard/RoleDashboardLayout";
+ import { PageHeader } from "@/components/admin/PageHeader";
+ import { DataTable, type Column } from "@/components/admin/DataTable";
+ import { StatusPill } from "@/components/admin/StatusPill";
+ import { CourseService } from "@/services";
+ import { getTeacherCourses, getCourseRatings } from "@/lib/lms-storage";
+ import type { CourseRatingSummary } from "@/lib/lms-storage";
+ import { toast } from "sonner";
+
+========================================
+الملف: src/routes/dashboard.teacher.courses.new.tsx
+========================================
+ import { createFileRoute, useNavigate } from "@tanstack/react-router";
+ import { useTranslation } from "react-i18next";
+ import { useState, useEffect } from "react";
+ import { Loader2, Save, Sparkles, Upload, X } from "lucide-react";
+ import { RoleDashboardLayout } from "@/components/dashboard/RoleDashboardLayout";
+ import { PageHeader } from "@/components/admin/PageHeader";
+ import { getAdminCategories, upsertTeacherCourse } from "@/lib/lms-storage";
+ import { toast } from "sonner";
+
+========================================
+الملف: src/routes/dashboard.teacher.courses.tsx
+========================================
+ import { createFileRoute, Outlet } from "@tanstack/react-router";
+
+========================================
+الملف: src/routes/dashboard.teacher.index.tsx
+========================================
+ import { createFileRoute, Link } from "@tanstack/react-router";
+ import { useEffect, useState } from "react";
+ import {   Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis, } from "recharts";
+ import {   ArrowUpRight, BookOpen, Plus, Video, } from "lucide-react";
+ import { useTranslation } from "react-i18next";
+ import { RoleDashboardLayout } from "@/components/dashboard/RoleDashboardLayout";
+ import { PageHeader } from "@/components/admin/PageHeader";
+ import { StatCard } from "@/components/admin/StatCard";
+ import {   getTeacherCourses,   getLiveSessions,   getTeacherProgressRollup,   type LiveSession, } from "@/lib/lms-storage";
+
+========================================
+الملف: src/routes/dashboard.teacher.lessons.tsx
+========================================
+ import { createFileRoute, Link } from "@tanstack/react-router";
+ import { useEffect, useMemo, useState } from "react";
+ import { useTranslation } from "react-i18next";
+ import {   FileVideo, ListChecks, BookOpen, Plus, Loader2, Layers, Clock, ArrowUpRight, Trash2, } from "lucide-react";
+ import { RoleDashboardLayout } from "@/components/dashboard/RoleDashboardLayout";
+ import { PageHeader } from "@/components/admin/PageHeader";
+ import { DataTable, type Column } from "@/components/admin/DataTable";
+ import {   resolvedModules, addStoredLesson, updateStoredLesson, deleteStoredLesson,   getTeacherCourses, storageKeys, STORAGE_EVENT,   type Module, type Lesson, } from "@/lib/lms-storage";
+ import { toast } from "sonner";
+
+========================================
+الملف: src/routes/dashboard.teacher.live.tsx
+========================================
+ import { createFileRoute } from "@tanstack/react-router";
+ import { useEffect, useState } from "react";
+ import { useTranslation } from "react-i18next";
+ import { CalendarPlus, Trash2, Video, Link as LinkIcon, Loader2 } from "lucide-react";
+ import { RoleDashboardLayout } from "@/components/dashboard/RoleDashboardLayout";
+ import { PageHeader } from "@/components/admin/PageHeader";
+ import { EmptyState } from "@/components/common/EmptyState";
+ import {   getLiveSessions,   upsertLiveSession,   deleteLiveSession,   getProfile,   getTeacherCourses,   storageKeys,   STORAGE_EVENT,   type LiveSession, } from "@/lib/lms-storage";
+ import { toast } from "sonner";
+
+========================================
+الملف: src/routes/dashboard.teacher.progress.tsx
+========================================
+ import { createFileRoute } from "@tanstack/react-router";
+ import { useEffect, useState } from "react";
+ import { useTranslation } from "react-i18next";
+ import { RoleDashboardLayout } from "@/components/dashboard/RoleDashboardLayout";
+ import { PageHeader } from "@/components/admin/PageHeader";
+ import { StatCard } from "@/components/admin/StatCard";
+ import { EmptyState } from "@/components/common/EmptyState";
+ import { getTeacherProgressRollup } from "@/lib/lms-storage";
+ import { BookOpen, CheckCircle2, TrendingUp, LineChart } from "lucide-react";
+
+========================================
+الملف: src/routes/dashboard.teacher.quizzes.$id.tsx
+========================================
+ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+ import { useEffect, useState } from "react";
+ import { useTranslation } from "react-i18next";
+ import { ArrowLeft, Plus, Trash2, Loader2 } from "lucide-react";
+ import { toast } from "sonner";
+ import { RoleDashboardLayout } from "@/components/dashboard/RoleDashboardLayout";
+ import { PageHeader } from "@/components/admin/PageHeader";
+ import { EmptyState } from "@/components/common/EmptyState";
+ import { QuestionForm } from "@/components/teacher/quiz/QuestionForm";
+ import { QuestionList } from "@/components/teacher/quiz/QuestionList";
+ import {   getQuiz, upsertQuiz, addQuizQuestion, updateQuizQuestion, removeQuizQuestion,   type Quiz, type Question, } from "@/lib/lms-storage";
+
+========================================
+الملف: src/components/teacher/quiz/QuestionForm.tsx
+========================================
+ import { useState } from "react";
+ import { Plus, Trash2, CircleCheck } from "lucide-react";
+ import { cn } from "@/lib/utils";
+ import type { Question, QuestionType, MatchingPair } from "@/lib/lms-storage";
+
+========================================
+الملف: src/components/ui/switch.tsx
+========================================
+ import * as React from "react";
+ import * as SwitchPrimitives from "@radix-ui/react-switch";
+ import { cn } from "@/lib/utils";
+
+========================================
+الملف: src/components/teacher/quiz/QuestionList.tsx
+========================================
+ import { Pencil, Trash2, ListChecks, CheckCircle2, Shuffle } from "lucide-react";
+ import type { Question } from "@/lib/lms-storage";
+
+========================================
+الملف: src/routes/dashboard.teacher.quizzes.index.tsx
+========================================
+ import { createFileRoute, Link } from "@tanstack/react-router";
+ import { useEffect, useState } from "react";
+ import { useTranslation } from "react-i18next";
+ import { Plus, ListChecks, Trash2, Clock } from "lucide-react";
+ import { RoleDashboardLayout } from "@/components/dashboard/RoleDashboardLayout";
+ import { PageHeader } from "@/components/admin/PageHeader";
+ import { EmptyState } from "@/components/common/EmptyState";
+ import {   getQuizzesByCourse, upsertQuiz, deleteQuiz, getTeacherCourses, storageKeys, STORAGE_EVENT,   type Quiz, } from "@/lib/lms-storage";
+ import { toast } from "sonner";
+
+========================================
+الملف: src/routes/dashboard.teacher.tsx
+========================================
+ import { createFileRoute, Outlet } from "@tanstack/react-router";
+
+========================================
+الملف: src/routes/dashboard.teacher.uploads.tsx
+========================================
+ import { createFileRoute } from "@tanstack/react-router";
+ import { useEffect, useMemo, useRef, useState } from "react";
+ import { useTranslation } from "react-i18next";
+ import {   FileText, FileVideo, Trash2, UploadCloud, Link2, Loader2, CheckCircle2, BookOpen,   AlertTriangle, Eye, ExternalLink, Radio, Plus, Filter, XCircle, ChevronLeft, ChevronRight, Check, } from "lucide-react";
+ import { RoleDashboardLayout } from "@/components/dashboard/RoleDashboardLayout";
+ import { PageHeader } from "@/components/admin/PageHeader";
+ import { useUploads } from "@/hooks/useUploads";
+ import {   resolvedModules,   updateStoredLesson,   addStoredUpload,   // ⚠️ NEEDS TO EXIST in lms-storage.ts — same contract as addStoredUpload   // but takes a video URL instead of a File. Must create an `uploads` row   // (kind: "video", url, course_id, lesson_id?) and return { url }.   // Until it's added, wizard submission for video/recording will fail —   // see submitWizard() below, marked with the same warning.   // addStoredVideoLink,   deleteStoredUpload,   getLiveSessions,   upsertLiveSession,   getTeacherCourses,   storageKeys,   STORAGE_EVENT,   type Module,   type LiveSession, } from "@/lib/lms-storage";
+ import { EmptyState } from "@/components/common/EmptyState";
+ import { toast } from "sonner";
+
+========================================
+الملف: src/hooks/useUploads.ts
+========================================
+ import { useCallback, useEffect, useState } from "react";
+ import { UploadService, type UploadRecord } from "@/services/uploadService";
+
+========================================
+الملف: src/routes/dashboard.tsx
+========================================
+ import { createFileRoute, Outlet } from "@tanstack/react-router";
+ import { requireAuth } from "@/lib/route-guards";
+
+========================================
+الملف: src/routes/forgot-password.tsx
+========================================
+ import { createFileRoute, Link } from "@tanstack/react-router";
+ import { ArrowRight, KeyRound, MailCheck } from "lucide-react";
+ import { useTranslation } from "react-i18next";
+ import { useState } from "react";
+ import { forgotPassword, authErrorMessage } from "@/lib/auth";
+ import { toast } from "sonner";
+ import { AuthShell } from "./login";
+
+========================================
+الملف: src/routes/index.tsx
+========================================
+ import { createFileRoute, Link } from "@tanstack/react-router";
+ import { useTranslation } from "react-i18next";
+ import { useEffect, useState, useCallback } from "react";
+ import { toast } from "sonner";
+ import {   ArrowRight, BookOpen, GraduationCap, ShieldCheck,   Star, Users, Zap, PlayCircle, Award, TrendingUp, Check,   Globe2, CalendarDays, } from "lucide-react";
+ import { SiteLayout } from "@/components/site/SiteLayout";
+ import { CourseWishlistButton } from "@/components/client/CourseWishlistButton";
+ import { useAuth } from "@/hooks/useAuth";
+ import { CourseService } from "@/services";
+ import { getAdminCategories, getAllCourses, getCourseRatings } from "@/lib/lms-storage";
+ import type { Course } from "@/lib/mock-data";
+ import type { CourseRatingSummary } from "@/lib/lms-storage";
+
+========================================
+الملف: src/routes/pricing.tsx
+========================================
+ import { createFileRoute, Link } from "@tanstack/react-router";
+ import { Check, Sparkles } from "lucide-react";
+ import { useTranslation } from "react-i18next";
+ import { SiteLayout } from "@/components/site/SiteLayout";
+ import { cn } from "@/lib/utils";
+
+========================================
+الملف: src/routes/register.tsx
+========================================
+ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+ import { ArrowRight } from "lucide-react";
+ import { useTranslation } from "react-i18next";
+ import { useState } from "react";
+ import { dashboardPathForRole, type SessionRole } from "@/lib/auth";
+ import { useAuth } from "@/hooks/useAuth";
+ import { toast } from "sonner";
+ import { AuthShell } from "./login";
+
+========================================
+الملف: src/components/ui/radio-group.tsx
+========================================
+ import * as React from "react";
+ import * as RadioGroupPrimitive from "@radix-ui/react-radio-group";
+ import { Circle } from "lucide-react";
+ import { cn } from "@/lib/utils";
+
+========================================
+الملف: src/routes/__root.tsx
+========================================
+ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+ import {   Outlet,   Link,   createRootRouteWithContext,   useRouter,   HeadContent,   Scripts, } from "@tanstack/react-router";
+ import { useEffect, useState, type ReactNode } from "react";
+ import { useTranslation, I18nextProvider } from "react-i18next";
+ import i18n from "../lib/i18n";
+ import appCss from "../styles.css?url";
+ import { reportLovableError } from "../lib/lovable-error-reporting";
+
+========================================
+الملف: src/lib/i18n.ts
+========================================
+ import i18n from "i18next";
+ import { initReactI18next } from "react-i18next";
+ import enTranslations from "../locales/en.json";
+ import arTranslations from "../locales/ar.json";
+ import frTranslations from "../locales/fr.json"; // 1. استيراد ملف الفرنسية
+
+========================================
+الملف: src/locales/en.json
+========================================
+========================================
+الملف: src/locales/ar.json
+========================================
+========================================
+الملف: src/locales/fr.json
+========================================
+========================================
+الملف: src/lib/lovable-error-reporting.ts
+========================================
+========================================
+الملف: src/components/ui/sonner.tsx
+========================================
+ import { Toaster as Sonner } from "sonner";
+
+========================================
+الملف: src/router.tsx
+========================================
+ import { QueryClient } from "@tanstack/react-query";
+ import { createRouter } from "@tanstack/react-router";
+ import { routeTree } from "./routeTree.gen";
+
+========================================
+الملف: src/routeTree.gen.ts
+========================================
+========================================
+الملف: src/server.ts
+========================================
+ import "./lib/error-capture";
+ import { consumeLastCapturedError } from "./lib/error-capture";
+ import { renderErrorPage } from "./lib/error-page";
+import "@tanstack/react-start/server-entry";
+
+========================================
+الملف: src/lib/error-capture.ts
+========================================
+========================================
+الملف: src/lib/error-page.ts
+========================================

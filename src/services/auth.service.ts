@@ -13,7 +13,7 @@
 // persist it, every signup will end up with whatever the DB default is
 // (per your doc: "student"), regardless of what the user picked in the UI.
 
-import { api, storeTokens } from "./api-client";
+import { api, storeTokens, storeSessionId } from "./api-client";
 
 import { REFRESH_TOKEN_KEY } from "./api-client";
 export type BackendRole = "admin" | "teacher" | "student";
@@ -41,6 +41,7 @@ interface SignUpData {
 interface SignInData {
   user: { id: string; email: string };
   session: { access_token: string; refresh_token: string };
+  sessionId: string; // ← جديد
 }
 
 export type SignUpResult =
@@ -67,6 +68,7 @@ export async function signUpRequest(params: {
   }
 
   storeTokens(res.data.session.access_token, res.data.session.refresh_token);
+  storeSessionId(res.data?.sessionId); 
   const profile = await fetchProfileRequest();
   return { status: "signed_in", profile };
 }
@@ -77,6 +79,7 @@ export async function signInRequest(params: {
 }): Promise<BackendProfile> {
   const res = await api.post<ApiEnvelope<SignInData>>("/api/auth/signin", params);
   storeTokens(res.data.session.access_token, res.data.session.refresh_token);
+  storeSessionId(res.data.sessionId); // ← جديد
   return fetchProfileRequest();
 }
 

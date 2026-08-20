@@ -13,14 +13,14 @@
 // and show a "check your email" message instead of navigating away.
 
 import { signInRequest, signUpRequest, signOutRequest, type SignUpResult,forgotPasswordRequest } from "@/services/auth.service";
-import { ApiError, ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY } from "@/services/api-client";
-
+import { ApiError, ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY, SESSION_ID_KEY } from "@/services/api-client";
+import { setCookie, deleteCookie } from "@/lib/cookies";
 export type SessionRole = "admin" | "teacher" | "student";
 export type Session = { email: string; name: string; role: SessionRole } | null;
 
 const KEY = "lms.session";
 export const SESSION_EVENT = "lms:session-change";
-
+export const SESSION_KEY = "lms.session"; // بدل const KEY غير محلية
 function emitChange() {
   if (typeof window === "undefined") return;
   window.dispatchEvent(new CustomEvent(SESSION_EVENT));
@@ -29,15 +29,18 @@ function emitChange() {
 export function getSession(): Session {
   if (typeof window === "undefined") return null;
   try {
-    const raw = window.localStorage.getItem(KEY);
+    const raw = window.localStorage.getItem(SESSION_KEY);
     return raw ? (JSON.parse(raw) as Session) : null;
   } catch {
     return null;
   }
 }
 
+const SESSION_COOKIE = "lms.session";
+
 export function setSession(session: NonNullable<Session>) {
   window.localStorage.setItem(KEY, JSON.stringify(session));
+  setCookie(SESSION_COOKIE, JSON.stringify(session));
   emitChange();
 }
 
@@ -45,9 +48,12 @@ export function clearSession() {
   window.localStorage.removeItem(KEY);
   window.localStorage.removeItem(ACCESS_TOKEN_KEY);
   window.localStorage.removeItem(REFRESH_TOKEN_KEY);
+  window.localStorage.removeItem(SESSION_ID_KEY);
+  deleteCookie(SESSION_COOKIE);
+  deleteCookie(ACCESS_TOKEN_KEY);
+  deleteCookie(SESSION_ID_KEY);
   emitChange();
 }
-
 export function inferRole(email: string): SessionRole {
   const e = email.toLowerCase();
   if (e.includes("admin")) return "admin";

@@ -33,10 +33,10 @@ import {
   hasActiveAccess,
   getMySubscription,
   getAdminCategories,
+  getAllCourses,
   type LiveSession,
   type Subscription,
 } from "@/lib/lms-storage";
-import { CourseService } from "@/services"; // Dedicated API service for courses
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/dashboard/student/live")({
@@ -55,6 +55,8 @@ function Live() {
 
   const [checking, setChecking] = useState(true);
   const [access, setAccess] = useState(false);
+  const [hasPlan, setHasPlan] = useState(false);
+  const [ownedCourseIds, setOwnedCourseIds] = useState<string[]>([]);
   const [subscription, setSubscription] = useState<Subscription | null>(null);
 
   const [sessions, setSessions] = useState<LiveSession[]>([]);
@@ -72,24 +74,40 @@ function Live() {
 
   // Resolves a course title dynamically from the loaded course list
   const getCourseTitle = (courseId: string) => {
-    return courses.find((c: any) => c.id === courseId)?.title ?? "—";
+    return courses.find((c: any) => String(c.id) === String(courseId))?.title ?? "—";
   };
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
-        // Fetch subscription, access, categories, and courses together
-        const [sub, ok, catsData, coursesData]:any = await Promise.all([
+        // Fetch subscription, access, categories, and courses together.
+        // NOTE: uses getAllCourses (same source/id shape as the courses &
+        // quizzes pages) instead of CourseService.list(), which returned a
+        // different id shape and caused the course filter to come up empty
+        // for course-only buyers.
+        const [sub, ok, catsData, coursesData]: any = await Promise.all([
           getMySubscription(),
           hasActiveAccess(),
           getAdminCategories().catch(() => []),
-          CourseService.list().catch(() => []),
+          getAllCourses().catch(() => []),
         ]);
 
         if (cancelled) return;
-        setSubscription(sub);
-        setAccess(ok);
+
+        // Store only the plan object, not the whole {plan, courses} shape.
+        setSubscription(sub.plan);
+
+        // Individually purchased courses that are currently active.
+        const activeCourseIds = (sub.courses ?? [])
+          .filter((c: any) => c.status === "active")
+          .map((c: any) => String(c.course_id));
+        setOwnedCourseIds(activeCourseIds);
+        setHasPlan(ok);
+
+        // Access is granted either via an active plan OR at least one active course purchase.
+        const hasAnyAccess = ok || activeCourseIds.length > 0;
+        setAccess(hasAnyAccess);
         setChecking(false);
 
         // Normalize categories
@@ -99,15 +117,31 @@ function Live() {
         setCategories(validCats);
 
         // Normalize courses
-        const validCourses = Array.isArray(coursesData)
-          ? coursesData
-          : coursesData?.courses || coursesData?.data || [];
-        setCourses(validCourses);
+        const allCourses = Array.isArray(coursesData) ? coursesData : [];
 
-        if (ok) {
-          const sessionsData = await getLiveSessions();
+        // Plan holders see the full catalog. Course-only buyers only see
+        // (and filter by) the courses they actually purchased.
+        const visibleCourses = ok
+          ? allCourses
+          : allCourses.filter((c: any) => activeCourseIds.includes(String(c.id)));
+
+        setCourses(visibleCourses);
+
+        if (hasAnyAccess) {
+          const sessionsData = await getLiveSessions().catch(() => []);
           if (cancelled) return;
-          setSessions(Array.isArray(sessionsData) ? sessionsData : []);
+          const allSessions = Array.isArray(sessionsData) ? sessionsData : [];
+
+          // Plan holders see every live session. Course-only buyers only
+          // see sessions that belong to a course they actually purchased.
+          const visibleSessions = ok
+            ? allSessions
+            : allSessions.filter((s: any) => {
+                const courseId = String(s.course_id || s.courseId || "");
+                return activeCourseIds.includes(courseId);
+              });
+
+          setSessions(visibleSessions);
         }
       } catch (err) {
         console.error("Failed to load live page data:", err);
@@ -136,9 +170,9 @@ function Live() {
   const filteredSessions = useMemo(() => {
     return sessions.filter((s: any) => {
       const courseId = s.course_id || s.courseId;
-      const course = courses.find((c: any) => c.id === courseId);
+      const course = courses.find((c: any) => String(c.id) === String(courseId));
 
-      if (selectedCourse !== "all" && courseId !== selectedCourse) {
+      if (selectedCourse !== "all" && String(courseId) !== String(selectedCourse)) {
         return false;
       }
 
@@ -163,17 +197,17 @@ function Live() {
       (s: any) => s && (s.starts_at || (s as any).startsAt)
     );
     const sorted = [...validSessions].sort(
-      (a:any, b:any) =>
+      (a: any, b: any) =>
         parseDate(a.starts_at || (a as any).startsAt).getTime() -
         parseDate(b.starts_at || (b as any).startsAt).getTime()
     );
     return {
-      upcoming: sorted.filter((s:any) => {
+      upcoming: sorted.filter((s: any) => {
         const sessionDate = parseDate(s.starts_at || (s as any).startsAt).getTime();
         return sessionDate + 2 * 3600 * 1000 >= now;
       }),
       past: sorted
-        .filter((s:any) => {
+        .filter((s: any) => {
           const sessionDate = parseDate(s.starts_at || (s as any).startsAt).getTime();
           return sessionDate + 2 * 3600 * 1000 < now;
         })
@@ -226,17 +260,33 @@ function Live() {
 
   return (
     <RoleDashboardLayout role="student">
-      <PageHeader title={t("liveClasses.title")} description={t("liveClasses.description")} />
+      <PageHeader
+        title={t("liveClasses.title")}
+        description={
+          hasPlan
+            ? t("liveClasses.description")
+            : t("liveClasses.descriptionCourseOnly", "Live sessions for the courses you have purchased.")
+        }
+      />
 
       <div className="mb-5 flex items-center gap-2 text-xs text-muted-foreground">
         <ShieldCheck className="h-3.5 w-3.5 text-success" />
         <span>
-          {t("liveClasses.membershipActive")}
-          {subscription?.ends_at && (
+          {hasPlan ? (
             <>
-              {" "}
-              · {t("liveClasses.accessThrough", { date: new Date(subscription.ends_at).toLocaleDateString() })}
+              {t("liveClasses.membershipActive")}
+              {subscription?.ends_at && (
+                <>
+                  {" "}
+                  · {t("liveClasses.accessThrough", { date: new Date(subscription.ends_at).toLocaleDateString() })}
+                </>
+              )}
             </>
+          ) : (
+            t("liveClasses.courseAccessOnly", {
+              count: ownedCourseIds.length,
+              defaultValue: `You have access to ${ownedCourseIds.length} course(s)`,
+            })
           )}
         </span>
       </div>

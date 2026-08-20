@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
-import { Clock, Wallet, Users, Loader2 } from "lucide-react";
+import { Clock, Wallet, Users, GraduationCap, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import { PageHeader } from "@/components/admin/PageHeader";
@@ -55,11 +55,21 @@ function SubsAdmin() {
     load();
   }, [load]);
 
+  const isCourseSub = (r: any) =>
+    !!r.subscription_courses && r.subscription_courses.length > 0;
+
   const pendingCount = rows.filter((r) => r.status === "pending").length;
   const activeCount = rows.filter((r) => r.status === "active").length;
   const totalRevenue = rows
     .filter((r) => r.status === "active")
     .reduce((sum, r) => sum + Number(r.amount || 0), 0);
+
+  // عدد الأشخاص الفريدين اللي عندهم اشتراك كورس نشط (وليس باقة)
+  const courseBuyersCount = new Set(
+    rows
+      .filter((r) => r.status === "active" && isCourseSub(r))
+      .map((r) => r.user_id)
+  ).size;
 
   function openReview(sub: Subscription) {
     setSelected(sub);
@@ -114,8 +124,18 @@ function SubsAdmin() {
     {
       key: "plan_name" as any,
       header: t("admin.subscription.table.plan"),
-      sortable: true,
-      render: (r) => <Badge variant="outline">{r.plan_name}</Badge>,
+      render: (r:any) =>
+        isCourseSub(r) ? (
+          <div className="flex flex-wrap gap-1">
+            {r.subscription_courses!.map((sc:any) => (
+              <Badge key={sc.course_id} variant="secondary">
+                {sc.courses?.title ?? sc.course_id}
+              </Badge>
+            ))}
+          </div>
+        ) : (
+          <Badge variant="outline">{r.plan_name}</Badge>
+        ),
     },
     {
       key: "amount" as any,
@@ -146,7 +166,11 @@ function SubsAdmin() {
       header: t("admin.subscription.table.expires"),
       render: (r) => (
         <span className="text-sm text-muted-foreground">
-          {r.ends_at ? r.ends_at.slice(0, 10) : "—"}
+          {isCourseSub(r)
+            ? t("admin.subscription.table.lifetime")
+            : r.ends_at
+            ? r.ends_at.slice(0, 10)
+            : "—"}
         </span>
       ),
     },
@@ -174,7 +198,7 @@ function SubsAdmin() {
         description={t("admin.subscription.description")}
       />
 
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-4">
         <StatCard
           label={t("admin.subscription.stats.pending")}
           value={String(pendingCount)}
@@ -184,6 +208,11 @@ function SubsAdmin() {
           label={t("admin.subscription.stats.active")}
           value={String(activeCount)}
           icon={Users}
+        />
+        <StatCard
+          label={t("admin.subscription.stats.courseBuyers")}
+          value={String(courseBuyersCount)}
+          icon={GraduationCap}
         />
         <StatCard
           label={t("admin.subscription.stats.revenue")}
@@ -227,11 +256,6 @@ function SubsAdmin() {
           columns={columns}
           searchKeys={["plan_name" as any]}
           filters={[
-            {
-              key: "plan_name" as any,
-              label: t("admin.subscription.filters.plan"),
-              options: ["Monthly", "Quarterly", "Yearly"],
-            },
             {
               key: "status" as any,
               label: t("admin.subscription.filters.status"),

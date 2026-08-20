@@ -34,7 +34,134 @@ function emit(key: string) {
   if (typeof window === "undefined") return;
   window.dispatchEvent(new CustomEvent(STORAGE_EVENT, { detail: { key } }));
 }
+/* ============ Generic sessionStorage cache (per-user, cleared on tab close) ============ */
+function sessionCacheGet<T>(key: string): CacheEntry<T> | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.sessionStorage.getItem(key);
+    return raw ? (JSON.parse(raw) as CacheEntry<T>) : null;
+  } catch {
+    return null;
+  }
+}
 
+function sessionCacheSet<T>(key: string, data: T) {
+  if (typeof window === "undefined") return;
+  try {
+    window.sessionStorage.setItem(key, JSON.stringify({ data, ts: Date.now() } as CacheEntry<T>));
+  } catch {
+    // sessionStorage full/unavailable — تجاهل، الفانكشن الجاية تجيب من جديد
+  }
+}
+
+async function withSessionCache<T>(key: string, ttlMs: number, fetcher: () => Promise<T>): Promise<T> {
+  const cached = sessionCacheGet<T>(key);
+  if (cached && Date.now() - cached.ts < ttlMs) {
+    return cached.data;
+  }
+  const fresh = await fetcher();
+  sessionCacheSet(key, fresh);
+  return fresh;
+}
+
+function sessionCacheInvalidate(key: string) {
+  if (typeof window === "undefined") return;
+  window.sessionStorage.removeItem(key);
+}
+
+function sessionCacheInvalidatePrefix(prefix: string) {
+  if (typeof window === "undefined") return;
+  const toRemove: string[] = [];
+  for (let i = 0; i < window.sessionStorage.length; i++) {
+    const k = window.sessionStorage.key(i);
+    if (k && k.startsWith(prefix)) toRemove.push(k);
+  }
+  toRemove.forEach((k) => window.sessionStorage.removeItem(k));
+}
+
+const SESSION_CACHE_TTL = {
+  short: 60_000,      // دقيقة: progress، لأنها تتبدل كثر
+  medium: 5 * 60_000, // 5 دقائق: profile، subscription، attempts، ratings
+};
+
+const SK = {
+  profile: "session.profile",
+  mySubscription: "session.mySubscription",
+  progress: "session.progress",
+  courseProgress: (courseId: string) => `session.courseProgress:${courseId}`,
+  myAttempts: "session.myAttempts",
+  myRating: (courseId: string) => `session.myRating:${courseId}`,
+};
+/* ============ Generic localStorage cache (cache-then-revalidate) ============ */
+type CacheEntry<T> = { data: T; ts: number };
+
+function cacheGet<T>(key: string): T | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.localStorage.getItem(key);
+    if (!raw) return null;
+    const entry = JSON.parse(raw) as CacheEntry<T>;
+    return entry;
+  } catch {
+    return null;
+  }
+}
+
+function cacheSet<T>(key: string, data: T) {
+  if (typeof window === "undefined") return;
+  const entry: CacheEntry<T> = { data, ts: Date.now() };
+  try {
+    window.localStorage.setItem(key, JSON.stringify(entry));
+  } catch {
+    // localStorage full or unavailable — fail silently, next call just re-fetches
+  }
+}
+
+/** جلب من الكاش إذا مازال صالح (< ttlMs)، وإلا يجيب من fetcher ويخزّن النتيجة. */
+async function withCache<T>(key: string, ttlMs: number, fetcher: () => Promise<T>): Promise<T> {
+  const cached = cacheGet<T>(key) as unknown as CacheEntry<T> | null;
+  if (cached && Date.now() - cached.ts < ttlMs) {
+    return cached.data;
+  }
+  const fresh = await fetcher();
+  cacheSet(key, fresh);
+  return fresh;
+}
+
+/** حذف مفتاح كاش واحد (بعد mutation). */
+function cacheInvalidate(key: string) {
+  if (typeof window === "undefined") return;
+  window.localStorage.removeItem(key);
+}
+
+/** حذف كل مفاتيح الكاش اللي تبدا بـ prefix معين (مفيد وقتاش ما عندكش الـ id بالضبط). */
+function cacheInvalidatePrefix(prefix: string) {
+  if (typeof window === "undefined") return;
+  const toRemove: string[] = [];
+  for (let i = 0; i < window.localStorage.length; i++) {
+    const k = window.localStorage.key(i);
+    if (k && k.startsWith(prefix)) toRemove.push(k);
+  }
+  toRemove.forEach((k) => window.localStorage.removeItem(k));
+}
+
+const CACHE_TTL = {
+  medium: 5 * 60_000, // 5 دقائق: كورسات، كاتيغوريز، مودولز، لسنز، كويزات
+  short: 60_000,       // دقيقة: live sessions (الحالة تتبدل بسرعة)
+};
+const CK = {
+  allCourses: "cache.allCourses",
+  teacherCourses: "cache.teacherCourses",
+  teacherCourse: (id: string) => `cache.teacherCourse:${id}`,
+  adminCategories: "cache.adminCategories",
+  modules: (courseId: string) => `cache.modules:${courseId}`,
+  lessons: (courseId: string) => `cache.lessons:${courseId}`,
+  quizzesByCourse: (courseId: string) => `cache.quizzesByCourse:${courseId}`,
+  quiz: (id: string) => `cache.quiz:${id}`,
+  liveSessions: (params?: { courseId?: string; status?: boolean }) =>
+    `cache.liveSessions:${JSON.stringify(params ?? {})}`,
+  liveSessionsByCourse: (courseId: string) => `cache.liveSessionsByCourse:${courseId}`,
+};
 export function readJSON<T>(key: string, fallback: T): T {
   if (typeof window === "undefined") return fallback;
   try {
@@ -134,24 +261,28 @@ export type QuizAttempt = {
 
 /** جلب كل الكويزات الخاصة بكورس معيّن. */
 export async function getQuizzesByCourse(courseId: string): Promise<Quiz[]> {
-  try {
-    const res: any = await lmsApi.quizzes.listByCourse(courseId);
-    return Array.isArray(res) ? res : res?.data || [];
-  } catch (err) {
-    console.error("Failed to fetch quizzes:", err);
-    return [];
-  }
+  return withCache(CK.quizzesByCourse(courseId), CACHE_TTL.medium, async () => {
+    try {
+      const res: any = await lmsApi.quizzes.listByCourse(courseId);
+      return Array.isArray(res) ? res : res?.data || [];
+    } catch (err) {
+      console.error("Failed to fetch quizzes:", err);
+      return [];
+    }
+  });
 }
 
 /** جلب كويز واحد بالتفاصيل (أسئلة + خيارات). */
 export async function getQuiz(id: string): Promise<Quiz | null> {
-  try {
-    const res: any = await lmsApi.quizzes.get(id);
-    return res?.data || res || null;
-  } catch (err) {
-    console.error(`Failed to fetch quiz ${id}:`, err);
-    return null;
-  }
+  return withCache(CK.quiz(id), CACHE_TTL.medium, async () => {
+    try {
+      const res: any = await lmsApi.quizzes.get(id);
+      return res?.data || res || null;
+    } catch (err) {
+      console.error(`Failed to fetch quiz ${id}:`, err);
+      return null;
+    }
+  });
 }
 
 /** إنشاء أو تحديث كويز (id موجود = update، غير موجود = create). */
@@ -160,6 +291,8 @@ export async function upsertQuiz(q: Partial<Quiz>) {
     if (q.id) {
       const res: any = await lmsApi.quizzes.update(q.id, q);
       emit(K.teacherQuizzes);
+      if (q.courseId) cacheInvalidate(CK.quizzesByCourse(q.courseId));
+      if (q.id) cacheInvalidate(CK.quiz(q.id));
       return res?.data || res;
     } else {
       console.log("q:", q);
@@ -175,16 +308,19 @@ export async function upsertQuiz(q: Partial<Quiz>) {
 export async function addQuizQuestion(quizId: string, question: Omit<Question, "id">) {
   const res: any = await lmsApi.quizzes.addQuestion(quizId, question);
   emit(K.teacherQuizzes);
+  cacheInvalidate(CK.quiz(quizId));
   return res?.data || res;
 }
 export async function updateQuizQuestion(quizId: string, question: Question) {
   const res: any = await lmsApi.quizzes.updateQuestion(quizId, question.id, question);
   emit(K.teacherQuizzes);
+  cacheInvalidate(CK.quiz(quizId));
   return res?.data || res;
 }
 export async function removeQuizQuestion(quizId: string, questionId: string) {
   const res = await lmsApi.quizzes.removeQuestion(quizId, questionId);
   emit(K.teacherQuizzes);
+  cacheInvalidate(CK.quiz(quizId));
   return res;
 }
 /** حذف كويز. */
@@ -192,6 +328,8 @@ export async function deleteQuiz(id: string) {
   try {
     const res = await lmsApi.quizzes.remove(id);
     emit(K.teacherQuizzes);
+    cacheInvalidate(CK.quiz(id));
+    cacheInvalidatePrefix("cache.quizzesByCourse:");
     return res;
   } catch (err) {
     console.error(`Failed to delete quiz ${id}:`, err);
@@ -207,6 +345,7 @@ export async function saveAttempt(
   try {
     const res: any = await lmsApi.quizzes.saveAttempt(quizId, attempt);
     emit(K.quizAttempts);
+    sessionCacheInvalidate(SK.myAttempts);
     logActivity({ kind: "quiz", label: `Quiz submitted · ${attempt.score}/${attempt.total}`, refId: quizId });
     return res?.data || res;
   } catch (err) {
@@ -217,13 +356,15 @@ export async function saveAttempt(
 
 /** جلب كل محاولات الطالب الحالي. */
 export async function getMyAttempts(): Promise<QuizAttempt[]> {
-  try {
-    const res: any = await lmsApi.quizzes.getMyAttempts();
-    return Array.isArray(res) ? res : res?.data || [];
-  } catch (err) {
-    console.error("Failed to fetch attempts:", err);
-    return [];
-  }
+  return withSessionCache(SK.myAttempts, SESSION_CACHE_TTL.medium, async () => {
+    try {
+      const res: any = await lmsApi.quizzes.getMyAttempts();
+      return Array.isArray(res) ? res : res?.data || [];
+    } catch (err) {
+      console.error("Failed to fetch attempts:", err);
+      return [];
+    }
+  });
 }
 
 /* ============ Quiz attempts ============ */
@@ -232,14 +373,16 @@ export async function getMyAttempts(): Promise<QuizAttempt[]> {
 export function getAttempts(): Record<string, QuizAttempt> { return readJSON(K.quizAttempts, {}); }
 /* ============ Admin: All Courses ============ */
 export async function getAllCourses() {
-  try {
-    const res: any = await lmsApi.getallteachers(); // GET /api/courses/ — عام، كل الكورسات
-    if (Array.isArray(res)) return res;
-    return res?.data || res?.courses || [];
-  } catch (err) {
-    console.error("Failed to fetch all courses:", err);
-    return [];
-  }
+  return withCache(CK.allCourses, CACHE_TTL.medium, async () => {
+    try {
+      const res: any = await lmsApi.getallteachers();
+      if (Array.isArray(res)) return res;
+      return res?.data || res?.courses || [];
+    } catch (err) {
+      console.error("Failed to fetch all courses:", err);
+      return [];
+    }
+  });
 }
 
 /* ============ Notifications ============ */
@@ -353,19 +496,22 @@ export interface Module {
 
 // --- Modules ---
 export async function getStoredModules(courseId: string): Promise<Module[] | null> {
-  try {
-    const res: any = await lmsApi.getCourseModules(courseId);
-    return Array.isArray(res) ? res : res?.data || res?.modules || [];
-  } catch (err) {
-    console.error("Failed to fetch modules:", err);
-    return null;
-  }
+  return withCache(CK.modules(courseId), CACHE_TTL.medium, async () => {
+    try {
+      const res: any = await lmsApi.getCourseModules(courseId);
+      return Array.isArray(res) ? res : res?.data || res?.modules || [];
+    } catch (err) {
+      console.error("Failed to fetch modules:", err);
+      return null;
+    }
+  });
 }
 
 export async function setStoredModules(courseId: string, mods: Module[]) {
   try {
     const res = await lmsApi.syncCourseModules(courseId, mods);
     emit(K.teacherModules);
+    cacheInvalidate(CK.modules(courseId));
     return res;
   } catch (err) {
     console.error("Failed to sync modules:", err);
@@ -382,6 +528,7 @@ export async function deleteStoredModule(moduleId: string) {
   try {
     const res = await lmsApi.deleteModule(moduleId);
     emit(K.teacherModules);
+    cacheInvalidatePrefix("cache.modules:");
     return res;
   } catch (err) {
     console.error("Failed to delete module:", err);
@@ -391,13 +538,15 @@ export async function deleteStoredModule(moduleId: string) {
 
 // --- Lessons ---
 export async function getStoredLessons(courseId: string): Promise<Lesson[]> {
-  try {
-    const res: any = await lmsApi.getCourseLessons(courseId);
-    return Array.isArray(res) ? res : res?.data || res?.lessons || [];
-  } catch (err) {
-    console.error("Failed to fetch lessons:", err);
-    return [];
-  }
+  return withCache(CK.lessons(courseId), CACHE_TTL.medium, async () => {
+    try {
+      const res: any = await lmsApi.getCourseLessons(courseId);
+      return Array.isArray(res) ? res : res?.data || res?.lessons || [];
+    } catch (err) {
+      console.error("Failed to fetch lessons:", err);
+      return [];
+    }
+  });
 }
 
 export async function addStoredLesson(moduleId: string, data: Partial<Lesson>) {
@@ -483,24 +632,28 @@ export type LiveSession = {
 
 /** جلب كل الجلسات (فلترة اختيارية عبر courseId/status). */
 export async function getLiveSessions(params?: { courseId?: string; status?: boolean }): Promise<LiveSession[]> {
-  try {
-    const res: any = await lmsApi.live.list(params);
-    return Array.isArray(res) ? res : res?.data || [];
-  } catch (err) {
-    console.error("Failed to fetch live sessions:", err);
-    return [];
-  }
+  return withCache(CK.liveSessions(params), CACHE_TTL.short, async () => {
+    try {
+      const res: any = await lmsApi.live.list(params);
+      return Array.isArray(res) ? res : res?.data || [];
+    } catch (err) {
+      console.error("Failed to fetch live sessions:", err);
+      return [];
+    }
+  });
 }
 
 /** جلب جلسات كورس معيّن. */
 export async function getLiveSessionsByCourse(courseId: string): Promise<LiveSession[]> {
-  try {
-    const res: any = await lmsApi.live.listByCourse(courseId);
-    return Array.isArray(res) ? res : res?.data || [];
-  } catch (err) {
-    console.error("Failed to fetch live sessions for course:", err);
-    return [];
-  }
+  return withCache(CK.liveSessionsByCourse(courseId), CACHE_TTL.short, async () => {
+    try {
+      const res: any = await lmsApi.live.listByCourse(courseId);
+      return Array.isArray(res) ? res : res?.data || [];
+    } catch (err) {
+      console.error("Failed to fetch live sessions for course:", err);
+      return [];
+    }
+  });
 }
 
 /** جلب جلسة واحدة بالتفصيل. */
@@ -520,10 +673,12 @@ export async function upsertLiveSession(l: Partial<LiveSession>) {
     if (l.id) {
       const res: any = await lmsApi.live.update(l.id, l);
       emit(K.teacherLive);
+      cacheInvalidatePrefix("cache.liveSessions");
       return res?.data || res;
     } else {
       const res: any = await lmsApi.live.create(l);
       emit(K.teacherLive);
+      cacheInvalidatePrefix("cache.liveSessions");
       return res?.data || res;
     }
   } catch (err) {
@@ -537,6 +692,7 @@ export async function endLiveSession(id: string) {
   try {
     const res: any = await lmsApi.live.end(id);
     emit(K.teacherLive);
+    cacheInvalidatePrefix("cache.liveSessions");
     return res?.data || res;
   } catch (err) {
     console.error(`Failed to end live session ${id}:`, err);
@@ -549,6 +705,7 @@ export async function deleteLiveSession(id: string) {
   try {
     const res = await lmsApi.live.remove(id);
     emit(K.teacherLive);
+    cacheInvalidatePrefix("cache.liveSessions");
     return res;
   } catch (err) {
     console.error(`Failed to delete live session ${id}:`, err);
@@ -632,19 +789,22 @@ export type ProfileData = {
 
 /** جلب بروفايل المستخدم الحالي من الباك اند. */
 export async function getProfile(): Promise<ProfileData> {
-  try {
-    const res: any = await lmsApi.users.getMe();
-    return res?.profile ?? res ?? { full_name: "", email: "" };
-  } catch (err) {
-    console.error("Failed to fetch profile:", err);
-    return { full_name: "", email: "" };
-  }
+  return withSessionCache(SK.profile, SESSION_CACHE_TTL.medium, async () => {
+    try {
+      const res: any = await lmsApi.users.getMe();
+      return res?.profile ?? res ?? { full_name: "", email: "" };
+    } catch (err) {
+      console.error("Failed to fetch profile:", err);
+      return { full_name: "", email: "" };
+    }
+  });
 }
 
 export async function setProfile(p: Partial<ProfileData>) {
   try {
     const res: any = await lmsApi.users.updateMe(p);
     emit(K.profile);
+    sessionCacheInvalidate(SK.profile);
     return res?.profile ?? res;
   } catch (err) {
     console.error("Failed to update profile:", err);
@@ -697,7 +857,7 @@ export type SubscriptionStatus = "pending" | "active" | "expired" | "cancelled" 
 export type Subscription = {
   id: string;
   user_id?: string;
-  plan_name: string;
+  plan_name: string | null;
   amount: number;
   status: SubscriptionStatus;
   starts_at?: string | null;
@@ -709,16 +869,40 @@ export type Subscription = {
   profiles?: { full_name: string; email: string }; // مرفقة عند جلب admin
 };
 
-/** الطالب: إرسال طلب اشتراك مع إثبات الدفع (صورة الشيك base64). */
+export type CourseAccess = {
+  subscription_id: string;
+  status: SubscriptionStatus;
+  starts_at?: string | null;
+  ends_at?: string | null;
+  course_id: string;
+  course: {
+    id: string;
+    title: string;
+    slug?: string;
+    image_cover?: string;
+  } | null;
+};
+
+export type MySubscriptions = {
+  plan: Subscription | null;
+  courses: CourseAccess[];
+};
+
+/** الطالب: إرسال طلب اشتراك (باقة أو كورسات محددة) مع إثبات الدفع (base64). */
 export async function submitSubscription(data: {
-  plan_name: string;
+  plan_name?: string;
+  course_ids?: string[];
   amount: number;
   payment_proof: string;
 }): Promise<Subscription | null> {
   try {
     const res: any = await lmsApi.subscriptions.submit(data);
     emit(K.subscriptions);
-    logActivity({ kind: "purchase", label: `Subscription requested · ${data.plan_name}`, refId: res?.subscription?.id });
+    sessionCacheInvalidate(SK.mySubscription);
+    const label = data.plan_name
+      ? `Subscription requested · ${data.plan_name}`
+      : `Course subscription requested · ${data.course_ids?.length ?? 0} course(s)`;
+    logActivity({ kind: "purchase", label, refId: res?.subscription?.id });
     return res?.subscription ?? res;
   } catch (err) {
     console.error("Failed to submit subscription:", err);
@@ -726,22 +910,40 @@ export async function submitSubscription(data: {
   }
 }
 
-/** جلب اشتراك المستخدم الحالي. */
-export async function getMySubscription(): Promise<Subscription | null> {
-  try {
-    const res: any = await lmsApi.subscriptions.getMine();
-    return res?.subscription ?? null;
-  } catch (err) {
-    console.error("Failed to fetch my subscription:", err);
-    return null;
-  }
+/** جلب اشتراكات المستخدم الحالية (باقة + كورسات محددة). */
+export async function getMySubscription(): Promise<MySubscriptions> {
+  return withSessionCache(SK.mySubscription, SESSION_CACHE_TTL.medium, async () => {
+    try {
+      const res: any = await lmsApi.subscriptions.getMine();
+      return {
+        plan: res?.subscription?.plan ?? null,
+        courses: Array.isArray(res?.subscription?.courses) ? res?.subscription?.courses : [],
+      };
+    } catch (err) {
+      console.error("Failed to fetch my subscription:", err);
+      return { plan: null, courses: [] };
+    }
+  });
 }
 
-/** التحقق هل عند المستخدم وصول نشط (اشتراك active وما فاتش أجله). */
+// hasActiveAccess و hasAccessToCourse يبقاو بلا تغيير — يستافدو أوتوماتيكيا من الكاش
+
+/** التحقق هل عند المستخدم باقة نشطة (وصول لكل الكورسات). */
 export async function hasActiveAccess(): Promise<boolean> {
-  const sub = await getMySubscription();
-  if (!sub || sub.status !== "active" || !sub.ends_at) return false;
-  return new Date(sub.ends_at) > new Date();
+  const { plan } = await getMySubscription();
+  if (!plan || plan.status !== "active" || !plan.ends_at) return false;
+  return new Date(plan.ends_at) > new Date();
+}
+
+/** التحقق هل عند المستخدم وصول لكورس معين (عبر باقة أو شراء مباشر). */
+export async function hasAccessToCourse(courseId: string): Promise<boolean> {
+  const { plan, courses } = await getMySubscription();
+
+  if (plan && plan.status === "active" && plan.ends_at && new Date(plan.ends_at) > new Date()) {
+    return true;
+  }
+
+  return courses.some((c) => c.course_id === courseId && c.status === "active");
 }
 
 /** admin: جلب الطلبات المعلّقة فقط. */
@@ -766,11 +968,10 @@ export async function getAllSubscriptions(): Promise<Subscription[]> {
   }
 }
 
-/** admin: قبول الاشتراك. */
-/** admin: قبول الاشتراك مع تحديد عدد أيام الوصول. */
-export async function approveSubscription(id: string, days: number): Promise<Subscription | null> {
+/** admin: قبول الاشتراك (days تُستخدم فقط إذا كان اشتراك باقة). */
+export async function approveSubscription(id: string, days?: number): Promise<Subscription | null> {
   try {
-    const res: any = await lmsApi.subscriptions.approve(id, days);
+    const res: any = await lmsApi.subscriptions.approve(id, days as number);
     emit(K.subscriptions);
     return res?.subscription ?? res;
   } catch (err) {
@@ -811,21 +1012,26 @@ export { baseCourses, baseStudents };
 
 /* ============ Admin: categories with images (persisted) ============ */
 export async function getAdminCategories() {
-  return await lmsApi.getCategories();
+  return withCache(CK.adminCategories, CACHE_TTL.medium, async () => {
+    return await lmsApi.getCategories();
+  });
 }
 export function setAdminCategories(list: Category[]) {
   writeJSON(K.adminCategories, list);
 }
 export async function upsertCategory(categoryData: any) {
-  console.log("categoryData:",categoryData)
   if (categoryData.id) {
-    return await lmsApi.updateCategory(categoryData.id, categoryData);
+    const res=await lmsApi.updateCategory(categoryData.id, categoryData)
+    cacheInvalidate(CK.adminCategories);
+    return res;
   }
   return await lmsApi.createCategory(categoryData);
 }
 
 export async function deleteAdminCategory(id: string) {
-  return await lmsApi.deleteCategory(id);
+  const res= await lmsApi.deleteCategory(id);
+  cacheInvalidate(CK.adminCategories);
+  return res;
 }
 /* ============ Orders / purchase flow ============ */
 export type Order = {
@@ -896,38 +1102,39 @@ export function setAdminUsers(list: User[]) { writeJSON(K.adminUsers, list); emi
 
 /* ============ Teacher Courses (persisted) ============ */
 export async function getTeacherCourses() {
-  try {
-    const res: any = await lmsApi.getTeacherCourses();
-    if (Array.isArray(res)) return res;
-    return res?.data || res?.courses || [];
-  } catch (err) {
-    console.error("Failed to fetch teacher courses:", err);
-    return []; // إرجاع مصفوفة فارغة لتجنب انهيار التطبيق
-  }
+  return withCache(CK.teacherCourses, CACHE_TTL.medium, async () => {
+    try {
+      const res: any = await lmsApi.getTeacherCourses();
+      if (Array.isArray(res)) return res;
+      return res?.data || res?.courses || [];
+    } catch (err) {
+      console.error("Failed to fetch teacher courses:", err);
+      return [];
+    }
+  });
 }
 
 export async function getTeacherCourse(id: string) {
-  try {
-    const res: any = await lmsApi.getTeacherCourse(id);
-    return res?.data || res;
-  } catch (err) {
-    console.error(`Failed to fetch course ${id}:`, err);
-    return null;
-  }
+  return withCache(CK.teacherCourse(id), CACHE_TTL.medium, async () => {
+    try {
+      const res: any = await lmsApi.getTeacherCourse(id);
+      return res?.data || res;
+    } catch (err) {
+      console.error(`Failed to fetch course ${id}:`, err);
+      return null;
+    }
+  });
 }
 export async function getTeacherCourseById(id: string) {
-  try {
-    const res: any = await lmsApi.getTeacherCourse(id);
-    return res?.data || res;
-  } catch (err) {
-    console.error(`Failed to fetch course ${id}:`, err);
-    return null;
-  }
+ return getTeacherCourse(id);
 }
 export async function upsertTeacherCourse(data: any) {
   try {
     if (data.id) {
       const res: any = await lmsApi.updateCourse(data.id, data);
+      cacheInvalidate(CK.teacherCourses);
+      cacheInvalidate(CK.allCourses);
+      if (data.id) cacheInvalidate(CK.teacherCourse(data.id));
       return res?.data || res;
     } else {
       const res: any = await lmsApi.createCourse(data);
@@ -941,31 +1148,17 @@ export async function upsertTeacherCourse(data: any) {
 
 export async function deleteTeacherCourse(id: string) {
   try {
-    return await lmsApi.deleteCourse(id);
+    const res= await lmsApi.deleteCourse(id);
+    cacheInvalidate(CK.teacherCourses);
+    cacheInvalidate(CK.allCourses);
+    cacheInvalidate(CK.teacherCourse(id));
+    return res;
   } catch (err) {
     console.error(`Failed to delete course ${id}:`, err);
     throw err;
   }
 }
 
-// /* ============ Teacher Modules override (persisted per course) ============ */
-// export function getStoredModules(courseId: string): Module[] | null {
-//   const all = readJSON<Record<string, Module[]>>(K.teacherModules, {});
-//   return all[courseId] ?? null;
-// }
-// export function setStoredModules(courseId: string, mods: Module[]) {
-//   const all = readJSON<Record<string, Module[]>>(K.teacherModules, {});
-//   all[courseId] = mods;
-//   writeJSON(K.teacherModules, all);
-//   emit(K.teacherModules);
-// }
-// export function resolvedModules(courseId: string): Module[] {
-//   return getStoredModules(courseId) ?? modulesForCourse(courseId);
-// }
-
-/* ============ Teacher Uploads (API-backed) ============ */
-// Mirrors the `uploads` table columns:
-// id, file_url, file_key, file_name, mime_type, file_size, kind, lesson_id, teacher_id, upload_date.
 export type UploadKind = "video" | "pdf";
 
 export type Upload = {
@@ -1258,24 +1451,24 @@ export type Progress = Record<string, Record<string, boolean>>;
 
 /** جلب كل تقدّم المستخدم الحالي (كل الكورسات مجمّعة). */
 export async function getProgress(): Promise<Progress> {
-  try {
-    const res: any = await lmsApi.progress.getMine();
-    return res?.data || {};
-  } catch (err) {
-    console.error("Failed to fetch progress:", err);
-    return {};
-  }
+  return withSessionCache(SK.progress, SESSION_CACHE_TTL.short, async () => {
+    try {
+      const res: any = await lmsApi.progress.getMine();
+      return res?.data || {};
+    } catch (err) {
+      console.error("Failed to fetch progress:", err);
+      return {};
+    }
+  });
 }
 
 /** تحديد/إلغاء إكمال درس. */
 export async function setLessonComplete(courseId: string, lessonId: string, done: boolean) {
   try {
-    const res: any = await lmsApi.progress.setLessonComplete({
-      courseId,
-      lessonId,
-      completed: done,
-    });
+    const res: any = await lmsApi.progress.setLessonComplete({ courseId, lessonId, completed: done });
     emit(K.progress);
+    sessionCacheInvalidate(SK.progress);              // ننضف التقدم العام
+    sessionCacheInvalidate(SK.courseProgress(courseId)); // وننضف تقدم هاذ الكورس بالذات
     if (done) {
       logActivity({ kind: "lesson", label: "Completed a lesson", refId: `${courseId}/${lessonId}` });
     }
@@ -1286,15 +1479,18 @@ export async function setLessonComplete(courseId: string, lessonId: string, done
   }
 }
 
+
 /** ملخص رقمي لكورس واحد: done/total/pct (مباشرة من الباك اند). */
 export async function courseProgress(courseId: string, totalLessons?: number) {
-  try {
-    const res: any = await lmsApi.progress.getCourseSummary(courseId);
-    return res?.data || { done: 0, total: totalLessons ?? 0, pct: 0 };
-  } catch (err) {
-    console.error(`Failed to fetch progress summary for course ${courseId}:`, err);
-    return { done: 0, total: totalLessons ?? 0, pct: 0 };
-  }
+  return withSessionCache(SK.courseProgress(courseId), SESSION_CACHE_TTL.short, async () => {
+    try {
+      const res: any = await lmsApi.progress.getCourseSummary(courseId);
+      return res?.data || { done: 0, total: totalLessons ?? 0, pct: 0 };
+    } catch (err) {
+      console.error(`Failed to fetch progress summary for course ${courseId}:`, err);
+      return { done: 0, total: totalLessons ?? 0, pct: 0 };
+    }
+  });
 }
 /** الأستاذ: ملخص تقدّم الطلبة عبر كل كورساته. */
 export async function getTeacherProgressRollup() {
@@ -1334,19 +1530,22 @@ export async function getCourseRatings(courseId: string): Promise<CourseRatingSu
 
 /** جلب تقييم الطالب الحالي لكورس معين (null إذا ما قيّمش بعد). */
 export async function getMyRating(courseId: string): Promise<CourseRating | null> {
-  try {
-    const res: any = await lmsApi.ratings.getMyRating(courseId);
-    return res?.data ?? null;
-  } catch (err) {
-    console.error(`Failed to fetch my rating for course ${courseId}:`, err);
-    return null;
-  }
+  return withSessionCache(SK.myRating(courseId), SESSION_CACHE_TTL.medium, async () => {
+    try {
+      const res: any = await lmsApi.ratings.getMyRating(courseId);
+      return res?.data ?? null;
+    } catch (err) {
+      console.error(`Failed to fetch my rating for course ${courseId}:`, err);
+      return null;
+    }
+  });
 }
 
 /** إضافة أو تعديل تقييم (upsert) — rating بين 1 و5. */
 export async function rateCourse(courseId: string, rating: number): Promise<CourseRating | null> {
   try {
     const res: any = await lmsApi.ratings.rateCourse(courseId, rating);
+    sessionCacheInvalidate(SK.myRating(courseId));
     return res?.data || null;
   } catch (err) {
     console.error(`Failed to rate course ${courseId}:`, err);
@@ -1358,6 +1557,7 @@ export async function rateCourse(courseId: string, rating: number): Promise<Cour
 export async function deleteRating(courseId: string): Promise<boolean> {
   try {
     await lmsApi.ratings.deleteRating(courseId);
+    sessionCacheInvalidate(SK.myRating(courseId));
     return true;
   } catch (err) {
     console.error(`Failed to delete rating for course ${courseId}:`, err);

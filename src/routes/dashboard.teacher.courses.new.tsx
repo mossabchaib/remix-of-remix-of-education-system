@@ -54,6 +54,7 @@ function CreateCourse() {
     description: "",
     language: "English",
     image_cover: "",
+    price: "",
   });
 
   useEffect(() => {
@@ -104,9 +105,21 @@ function CreateCourse() {
     setForm((prev) => ({ ...prev, image_cover: "" }));
   };
 
+  // Only digits (and empty string) are allowed; DA prices are whole numbers.
+  const handlePriceChange = (raw: string) => {
+    const cleaned = raw.replace(/[^0-9]/g, "");
+    setForm((prev) => ({ ...prev, price: cleaned }));
+  };
+
   const handleSave = async (status: SaveStatus) => {
     if (!form.title.trim()) {
       toast.error(t("teacher.titleRequired"));
+      return;
+    }
+
+    const parsedPrice = form.price.trim() === "" ? 0 : Number(form.price);
+    if (Number.isNaN(parsedPrice) || parsedPrice < 0) {
+      toast.error(t("teacher.invalidPrice", "Please enter a valid price"));
       return;
     }
 
@@ -120,8 +133,7 @@ function CreateCourse() {
         category_id: form.category_id,
         level: form.level,
         language: form.language,
-        // Pricing is not configurable at creation time yet; new courses are created free.
-        price: 0,
+        price: parsedPrice,
         status,
         image_cover: form.image_cover || COVER_GRADIENTS[0],
       };
@@ -221,6 +233,25 @@ function CreateCourse() {
             <div className="space-y-2">
               <Label className="font-medium">{t("teacher.courseLanguage")}</Label>
               <Input value={form.language} onChange={(e) => setForm({ ...form, language: e.target.value })} />
+            </div>
+            <div className="space-y-2">
+              <Label className="font-medium">{t("teacher.coursePrice", "Price")}</Label>
+              <div className="relative">
+                <Input
+                  type="text"
+                  inputMode="numeric"
+                  placeholder="0"
+                  value={form.price}
+                  onChange={(e) => handlePriceChange(e.target.value)}
+                  className="pe-12"
+                />
+                <span className="pointer-events-none absolute inset-y-0 end-3 flex items-center text-xs font-medium text-muted-foreground">
+                  {t("common.currency", "DA")}
+                </span>
+              </div>
+              <p className="text-[11px] text-muted-foreground">
+                {t("teacher.coursePriceHint", "Leave at 0 to publish this course for free.")}
+              </p>
             </div>
           </div>
           <div className="space-y-2">

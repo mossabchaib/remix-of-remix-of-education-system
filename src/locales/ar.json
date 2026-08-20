@@ -247,24 +247,26 @@
     "admin": "المسؤول",
     "copyright": "© {{year}} المنارة للتعلم. جميع الحقوق محفوظة."
   },
-  "admin": {
+ "admin": {
+  "noRatings": "لا توجد تقييمات بعد",
+  "ratingAndUp": "{{value}} نجوم فأكثر",
     "subscription": {
-       "review": {
+      "review": {
         "title": "مراجعة طلب الاشتراك",
-        "subtitle": "طلب {{name}} خطة",
+        "subtitle": "طلب {{name}} الاشتراك في",
         "paymentProof": "إثبات الدفع",
         "paymentProofAlt": "إثبات الدفع",
         "openReceipt": "فتح ملف الإيصال (PDF)",
-        "noProof": "لا يوجد إثبات مرفق",
-        "accessDuration": "مدة الوصول (أيام)",
-        "defaultForPlan": "يومًا — الافتراضي لخطة {{plan}}: {{days}}",
+        "noProof": "لم يتم إرفاق إثبات",
+        "accessDuration": "مدة الوصول (بالأيام)",
+        "defaultForPlan": "يومًا — الافتراضي لـ {{plan}}: {{days}}",
         "alreadyReviewed": "تمت مراجعة هذا الطلب مسبقًا.",
-        "alreadyReviewedOn": "تمت مراجعة هذا الطلب في {{date}}.",
+        "alreadyReviewedOn": "تمت مراجعة هذا الطلب مسبقًا بتاريخ {{date}}.",
         "rejectButton": "رفض",
         "approveButton": "الموافقة لمدة {{days}} يومًا",
-        "defaultStudentName": "الطالب",
+        "defaultStudentName": "طالب",
         "toast": {
-          "approved": "تمت الموافقة — سيحصل {{name}} على {{days}} يومًا من الوصول.",
+          "approved": "تمت الموافقة — سيحصل {{name}} على وصول لمدة {{days}} يومًا.",
           "rejected": "تم رفض طلب الاشتراك."
         },
         "errors": {
@@ -275,21 +277,32 @@
       "title": "الاشتراكات",
       "description": "راجع إثباتات الدفع وأدر وصول الطلاب إلى الخطط.",
       "stats": {
+        "courseBuyers": "مشترو الدورات",
         "pending": "بانتظار المراجعة",
-        "active": "المشتركون النشطون",
+        "active": "الاشتراكات النشطة",
         "revenue": "الإيرادات النشطة"
       },
-      "tabs": { "pending": "قيد الانتظار", "all": "جميع الاشتراكات" },
+      "tabs": {
+        "pending": "قيد الانتظار",
+        "all": "جميع الاشتراكات"
+      },
       "table": {
         "customer": "العميل",
         "plan": "الخطة",
         "amount": "المبلغ",
         "status": "الحالة",
         "submitted": "تاريخ التقديم",
-        "expires": "تاريخ الانتهاء"
+        "expires": "تاريخ الانتهاء",
+        "lifetime": "مدى الحياة"
       },
-      "actions": { "review": "مراجعة", "view": "عرض" },
-      "filters": { "plan": "الخطة", "status": "الحالة" },
+      "actions": {
+        "review": "مراجعة",
+        "view": "عرض"
+      },
+      "filters": {
+        "plan": "الخطة",
+        "status": "الحالة"
+      },
       "empty": {
         "title": "لا توجد اشتراكات",
         "pendingHint": "ستظهر إثباتات الدفع الجديدة هنا للمراجعة.",
@@ -307,9 +320,15 @@
     },
     "categorie": {
       "title": "التصنيفات",
-      "description": "قم بتجميع الدورات في تصنيفات يسهل تصفحها.",
-      "actions": { "new": "تصنيف جديد" },
-      "table": { "image": "الصورة", "name": "الاسم", "slug": "المعرف" },
+      "description": "نظّم الدورات ضمن تصنيفات يسهل تصفحها.",
+      "actions": {
+        "new": "تصنيف جديد"
+      },
+      "table": {
+        "image": "الصورة",
+        "name": "الاسم",
+        "slug": "المعرّف"
+      },
       "toast": {
         "created": "تم إنشاء التصنيف",
         "updated": "تم تحديث التصنيف",
@@ -321,7 +340,7 @@
         "deleteFailed": "فشل حذف التصنيف"
       },
       "deleteDialog": {
-        "title": "هل تريد حذف هذا التصنيف؟",
+        "title": "حذف هذا التصنيف؟",
         "description": "سيتم حذف \"{{name}}\" نهائيًا. لا يمكن التراجع عن هذا الإجراء.",
         "cancel": "إلغاء",
         "confirm": "حذف",
@@ -330,14 +349,14 @@
       "form": {
         "editTitle": "تعديل التصنيف",
         "createTitle": "تصنيف جديد",
-        "editDescription": "قم بتحديث تفاصيل التصنيف وصورته.",
-        "createDescription": "أضف اسمًا ومعرفًا وصورة واضحة.",
+        "editDescription": "حدّث تفاصيل التصنيف والصورة.",
+        "createDescription": "أدخل اسمًا واضحًا ومعرّفًا وصورة.",
         "nameLabel": "الاسم",
         "namePlaceholder": "مثال: تطوير الويب",
-        "slugLabel": "المعرف",
+        "slugLabel": "المعرّف",
         "slugPlaceholder": "يُنشأ تلقائيًا",
         "imageLabel": "الصورة",
-        "imageHint": "PNG أو JPG، بحجم أقصى 800 كيلوبايت.",
+        "imageHint": "PNG أو JPG، بحجم يصل إلى 800 كيلوبايت.",
         "imagePreviewAlt": "معاينة التصنيف",
         "uploadImage": "رفع",
         "replaceImage": "استبدال",
@@ -348,144 +367,144 @@
         "updateButton": "تحديث التصنيف"
       }
     },
-     "untitledCourse": "دورة بدون عنوان",
-      "loadingCourses": "جارٍ تحميل الدورات...",
-      "coursesLoadError": "فشل تحميل الدورات. يرجى المحاولة مرة أخرى.",
-      "courseDeleteError": "فشل حذف الدورة",
-      "deleteCourseTitle": "هل تريد حذف هذه الدورة؟",
-      "deleteCourseDesc": "سيتم حذف \"{{title}}\" نهائيًا. لا يمكن التراجع عن هذا الإجراء.",
-     "userManagement": {
-      "fetchError": "فشل في جلب المستخدمين",
-      "fetchErrorTitle": "تعذّر تحميل المستخدمين",
+    "untitledCourse": "دورة بدون عنوان",
+    "loadingCourses": "جارٍ تحميل الدورات...",
+    "coursesLoadError": "فشل تحميل الدورات. يرجى المحاولة مرة أخرى.",
+    "courseDeleteError": "فشل حذف الدورة",
+    "deleteCourseTitle": "حذف هذه الدورة؟",
+    "deleteCourseDesc": "سيتم حذف \"{{title}}\" نهائيًا. لا يمكن التراجع عن هذا الإجراء.",
+    "userManagement": {
+      "fetchError": "فشل جلب المستخدمين",
+      "fetchErrorTitle": "تعذر تحميل المستخدمين",
       "fetchErrorDescription": "حدث خطأ أثناء جلب قائمة المستخدمين. يرجى المحاولة مرة أخرى.",
       "retry": "إعادة المحاولة",
-      "emptyState": "لا يوجد مستخدمون",
+      "emptyState": "لم يتم العثور على مستخدمين",
       "unnamedUser": "مستخدم بدون اسم",
       "roleFilterLabel": "الدور"
     },
     "roles": {
-      "admin": "مدير",
-      "teacher": "معلم",
+      "admin": "مسؤول",
+      "teacher": "معلّم",
       "student": "طالب"
     },
-    "lumenAdmin": "إدارة المنارة",
+    "lumenAdmin": "مسؤول EL MANARA",
     "workspace": "مساحة العمل",
     "overview": "نظرة عامة",
-    "overviewDesc": "ملخص شامل لمنصتك التعليمية هذا الشهر.",
+    "overviewDesc": "ملخص لمنصة التعلم الخاصة بك هذا الشهر.",
     "totalRevenue": "إجمالي الإيرادات",
     "activeLearners": "المتعلمون النشطون",
     "publishedCourses": "الدورات المنشورة",
-    "completionRate": "نسبة الإنجاز",
+    "completionRate": "معدل الإكمال",
     "revenueTrend": "اتجاه الإيرادات",
     "mrr": "الإيرادات الشهرية المتكررة",
     "newSignups": "التسجيلات الجديدة",
-    "last12Months": "آخر 12 شهراً",
-     "totalCourses": "إجمالي الدورات",
-    "recentPayments": "أحدث المدفوعات",
-    "latestTransactions": "آخر المعاملات المالية",
+    "last12Months": "آخر 12 شهرًا",
+    "recentPayments": "المدفوعات الأخيرة",
+    "latestTransactions": "أحدث المعاملات",
     "newUsers": "المستخدمون الجدد",
-    "recentlyJoined": "الانضمام حديثاً",
+    "recentlyJoined": "المسجلون حديثًا",
     "users": "المستخدمون",
     "usersDesc": "إدارة الطلاب والمعلمين ومسؤولي النظام.",
     "students": "الطلاب",
     "teachers": "المعلمون",
     "catalog": "الكتالوج",
-    "categories": "الفئات والتخصصات",
-    "categoriesDesc": "إدارة فئات وتصنيفات الدورات.",
-    "billing": "الفواتير",
+    "categories": "التصنيفات",
+    "categoriesDesc": "إدارة تصنيفات الدورات ومجموعاتها.",
     "subscriptions": "الاشتراكات",
     "payments": "المدفوعات",
-    "insights": "التقارير والرؤى",
-    "reports": "التقارير الإحصائية",
-    "announcements": "الإعلانات والنشرات",
-    "settings": "إعدادات المنصة",
-    "exitAdmin": "الخروج من الإدارة",
+    "insights": "الإحصاءات",
+    "reports": "التقارير",
+    "announcements": "الإعلانات",
+    "settings": "الإعدادات",
+    "exitAdmin": "الخروج من لوحة الإدارة",
     "courses": "الدورات",
     "course": "الدورة",
-    "instructor": "المدرب",
+    "instructor": "المعلّم",
     "rating": "التقييم",
     "price": "السعر",
     "status": "الحالة",
     "duration": "المدة",
     "lessons": "الدروس",
-    "updated": "تم التحديث",
+    "updated": "آخر تحديث",
     "metadata": "البيانات الوصفية",
-    "slug": "الاسم المختصر",
-    "id": "المعرف",
+    "slug": "المعرّف",
+    "id": "المعرّف",
     "user": "المستخدم",
     "role": "الدور",
-    "joined": "تاريخ الانضمام",
+    "joined": "تاريخ التسجيل",
     "addUser": "إضافة مستخدم",
     "editUser": "تعديل المستخدم",
-    "fillDetails": "أكمل التفاصيل أدناه.",
+    "fillDetails": "املأ التفاصيل أدناه.",
     "fullName": "الاسم الكامل",
-    "allFieldsRequired": "أكمل جميع الحقول المطلوبة.",
+    "allFieldsRequired": "يرجى ملء جميع الحقول المطلوبة.",
     "userUpdated": "تم تحديث المستخدم",
-    "userAdded": "تم إضافة المستخدم",
+    "userAdded": "تمت إضافة المستخدم",
     "userDeleted": "تم حذف المستخدم",
     "courseDetails": "تفاصيل الدورة",
-    "courseDetailsDesc": "عرض للقراءة فقط لمعلومات الدورة.",
-    "courseNotFound": "لم يتم العثور على الدورة",
+    "courseDetailsDesc": "عرض معلومات الدورة للقراءة فقط.",
+    "courseNotFound": "الدورة غير موجودة",
     "backToCourses": "العودة إلى الدورات",
     "paymentDetails": "تفاصيل الدفع",
-    "paymentDetailsDesc": "عرض للقراءة فقط لمعلومات المعاملة.",
-    "subtotal": "الإجمالي الفرعي",
+    "paymentDetailsDesc": "عرض معلومات المعاملة للقراءة فقط.",
+    "subtotal": "المبلغ الفرعي",
     "tax": "الضريبة",
-    "totalCharged": "الإجمالي المدفوع",
-    "reportsDesc": "افهم ما الذي ينجح وأين يجب الاستثمار لاحقاً.",
+    "totalCharged": "إجمالي المبلغ المدفوع",
+    "reportsDesc": "افهم ما يعمل بشكل جيد وأين تستثمر لاحقًا.",
     "revenue": "الإيرادات",
-    "enrollments": "الالتحاقات",
-    "completions": "الإكمالات",
+    "enrollments": "التسجيلات",
+    "completions": "الدورات المكتملة",
     "avgProgress": "متوسط التقدم",
     "revenueVsSignups": "الإيرادات مقابل التسجيلات",
-    "enrollmentsByCategory": "الالتحاقات حسب الفئة",
-    "topCategories": "أفضل الفئات من حيث الالتحاق",
-    "settingsDesc": "إدارة مساحة العمل والهوية والتفضيلات.",
-    "studentsDesc": "الطلاب المسجلون عبر منصتك.",
-    "teachersDesc": "المعلمون الذين ينشئون الدورات ويقدمونها.",
-    "coursesDesc": "تصفح الكتالوج التعليمي.",
+    "enrollmentsByCategory": "التسجيلات حسب التصنيف",
+    "topCategories": "أكثر التصنيفات من حيث التسجيلات",
+    "settingsDesc": "إدارة مساحة العمل والعلامة التجارية والتفضيلات.",
+    "studentsDesc": "المتعلمون المسجلون في منصتك.",
+    "teachersDesc": "المعلمون الذين ينشئون ويقدمون الدورات.",
+    "coursesDesc": "تصفح كتالوج الدورات التعليمية.",
     "paymentsDesc": "المعاملات التي تمت معالجتها عبر جميع الخطط.",
     "workspaceSection": "مساحة العمل",
-    "workspaceSectionDesc": "التفاصيل العامة الظاهرة للمتعلمين.",
+    "workspaceSectionDesc": "المعلومات العامة الظاهرة للمتعلمين.",
     "workspaceName": "اسم مساحة العمل",
     "supportEmail": "البريد الإلكتروني للدعم",
     "tagline": "الشعار",
-    "enableDarkMode": "تفعيل الوضع الداكن افتراضياً",
-    "darkModeDescription": "يطبق على المتعلمين الجدد.",
+    "enableDarkMode": "تفعيل الوضع الداكن افتراضيًا",
+    "darkModeDescription": "يُطبق على المتعلمين الجدد.",
     "primaryColor": "اللون الأساسي",
     "logoUrl": "رابط الشعار",
     "currentPlan": "الخطة الحالية",
-    "upgradeEnterprise": "الترقية إلى خطة المؤسسات",
+    "upgradeEnterprise": "الترقية إلى Enterprise",
     "manageSeats": "إدارة المقاعد",
-    "weeklySummary": "ملخص أسبوعي",
+    "weeklySummary": "الملخص الأسبوعي",
     "paymentReceipts": "إيصالات الدفع",
     "productUpdates": "تحديثات المنتج",
     "general": "عام",
-    "branding": "الهوية",
+    "branding": "العلامة التجارية",
+    "billing": "الفوترة",
     "notifications": "الإشعارات",
-    "categoriesPageTitle": "الفئات",
-    "categoriesPageDesc": "جمع الدورات في فئات يمكن تصفحها.",
-    "newCategory": "فئة جديدة",
-    "editCategory": "تعديل الفئة",
-    "categoryFormDesc": "امنحها اسمًا واضحًا واسمًا مختصرًا وصورة.",
+    "categoriesPageTitle": "التصنيفات",
+    "categoriesPageDesc": "نظّم الدورات ضمن تصنيفات يسهل تصفحها.",
+    "newCategory": "تصنيف جديد",
+    "editCategory": "تعديل التصنيف",
+    "categoryFormDesc": "أدخل اسمًا واضحًا ومعرّفًا وصورة.",
     "categoryName": "الاسم",
-    "categorySlug": "الاسم المختصر",
-    "autoGenerated": "مولد تلقائيًا",
+    "categorySlug": "المعرّف",
+    "autoGenerated": "يُنشأ تلقائيًا",
     "image": "الصورة",
     "replace": "استبدال",
     "upload": "رفع",
     "remove": "إزالة",
     "color": "اللون",
-    "noRevenueData": "لا توجد إيرادات مسجلة بعد.",
-    "noSignupData": "لا توجد تسجيلات جديدة بعد.",
-    "noPaymentsYet": "لا توجد مدفوعات بعد.",
-    "noUsersYet": "لا يوجد مستخدمون بعد.",
+    "totalCourses": "إجمالي الدورات",
+    "imageUnder800": "يجب أن يكون حجم الصورة أقل من 800 كيلوبايت",
+    "noRevenueData": "لم يتم تسجيل أي إيرادات حتى الآن.",
+    "noSignupData": "لم يتم تسجيل أي تسجيلات حتى الآن.",
+    "noPaymentsYet": "لا توجد مدفوعات حتى الآن.",
+    "noUsersYet": "لا يوجد مستخدمون حتى الآن.",
     "unknownUser": "غير معروف",
     "untitledPlan": "خطة بدون عنوان",
     "subscriptionMethod": "اشتراك",
     "loadErrorTitle": "تعذر تحميل بيانات لوحة التحكم",
-    "loadErrorDesc": "حدث خطأ أثناء جلب بيانات لوحتك. يرجى المحاولة مرة أخرى."
-
+    "loadErrorDesc": "حدث خطأ أثناء جلب بيانات لوحة التحكم. يرجى المحاولة مرة أخرى."
   },
   "teacher": {
     "courseRemoveError": "فشل حذف الدورة. يرجى المحاولة مرة أخرى.",
@@ -766,7 +785,7 @@
       "lifetimeAccess": "وصول كامل مدى الحياة"
     }
   },
-   "builder": {
+ "builder": {
     "backToCourses": "الدورات",
     "subtitle": "قم ببناء هيكل الدورة وتفاصيلها.",
     "published": "منشورة",
@@ -1381,6 +1400,7 @@
       "cancelled": "ملغى"
     },
     "stats": {
+      "courseBuyers":"مشتري الدورات التدريبية",
       "currentPlan": "الخطة الحالية",
       "daysRemaining": "الأيام المتبقية",
       "status": "الحالة"
@@ -1643,7 +1663,134 @@
           "recording": "تسجيل جلسة مباشرة"
         }
       }
+    },
+    "subscriptionPaged": {
+    "title": "اشتراكي",
+    "description": "إدارة اشتراكك وشراء الكورسات بشكل فردي.",
+
+    "tabs": {
+      "plans": "الباقات",
+      "courses": "الكورسات"
+    },
+
+    "stats": {
+      "currentPlan": "الباقة الحالية",
+      "daysRemaining": "الأيام المتبقية",
+      "status": "الحالة"
+    },
+
+    "status": {
+      "active": "نشط",
+      "pending": "قيد الانتظار",
+      "expired": "منتهي",
+      "rejected": "مرفوض",
+      "cancelled": "ملغى"
+    },
+
+    "pending": {
+      "title": "الاشتراك قيد الانتظار",
+      "description": "اشتراكك في انتظار الموافقة."
+    },
+
+    "noActive": {
+      "title": "لا يوجد اشتراك نشط",
+      "description": "ليس لديك حالياً أي اشتراك نشط."
+    },
+
+    "history": "سجل المشتريات",
+
+    "empty": {
+      "title": "لا يوجد سجل للمشتريات",
+      "description": "لم تقم بأي عملية شراء بعد."
+    },
+
+    "table": {
+      "plan": "الباقة",
+      "amount": "المبلغ",
+      "status": "الحالة",
+      "submitted": "تاريخ الإرسال",
+      "expires": "تاريخ الانتهاء",
+      "course": "الكورس",
+      "lifetime": "مدى الحياة"
+    },
+
+    "badges": {
+      "save14": "وفر 14%",
+      "bestValue": "أفضل قيمة"
+    },
+
+    "plans": {
+      "monthly": {
+        "name": "شهري",
+        "period": "شهر",
+        "features": {
+          "0": "وصول كامل إلى جميع الكورسات",
+          "1": "تعلم بالوتيرة التي تناسبك",
+          "2": "تتبع تقدمك"
+        }
+      },
+      "quarterly": {
+        "name": "ربع سنوي",
+        "period": "3 أشهر",
+        "features": {
+          "0": "وصول كامل إلى جميع الكورسات",
+          "1": "تعلم بالوتيرة التي تناسبك",
+          "2": "تتبع تقدمك"
+        }
+      },
+      "yearly": {
+        "name": "سنوي",
+        "period": "سنة",
+        "features": {
+          "0": "وصول كامل إلى جميع الكورسات",
+          "1": "تعلم بالوتيرة التي تناسبك",
+          "2": "تتبع تقدمك"
+        }
+      }
+    },
+
+    "choosePlan": "اختر {{plan}}",
+
+    "toast": {
+      "invalidFileType": "نوع الملف غير صالح. يرجى رفع صورة أو ملف PDF.",
+      "fileTooLarge": "الملف كبير جداً. الحد الأقصى للحجم هو 5 ميغابايت.",
+      "missingProof": "يرجى رفع إثبات الدفع.",
+      "submitSuccess": "تم إرسال طلبك بنجاح.",
+      "submitError": "فشل إرسال طلبك."
+    },
+
+    "dialog": {
+      "title": "الاشتراك في الباقة {{plan}}",
+      "descriptionPrefix": "المبلغ:",
+      "descriptionSuffix": "يرجى رفع إثبات الدفع.",
+      "cancel": "إلغاء",
+      "submitting": "جارٍ الإرسال...",
+      "submit": "إرسال",
+      "uploadPrompt": "رفع إثبات الدفع",
+      "uploadHint": "صورة أو PDF، بحد أقصى 5 ميغابايت",
+      "proofAlt": "إثبات الدفع"
+    },
+
+    "courses": {
+      "title": "الكورسات الفردية",
+      "description": "اشترِ الكورسات بشكل فردي بدون اشتراك.",
+      "browse": "تصفح الكورسات",
+      "ownedLabel": "الكورسات التي تملكها:",
+      "toast": {
+        "selectAtLeastOne": "يرجى اختيار كورس واحد على الأقل."
+      },
+      "dialog": {
+        "title": "اختيار الكورسات",
+        "description": "اختر الكورسات التي تريد شراءها.",
+        "empty": "لا توجد كورسات متاحة.",
+        "selectedCount": "تم اختيار {{count}}",
+        "proceed": "المتابعة إلى الدفع"
+      },
+      "paymentDialog": {
+        "title": "شراء {{count}} كورسات"
+      }
     }
+  }
 
   
 }

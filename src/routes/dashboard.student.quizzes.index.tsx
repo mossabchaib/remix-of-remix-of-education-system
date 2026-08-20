@@ -46,6 +46,8 @@ function StudentQuizzes() {
 
   const [checking, setChecking] = useState(true);
   const [access, setAccess] = useState(false);
+  const [hasPlan, setHasPlan] = useState(false);
+  const [ownedCourseIds, setOwnedCourseIds] = useState<string[]>([]);
   const [subscription, setSubscription] = useState<Subscription | null>(null);
 
   const [loading, setLoading] = useState(true);
@@ -62,7 +64,7 @@ function StudentQuizzes() {
     let cancelled = false;
     (async () => {
       try {
-        const [sub, ok, catsData, courseListRaw]:any= await Promise.all([
+        const [sub, ok, catsData, courseListRaw]: any = await Promise.all([
           getMySubscription(),
           hasActiveAccess(),
           getAdminCategories().catch(() => []),
@@ -70,8 +72,20 @@ function StudentQuizzes() {
         ]);
 
         if (cancelled) return;
-        setSubscription(sub);
-        setAccess(ok);
+
+        // Store only the plan object, not the whole {plan, courses} shape.
+        setSubscription(sub.plan);
+
+        // Individually purchased courses that are currently active.
+        const activeCourseIds = (sub.courses ?? [])
+          .filter((c: any) => c.status === "active")
+          .map((c: any) => c.course_id);
+        setOwnedCourseIds(activeCourseIds);
+        setHasPlan(ok);
+
+        // Access is granted either via an active plan OR at least one active course purchase.
+        const hasAnyAccess = ok || activeCourseIds.length > 0;
+        setAccess(hasAnyAccess);
         setChecking(false);
 
         // Normalize categories (API may return an array or a wrapped object)
@@ -79,14 +93,21 @@ function StudentQuizzes() {
         setCategories(validCats);
 
         // Normalize courses
-        const courseList = Array.isArray(courseListRaw) ? courseListRaw : [];
-        setCourses(courseList);
+        const allCourses = Array.isArray(courseListRaw) ? courseListRaw : [];
 
-        if (ok) {
+        // Plan holders see quizzes for the full catalog. Course-only buyers
+        // see quizzes only for the courses they actually purchased.
+        const visibleCourses = ok
+          ? allCourses
+          : allCourses.filter((c: any) => activeCourseIds.includes(c.id));
+
+        setCourses(visibleCourses);
+
+        if (hasAnyAccess) {
           setLoading(true);
           const [results, myAttemptsList] = await Promise.all([
             Promise.all(
-              courseList.map(async (c: any) => {
+              visibleCourses.map(async (c: any) => {
                 const qz = await getQuizzesByCourse(c.id).catch(() => []);
                 return (Array.isArray(qz) ? qz : []).map((q: any) => ({
                   ...q,
@@ -213,33 +234,47 @@ function StudentQuizzes() {
 
   return (
     <RoleDashboardLayout role="student">
-      <PageHeader title={t("studentQuizzes.title")} description={t("studentQuizzes.description")} />
+      <PageHeader
+        title={t("studentQuizzes.title")}
+        description={
+          hasPlan
+            ? t("studentQuizzes.description")
+            : t("studentQuizzes.descriptionCourseOnly", "Quizzes for the courses you have purchased.")
+        }
+      />
 
       <div className="mb-5 flex items-center gap-2 text-xs text-muted-foreground">
         <ShieldCheck className="h-3.5 w-3.5 text-success" />
         <span>
-          {t("studentQuizzes.membershipActive")}
-          {subscription?.ends_at && (
+          {hasPlan ? (
             <>
-              {" "}
-              · {t("studentQuizzes.accessThrough", { date: new Date(subscription.ends_at).toLocaleDateString() })}
+              {t("studentQuizzes.membershipActive")}
+              {subscription?.ends_at && (
+                <>
+                  {" "}
+                  · {t("studentQuizzes.accessThrough", { date: new Date(subscription.ends_at).toLocaleDateString() })}
+                </>
+              )}
             </>
+          ) : (
+            t("studentQuizzes.courseAccessOnly", {
+              count: ownedCourseIds.length,
+              defaultValue: `You have access to ${ownedCourseIds.length} course(s)`,
+            })
           )}
         </span>
       </div>
-
-      {/* Category / course filter bar */}
-     
 
       <div className="grid gap-4 sm:grid-cols-3">
         <StatCard label={t("studentQuizzes.stats.available")} value={String(filteredQuizzes.length)} icon={ListChecks} />
         <StatCard label={t("studentQuizzes.stats.attempts")} value={String(taken)} icon={Clock} />
         <StatCard label={t("studentQuizzes.stats.averageScore")} value={`${avg}%`} icon={TrendingUp} />
       </div>
-         <div className="mb-6 flex flex-wrap items-center gap-3 rounded-lg  border-border/60 bg-card p-3 shadow-sm">
+
+      {/* Category / course filter bar */}
+      <div className="mb-6 mt-6 flex flex-wrap items-center gap-3 rounded-lg border-border/60 bg-card p-3 shadow-sm">
         <div className="mr-1 flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
           <Filter className="h-3.5 w-3.5" />
-          
         </div>
 
         {/* Category filter */}
@@ -278,6 +313,7 @@ function StudentQuizzes() {
           </SelectContent>
         </Select>
       </div>
+
       {loading ? (
         <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {Array.from({ length: 3 }).map((_, i) => (
@@ -305,7 +341,7 @@ function StudentQuizzes() {
         </div>
       ) : (
         <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {filteredQuizzes.map((q:any) => {
+          {filteredQuizzes.map((q: any) => {
             const a = attempts[q.id];
             const isCompleted = !!a;
             const score = a?.score ?? 0;

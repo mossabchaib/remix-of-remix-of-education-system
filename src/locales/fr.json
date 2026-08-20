@@ -257,68 +257,87 @@
     "copyright": "© {{year}} EL MANARA Learning, Inc. Tous droits réservés."
   },
   "admin": {
+    "noRatings": "Aucune note pour le moment",
+  "ratingAndUp": "{{value}} étoiles et plus",
     "subscription": {
       "review": {
         "title": "Examiner la demande d'abonnement",
         "subtitle": "{{name}} a demandé le",
-        "paymentProof": "Justificatif de paiement",
-        "paymentProofAlt": "Justificatif de paiement",
-        "openReceipt": "Ouvrir le fichier du reçu (PDF)",
-        "noProof": "Aucun justificatif joint",
+        "paymentProof": "Preuve de paiement",
+        "paymentProofAlt": "Preuve de paiement",
+        "openReceipt": "Ouvrir le reçu (PDF)",
+        "noProof": "Aucune preuve jointe",
         "accessDuration": "Durée d'accès (jours)",
         "defaultForPlan": "jours — par défaut pour {{plan}} : {{days}}",
         "alreadyReviewed": "Cette demande a déjà été examinée.",
         "alreadyReviewedOn": "Cette demande a déjà été examinée le {{date}}.",
-        "rejectButton": "Rejeter",
+        "rejectButton": "Refuser",
         "approveButton": "Approuver pour {{days}} jours",
         "defaultStudentName": "Étudiant",
         "toast": {
           "approved": "Approuvé — {{name}} bénéficie de {{days}} jours d'accès.",
-          "rejected": "Demande d'abonnement rejetée."
+          "rejected": "La demande d'abonnement a été refusée."
         },
         "errors": {
           "approveFailed": "Échec de l'approbation de l'abonnement.",
-          "rejectFailed": "Échec du rejet de l'abonnement."
+          "rejectFailed": "Échec du refus de l'abonnement."
         }
       },
       "title": "Abonnements",
-      "description": "Examinez les justificatifs de paiement et gérez l'accès des étudiants aux forfaits.",
+      "description": "Examinez les preuves de paiement et gérez l'accès des étudiants aux forfaits.",
       "stats": {
-        "pending": "En attente d'examen",
-        "active": "Abonnés actifs",
+        "courseBuyers": "Acheteurs de cours",
+        "pending": "En attente de vérification",
+        "active": "Abonnements actifs",
         "revenue": "Revenus actifs"
       },
-      "tabs": { "pending": "En attente", "all": "Tous les abonnements" },
+      "tabs": {
+        "pending": "En attente",
+        "all": "Tous les abonnements"
+      },
       "table": {
         "customer": "Client",
         "plan": "Forfait",
         "amount": "Montant",
         "status": "Statut",
         "submitted": "Date de soumission",
-        "expires": "Date d'expiration"
+        "expires": "Date d'expiration",
+        "lifetime": "À vie"
       },
-      "actions": { "review": "Examiner", "view": "Voir" },
-      "filters": { "plan": "Forfait", "status": "Statut" },
+      "actions": {
+        "review": "Examiner",
+        "view": "Voir"
+      },
+      "filters": {
+        "plan": "Forfait",
+        "status": "Statut"
+      },
       "empty": {
         "title": "Aucun abonnement",
-        "pendingHint": "Les nouveaux justificatifs de paiement apparaîtront ici pour examen.",
+        "pendingHint": "Les nouvelles preuves de paiement apparaîtront ici pour vérification.",
         "allHint": "Les abonnements apparaîtront ici dès que les étudiants s'abonneront."
       },
       "toast": {
         "approved": "Abonnement approuvé",
-        "rejected": "Abonnement rejeté"
+        "rejected": "Abonnement refusé"
       },
       "errors": {
         "loadFailed": "Échec du chargement des abonnements",
         "approveFailed": "Échec de l'approbation de l'abonnement",
-        "rejectFailed": "Échec du rejet de l'abonnement"
+        "rejectFailed": "Échec du refus de l'abonnement"
       }
     },
     "categorie": {
       "title": "Catégories",
-      "description": "Regroupez les cours en catégories consultables.",
-      "actions": { "new": "Nouvelle catégorie" },
-      "table": { "image": "Image", "name": "Nom", "slug": "Slug" },
+      "description": "Regroupez les cours dans des catégories faciles à parcourir.",
+      "actions": {
+        "new": "Nouvelle catégorie"
+      },
+      "table": {
+        "image": "Image",
+        "name": "Nom",
+        "slug": "Slug"
+      },
       "toast": {
         "created": "Catégorie créée",
         "updated": "Catégorie mise à jour",
@@ -331,7 +350,7 @@
       },
       "deleteDialog": {
         "title": "Supprimer cette catégorie ?",
-        "description": "Cela supprimera définitivement \"{{name}}\". Cette action est irréversible.",
+        "description": "« {{name}} » sera définitivement supprimée. Cette action est irréversible.",
         "cancel": "Annuler",
         "confirm": "Supprimer",
         "deleting": "Suppression..."
@@ -339,18 +358,18 @@
       "form": {
         "editTitle": "Modifier la catégorie",
         "createTitle": "Nouvelle catégorie",
-        "editDescription": "Mettez à jour les détails et l'image de la catégorie.",
+        "editDescription": "Mettez à jour les informations et l'image de la catégorie.",
         "createDescription": "Donnez-lui un nom, un slug et une image clairs.",
         "nameLabel": "Nom",
-        "namePlaceholder": "ex. Développement web",
+        "namePlaceholder": "ex. Développement Web",
         "slugLabel": "Slug",
         "slugPlaceholder": "généré automatiquement",
         "imageLabel": "Image",
         "imageHint": "PNG ou JPG, jusqu'à 800 Ko.",
         "imagePreviewAlt": "Aperçu de la catégorie",
-        "uploadImage": "Téléverser",
+        "uploadImage": "Télécharger",
         "replaceImage": "Remplacer",
-        "removeImage": "Retirer",
+        "removeImage": "Supprimer",
         "imageTooLarge": "L'image doit faire moins de 800 Ko",
         "saving": "Enregistrement...",
         "saveButton": "Enregistrer la catégorie",
@@ -362,7 +381,7 @@
     "coursesLoadError": "Échec du chargement des cours. Veuillez réessayer.",
     "courseDeleteError": "Échec de la suppression du cours",
     "deleteCourseTitle": "Supprimer ce cours ?",
-    "deleteCourseDesc": "\"{{title}}\" sera définitivement supprimé. Cette action est irréversible.",
+    "deleteCourseDesc": "« {{title}} » sera définitivement supprimé. Cette action est irréversible.",
     "userManagement": {
       "fetchError": "Échec de la récupération des utilisateurs",
       "fetchErrorTitle": "Impossible de charger les utilisateurs",
@@ -377,29 +396,29 @@
       "teacher": "Enseignant",
       "student": "Étudiant"
     },
-    "lumenAdmin": "Administration EL MANARA",
+    "lumenAdmin": "Administrateur EL MANARA",
     "workspace": "Espace de travail",
-    "overview": "Aperçu",
+    "overview": "Vue d'ensemble",
     "overviewDesc": "Un aperçu de votre plateforme d'apprentissage ce mois-ci.",
-    "totalRevenue": "Revenu total",
+    "totalRevenue": "Revenus totaux",
     "activeLearners": "Apprenants actifs",
     "publishedCourses": "Cours publiés",
     "completionRate": "Taux de complétion",
-    "revenueTrend": "Tendance des revenus",
-    "mrr": "Revenu mensuel récurrent",
+    "revenueTrend": "Évolution des revenus",
+    "mrr": "Revenus mensuels récurrents",
     "newSignups": "Nouvelles inscriptions",
     "last12Months": "12 derniers mois",
     "recentPayments": "Paiements récents",
     "latestTransactions": "Dernières transactions",
     "newUsers": "Nouveaux utilisateurs",
-    "recentlyJoined": "Récemment inscrits",
+    "recentlyJoined": "Inscrits récemment",
     "users": "Utilisateurs",
-    "usersDesc": "Gérez les étudiants, les enseignants et les administrateurs système.",
+    "usersDesc": "Gérez les étudiants, les enseignants et les administrateurs du système.",
     "students": "Étudiants",
     "teachers": "Enseignants",
     "catalog": "Catalogue",
     "categories": "Catégories",
-    "categoriesDesc": "Gérez les catégories et regroupements de cours.",
+    "categoriesDesc": "Gérez les catégories et les regroupements de cours.",
     "subscriptions": "Abonnements",
     "payments": "Paiements",
     "insights": "Analyses",
@@ -409,8 +428,8 @@
     "exitAdmin": "Quitter l'administration",
     "courses": "Cours",
     "course": "Cours",
-    "instructor": "Instructeur",
-    "rating": "Note",
+    "instructor": "Enseignant",
+    "rating": "Évaluation",
     "price": "Prix",
     "status": "Statut",
     "duration": "Durée",
@@ -421,10 +440,10 @@
     "id": "ID",
     "user": "Utilisateur",
     "role": "Rôle",
-    "joined": "Inscrit",
+    "joined": "Inscrit le",
     "addUser": "Ajouter un utilisateur",
     "editUser": "Modifier l'utilisateur",
-    "fillDetails": "Remplissez les détails ci-dessous.",
+    "fillDetails": "Remplissez les informations ci-dessous.",
     "fullName": "Nom complet",
     "allFieldsRequired": "Veuillez remplir tous les champs obligatoires.",
     "userUpdated": "Utilisateur mis à jour",
@@ -435,25 +454,25 @@
     "courseNotFound": "Cours introuvable",
     "backToCourses": "Retour aux cours",
     "paymentDetails": "Détails du paiement",
-    "paymentDetailsDesc": "Vue en lecture seule des informations de transaction.",
+    "paymentDetailsDesc": "Vue en lecture seule des informations de la transaction.",
     "subtotal": "Sous-total",
     "tax": "Taxe",
     "totalCharged": "Total facturé",
     "reportsDesc": "Comprenez ce qui fonctionne et où investir ensuite.",
     "revenue": "Revenus",
     "enrollments": "Inscriptions",
-    "completions": "Complétions",
-    "avgProgress": "Progression moy.",
+    "completions": "Cours terminés",
+    "avgProgress": "Progression moyenne",
     "revenueVsSignups": "Revenus vs inscriptions",
     "enrollmentsByCategory": "Inscriptions par catégorie",
-    "topCategories": "Meilleures catégories par inscription",
+    "topCategories": "Catégories les plus populaires",
     "settingsDesc": "Gérez votre espace de travail, votre image de marque et vos préférences.",
-    "studentsDesc": "Apprenants inscrits sur l'ensemble de votre plateforme.",
-    "teachersDesc": "Instructeurs qui créent et dispensent des cours.",
-    "coursesDesc": "Parcourez le catalogue de formation.",
-    "paymentsDesc": "Transactions traitées sur tous les forfaits.",
+    "studentsDesc": "Apprenants inscrits sur votre plateforme.",
+    "teachersDesc": "Enseignants qui créent et dispensent des cours.",
+    "coursesDesc": "Parcourez le catalogue de formations.",
+    "paymentsDesc": "Transactions effectuées pour tous les forfaits.",
     "workspaceSection": "Espace de travail",
-    "workspaceSectionDesc": "Détails publics visibles par vos apprenants.",
+    "workspaceSectionDesc": "Informations publiques visibles par vos apprenants.",
     "workspaceName": "Nom de l'espace de travail",
     "supportEmail": "E-mail du support",
     "tagline": "Slogan",
@@ -462,7 +481,7 @@
     "primaryColor": "Couleur principale",
     "logoUrl": "URL du logo",
     "currentPlan": "Forfait actuel",
-    "upgradeEnterprise": "Passer à Entreprise",
+    "upgradeEnterprise": "Passer à Enterprise",
     "manageSeats": "Gérer les places",
     "weeklySummary": "Résumé hebdomadaire",
     "paymentReceipts": "Reçus de paiement",
@@ -472,7 +491,7 @@
     "billing": "Facturation",
     "notifications": "Notifications",
     "categoriesPageTitle": "Catégories",
-    "categoriesPageDesc": "Regroupez les cours en catégories consultables.",
+    "categoriesPageDesc": "Regroupez les cours dans des catégories faciles à parcourir.",
     "newCategory": "Nouvelle catégorie",
     "editCategory": "Modifier la catégorie",
     "categoryFormDesc": "Donnez-lui un nom, un slug et une image clairs.",
@@ -481,10 +500,10 @@
     "autoGenerated": "Généré automatiquement",
     "image": "Image",
     "replace": "Remplacer",
-    "upload": "Téléverser",
-    "remove": "Retirer",
+    "upload": "Télécharger",
+    "remove": "Supprimer",
     "color": "Couleur",
-    "totalCourses": "Total des cours",
+    "totalCourses": "Nombre total de cours",
     "imageUnder800": "L'image doit faire moins de 800 Ko",
     "noRevenueData": "Aucun revenu enregistré pour le moment.",
     "noSignupData": "Aucune inscription enregistrée pour le moment.",
@@ -771,7 +790,7 @@
       "lifetimeAccess": "Accès complet à vie"
     }
   },
-  "builder": {
+ "builder": {
     "backToCourses": "Cours",
     "subtitle": "Créez la structure et les détails de votre cours.",
     "published": "Publié",
@@ -1644,5 +1663,132 @@
           "recording": "Enregistrement de session en direct"
         }
       }
+    },
+     "subscriptionPaged": {
+    "title": "Mon abonnement",
+    "description": "Gérez votre abonnement et achetez des cours individuellement.",
+
+    "tabs": {
+      "plans": "Abonnements",
+      "courses": "Cours"
+    },
+
+    "stats": {
+      "currentPlan": "Abonnement actuel",
+      "daysRemaining": "Jours restants",
+      "status": "Statut"
+    },
+
+    "status": {
+      "active": "Actif",
+      "pending": "En attente",
+      "expired": "Expiré",
+      "rejected": "Rejeté",
+      "cancelled": "Annulé"
+    },
+
+    "pending": {
+      "title": "Abonnement en attente",
+      "description": "Votre abonnement est en attente d'approbation."
+    },
+
+    "noActive": {
+      "title": "Aucun abonnement actif",
+      "description": "Vous n'avez actuellement aucun abonnement actif."
+    },
+
+    "history": "Historique des achats",
+
+    "empty": {
+      "title": "Aucun historique d'achat",
+      "description": "Vous n'avez encore effectué aucun achat."
+    },
+
+    "table": {
+      "plan": "Abonnement",
+      "amount": "Montant",
+      "status": "Statut",
+      "submitted": "Soumis le",
+      "expires": "Expire le",
+      "course": "Cours",
+      "lifetime": "À vie"
+    },
+
+    "badges": {
+      "save14": "Économisez 14 %",
+      "bestValue": "Meilleure offre"
+    },
+
+    "plans": {
+      "monthly": {
+        "name": "Mensuel",
+        "period": "mois",
+        "features": {
+          "0": "Accès complet à tous les cours",
+          "1": "Apprenez à votre propre rythme",
+          "2": "Suivez votre progression"
+        }
+      },
+      "quarterly": {
+        "name": "Trimestriel",
+        "period": "3 mois",
+        "features": {
+          "0": "Accès complet à tous les cours",
+          "1": "Apprenez à votre propre rythme",
+          "2": "Suivez votre progression"
+        }
+      },
+      "yearly": {
+        "name": "Annuel",
+        "period": "an",
+        "features": {
+          "0": "Accès complet à tous les cours",
+          "1": "Apprenez à votre propre rythme",
+          "2": "Suivez votre progression"
+        }
+      }
+    },
+
+    "choosePlan": "Choisir {{plan}}",
+
+    "toast": {
+      "invalidFileType": "Type de fichier invalide. Veuillez envoyer une image ou un PDF.",
+      "fileTooLarge": "Le fichier est trop volumineux. La taille maximale est de 5 Mo.",
+      "missingProof": "Veuillez envoyer votre preuve de paiement.",
+      "submitSuccess": "Votre demande a été envoyée avec succès.",
+      "submitError": "Échec de l'envoi de votre demande."
+    },
+
+    "dialog": {
+      "title": "Souscrire à l'abonnement {{plan}}",
+      "descriptionPrefix": "Montant :",
+      "descriptionSuffix": "Veuillez envoyer votre preuve de paiement.",
+      "cancel": "Annuler",
+      "submitting": "Envoi en cours...",
+      "submit": "Envoyer",
+      "uploadPrompt": "Envoyer la preuve de paiement",
+      "uploadHint": "Image ou PDF, maximum 5 Mo",
+      "proofAlt": "Preuve de paiement"
+    },
+
+    "courses": {
+      "title": "Cours individuels",
+      "description": "Achetez des cours individuellement sans abonnement.",
+      "browse": "Parcourir les cours",
+      "ownedLabel": "Vos cours :",
+      "toast": {
+        "selectAtLeastOne": "Veuillez sélectionner au moins un cours."
+      },
+      "dialog": {
+        "title": "Sélectionner des cours",
+        "description": "Choisissez les cours que vous souhaitez acheter.",
+        "empty": "Aucun cours disponible.",
+        "selectedCount": "{{count}} sélectionné(s)",
+        "proceed": "Continuer vers le paiement"
+      },
+      "paymentDialog": {
+        "title": "Acheter {{count}} cours"
+      }
     }
+  }
 }

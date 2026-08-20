@@ -16,11 +16,14 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
+import { clearSession } from "@/lib/auth";
+import { useNavigate } from "@tanstack/react-router";
 
 export function AdminSidebar() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const { t, i18n } = useTranslation();
   const isRTL = i18n.dir() === "rtl";
+  const navigate = useNavigate();
   const main = [
     { to: "/admin", label: t("dashboard_common.overview"), icon: LayoutDashboard, exact: true },
     { to: "/admin/users", label: t("admin.users"), icon: UserCog },
@@ -83,17 +86,19 @@ export function AdminSidebar() {
         <Section label={t("dashboard_common.overview")} items={main} />
         <Section label={t("dashboard_common.catalog")} items={catalog} />
         <Section label={t("dashboard_common.billing")} items={billing} />
-        {/* <Section label={t("dashboard_common.insights")} items={insights} /> */}
       </SidebarContent>
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild>
-              <Link to="/" className="flex items-center gap-2">
-                <LogOut className="h-4 w-4 shrink-0" />
-                <span>{t("dashboard_common.exitAdmin")}</span>
-              </Link>
-            </SidebarMenuButton>
+            <SidebarMenuButton
+                              tooltip="Sign out"
+                              onClick={() => {
+                                clearSession();
+                                navigate({ to: "/" });
+                              }}
+                            >
+                              <LogOut className="h-4 w-4" /> <span>{t("common.signOut")}</span>
+                            </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>

@@ -46,6 +46,7 @@ export const Route = createFileRoute("/courses/$id")({
     }
   },
   head: ({ loaderData }) => {
+    console.log("loaderData:", loaderData)
     const course = loaderData?.course?.course;
     return {
       meta: course
@@ -106,6 +107,7 @@ function formatMinutes(total: number) {
 function CourseDetail() {
   const { t } = useTranslation();
   const loaderData = Route.useLoaderData();
+  console.log("loaderDataloaderData:",loaderData)
   const [rawCourse, setRawCourse] = useState<any>(loaderData?.course || null);
   const modules = loaderData?.modules ?? [];
 
