@@ -516,6 +516,22 @@
     "loadErrorDesc": "Something went wrong while fetching your dashboard. Please try again."
   },
   "teacher": {
+    "savingDraft": "Saving draft...",
+"publishing": "Publishing...",
+"loadingCategories": "Loading categories...",
+"invalidImageType": "Invalid file type, please choose an image file.",
+"imageTooLarge": "Image is too large. Max size is 5MB.",
+"createCourseError": "Failed to create course. Please try again.",
+"removeImage": "Remove image",
+"coverImageSizeHint": "Max 5MB. Supported formats: JPG, PNG",
+"categoriesLoadError": "Failed to load categories.",
+"invalidPrice": "Please enter a valid price.",
+"coursePriceHint": "Leave at 0 to publish this course for free.",
+    "levels": {
+    "beginner": "Beginner",
+    "intermediate": "Intermediate",
+    "advanced": "Advanced"
+  },
     "courseRemoveError": "Failed to remove the course. Please try again.",
     "coursesLoadError": "Failed to load your courses. Please try again.",
     "coursesLoading": "Loading your courses...",
@@ -1608,12 +1624,17 @@
     "errorGeneric": "Failed to update password, please try again later."
   },
   "teacherUploads": {
+    "loading": "Loading…",
      "title": "Files & Content",
     "description": "Manage and upload lesson content and educational materials",
     "coursePlaceholder": "Select a course",
     "destination": {
       "lessonField": "Select a lesson",
+       "liveSession": "Live Session",
       "module": "Select a module"
+    },
+     "preview": {
+      "openNewTab": "Open in new tab"
     },
      "deleteDialog": {
       "cancel": "Cancel",

@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState, useEffect, useCallback } from "react";
+import { useMemo, useState, useEffect, useCallback, useDeferredValue, memo } from "react";
 import { useTranslation } from "react-i18next";
-import { Search, Globe2, GraduationCap, CalendarDays, Star } from "lucide-react";
+import { Search, Globe2, GraduationCap, CalendarDays, Star, ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { Input } from "@/components/ui/input";
@@ -30,11 +30,123 @@ export const Route = createFileRoute("/courses/")({
   component: CoursesPage,
 });
 
+const PAGE_SIZE = 12;
+
 function isNewCourse(createdAt?: string) {
   if (!createdAt) return false;
   const days = (Date.now() - new Date(createdAt).getTime()) / (1000 * 60 * 60 * 24);
   return days <= 14;
 }
+
+/* ------------------------------------------------------------------ */
+/* CourseCard: extracted + memoized. Combined with pagination, this    */
+/* means typing in the search box only ever has to render up to        */
+/* PAGE_SIZE cards, and a card whose own data hasn't changed is         */
+/* skipped entirely by React.memo's shallow prop comparison. Props are  */
+/* kept to primitives/strings/pre-computed values — never the raw       */
+/* course object or the `t` function — so identity stays stable across  */
+/* unrelated re-renders (e.g. the search input changing).               */
+/* ------------------------------------------------------------------ */
+type CourseCardProps = {
+  id: string;
+  title: string;
+  subtitle?: string;
+  coverStyle: React.CSSProperties;
+  categoryLabel: string;
+  isNew: boolean;
+  isAuthenticated: boolean;
+  instructorLine: string;
+  level?: string;
+  language?: string;
+  createdAtLabel?: string;
+  ratingAverage?: number;
+  ratingCount?: number;
+  ratingsLoaded: boolean;
+};
+
+const CourseCard = memo(function CourseCard({
+  id,
+  title,
+  subtitle,
+  coverStyle,
+  categoryLabel,
+  isNew,
+  isAuthenticated,
+  instructorLine,
+  level,
+  language,
+  createdAtLabel,
+  ratingAverage,
+  ratingCount,
+  ratingsLoaded,
+}: CourseCardProps) {
+  return (
+    <Card className="group relative flex h-full flex-col overflow-hidden border-border/60 shadow-card transition-all duration-300 hover:-translate-y-1 hover:shadow-elegant">
+      <Link to="/courses/$id" params={{ id }} className="block">
+        <div className="relative h-40 overflow-hidden" style={coverStyle}>
+          {/* Subtle gradient under the image for badge/text contrast */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-black/0 to-black/0 transition-opacity duration-300 group-hover:from-black/45" />
+          <div className="absolute inset-x-3 top-3 flex items-center justify-between gap-2">
+            <Badge className="capitalize bg-background/90 text-foreground backdrop-blur-sm hover:bg-background/90">
+              {categoryLabel}
+            </Badge>
+            {isNew && (
+              <Badge className="border-none bg-primary text-primary-foreground">New</Badge>
+            )}
+          </div>
+        </div>
+      </Link>
+
+      {isAuthenticated && (
+        <CourseWishlistButton courseId={id} courseTitle={title} className="absolute right-3 top-3" />
+      )}
+
+      <Link to="/courses/$id" params={{ id }} className="flex flex-1 flex-col">
+        <div className="flex flex-1 flex-col p-5">
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-sm text-muted-foreground">{instructorLine}</p>
+            {ratingsLoaded && ratingCount ? (
+              <span className="flex shrink-0 items-center gap-1 text-xs font-medium text-foreground">
+                <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+                {(ratingAverage ?? 0).toFixed(1)}
+              </span>
+            ) : null}
+          </div>
+          <h3 className="mt-1 line-clamp-2 text-base font-semibold leading-snug transition-colors group-hover:text-primary">
+            {title}
+          </h3>
+
+          {subtitle && (
+            <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">
+              {subtitle}
+            </p>
+          )}
+
+          <div className="mt-auto flex flex-wrap items-center gap-x-4 gap-y-2 pt-4 text-xs text-muted-foreground">
+            {level && (
+              <span className="flex items-center gap-1 capitalize">
+                <GraduationCap className="h-3.5 w-3.5" />
+                {level}
+              </span>
+            )}
+            {language && (
+              <span className="flex items-center gap-1">
+                <Globe2 className="h-3.5 w-3.5" />
+                {language}
+              </span>
+            )}
+            {createdAtLabel && (
+              <span className="ml-auto flex items-center gap-1">
+                <CalendarDays className="h-3.5 w-3.5" />
+                {createdAtLabel}
+              </span>
+            )}
+          </div>
+        </div>
+      </Link>
+    </Card>
+  );
+});
 
 function CoursesPage() {
   const { t, i18n } = useTranslation();
@@ -48,6 +160,17 @@ function CoursesPage() {
   const [cat, setCat] = useState<string>("all");
   const [level, setLevel] = useState<string>("all");
   const [ratingFilter, setRatingFilter] = useState<string>("all"); // "all" | "1" | "2" | "3" | "4"
+
+  // The <Input> always reflects `q` directly, so every keystroke commits
+  // instantly. The (potentially heavier) filter/sort pass below reads
+  // `deferredQ` instead, which React is free to update at lower priority
+  // once the input has already painted.
+  const deferredQ = useDeferredValue(q);
+
+  // Pagination — search/filter/sort still run against the FULL course
+  // list, exactly as before; only rendering is limited to one page at a
+  // time, which is what actually keeps the grid cheap to re-render.
+  const [page, setPage] = useState(1);
 
   // Ratings — fetched once the course list is available, keyed by course id.
   const [ratings, setRatings] = useState<Record<string, CourseRatingSummary>>({});
@@ -77,6 +200,7 @@ function CoursesPage() {
     try {
       setCoursesLoading(true);
       const data: any = await getAllCourses();
+      console.log("data:", data);
       const coursesList = Array.isArray(data)
         ? data
         : data?.courses || data?.data || [];
@@ -140,11 +264,13 @@ function CoursesPage() {
     setRatingFilter("all");
   }
 
+  // Unchanged filter/sort logic — only the text-query source is the
+  // deferred value, so the input never waits on this computation.
   const filtered = useMemo(() => {
     let list = [...courses];
 
     // 1. Search by title
-    if (q) list = list.filter((c: any) => c.title?.toLowerCase().includes(q.toLowerCase()));
+    if (deferredQ) list = list.filter((c: any) => c.title?.toLowerCase().includes(deferredQ.toLowerCase()));
 
     // 2. Filter by category (matches category name, relation, or id)
     if (cat !== "all") {
@@ -175,7 +301,26 @@ function CoursesPage() {
     );
 
     return list;
-  }, [courses, q, cat, level, ratingFilter, ratings]);
+  }, [courses, deferredQ, cat, level, ratingFilter, ratings]);
+
+  // Reset to page 1 whenever a filter actually changes (not on every
+  // `filtered` recompute, so ratings finishing loading etc. don't reset
+  // the user's current page).
+  useEffect(() => {
+    setPage(1);
+  }, [q, cat, level, ratingFilter]);
+
+  // Clamp page if the filtered result shrinks below the current page.
+  useEffect(() => {
+    const maxPage = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+    setPage((p) => Math.min(p, maxPage));
+  }, [filtered.length]);
+
+  const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const paginated = useMemo(
+    () => filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
+    [filtered, page],
+  );
 
   return (
     <SiteLayout>
@@ -250,93 +395,67 @@ function CoursesPage() {
               action={<Button onClick={resetFilters}>{t("coursesPage.resetFilters")}</Button>}
             />
           ) : (
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {filtered.map((c: any) => {
-                const coverStyle = c.image_cover
-                  ? c.image_cover.startsWith("linear-gradient")
-                    ? { background: c.image_cover }
-                    : { backgroundImage: `url(${c.image_cover})`, backgroundSize: "cover", backgroundPosition: "center" }
-                  : { backgroundImage: c.cover };
+            <>
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {paginated.map((c: any) => {
+                  const coverStyle = c.image_cover
+                    ? c.image_cover.startsWith("linear-gradient")
+                      ? { background: c.image_cover }
+                      : { backgroundImage: `url(${c.image_cover})`, backgroundSize: "cover", backgroundPosition: "center" }
+                    : { backgroundImage: c.cover };
 
-                const courseRating = ratings[c.id];
+                  const courseRating = ratings[c.id];
 
-                return (
-                  <Card
-                    key={c.id}
-                    className="group relative flex h-full flex-col overflow-hidden border-border/60 shadow-card transition-all duration-300 hover:-translate-y-1 hover:shadow-elegant"
+                  return (
+                    <CourseCard
+                      key={c.id}
+                      id={c.id}
+                      title={c.title}
+                      subtitle={c.subtitle || c.description}
+                      coverStyle={coverStyle}
+                      categoryLabel={c.categories?.name || c.category || t("coursesPage.generalCategory")}
+                      isNew={isNewCourse(c.created_at)}
+                      isAuthenticated={!!isAuthenticated}
+                      instructorLine={t("coursesPage.byInstructor", { name: c.profiles?.full_name || c.teacher || t("coursesPage.defaultInstructor") })}
+                      level={c.level}
+                      language={c.language}
+                      createdAtLabel={c.created_at ? formatDate(c.created_at) : undefined}
+                      ratingAverage={courseRating?.average_rating}
+                      ratingCount={courseRating?.total_ratings}
+                      ratingsLoaded={ratingsLoaded}
+                    />
+                  );
+                })}
+              </div>
+
+              {pageCount > 1 && (
+                <div className="mt-8 flex items-center justify-center gap-3">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    disabled={page <= 1}
+                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                    aria-label={t("common.previousPage", "Previous page")}
                   >
-                    <Link to="/courses/$id" params={{ id: c.id }} className="block">
-                      <div className="relative h-40 overflow-hidden" style={coverStyle}>
-                        {/* Subtle gradient under the image for badge/text contrast */}
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-black/0 to-black/0 transition-opacity duration-300 group-hover:from-black/45" />
-                        <div className="absolute inset-x-3 top-3 flex items-center justify-between gap-2">
-                          <Badge className="capitalize bg-background/90 text-foreground backdrop-blur-sm hover:bg-background/90">
-                            {c.categories?.name || c.category || t("coursesPage.generalCategory")}
-                          </Badge>
-                          {isNewCourse(c.created_at) && (
-                            <Badge className="border-none bg-primary text-primary-foreground">{t("coursesPage.newBadge")}</Badge>
-                          )}
-                        </div>
-                      </div>
-                    </Link>
-
-                    {isAuthenticated && (
-                      <CourseWishlistButton
-                        courseId={c.id}
-                        courseTitle={c.title}
-                        className="absolute right-3 top-3"
-                      />
-                    )}
-
-                    <Link to="/courses/$id" params={{ id: c.id }} className="flex flex-1 flex-col">
-                      <div className="flex flex-1 flex-col p-5">
-                        <div className="flex items-center justify-between gap-2">
-                          <p className="text-sm text-muted-foreground">
-                            {t("coursesPage.byInstructor", { name: c.profiles?.full_name || c.teacher || t("coursesPage.defaultInstructor") })}
-                          </p>
-                          {ratingsLoaded && courseRating?.total_ratings ? (
-                            <span className="flex shrink-0 items-center gap-1 text-xs font-medium text-foreground">
-                              <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
-                              {courseRating.average_rating.toFixed(1)}
-                            </span>
-                          ) : null}
-                        </div>
-                        <h3 className="mt-1 line-clamp-2 text-base font-semibold leading-snug transition-colors group-hover:text-primary">
-                          {c.title}
-                        </h3>
-
-                        {(c.subtitle || c.description) && (
-                          <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">
-                            {c.subtitle || c.description}
-                          </p>
-                        )}
-
-                        <div className="mt-auto flex flex-wrap items-center gap-x-4 gap-y-2 pt-4 text-xs text-muted-foreground">
-                          {c.level && (
-                            <span className="flex items-center gap-1 capitalize">
-                              <GraduationCap className="h-3.5 w-3.5" />
-                              {c.level}
-                            </span>
-                          )}
-                          {c.language && (
-                            <span className="flex items-center gap-1">
-                              <Globe2 className="h-3.5 w-3.5" />
-                              {c.language}
-                            </span>
-                          )}
-                          {c.created_at && (
-                            <span className="ml-auto flex items-center gap-1">
-                              <CalendarDays className="h-3.5 w-3.5" />
-                              {formatDate(c.created_at)}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    </Link>
-                  </Card>
-                );
-              })}
-            </div>
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  <span className="text-xs text-muted-foreground">
+                    {t("common.pageOf", { page, pageCount, defaultValue: `Page ${page} of ${pageCount}` })}
+                  </span>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    disabled={page >= pageCount}
+                    onClick={() => setPage((p) => Math.min(pageCount, p + 1))}
+                    aria-label={t("common.nextPage", "Next page")}
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
+            </>
           )}
         </div>
       </section>

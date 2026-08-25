@@ -43,6 +43,7 @@ import {
 } from "@/lib/lms-storage";
 import { EmptyState } from "@/components/common/EmptyState";
 import { toast } from "sonner";
+import { YouTubePlayer } from "@/components/course/YouTubePlayer";
 
 export const Route = createFileRoute("/dashboard/teacher/uploads")({
   head: () => ({ meta: [{ title: "Uploads — Lumen" }, { name: "robots", content: "noindex" }] }),
@@ -662,15 +663,6 @@ const rows = useMemo(() => {
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8 rounded-lg"
-                          onClick={() => openLinkDialog(r)}
-                          title="Link"
-                        >
-                          <Link2 className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
                           className="h-8 w-8 rounded-lg hover:bg-destructive/10 hover:text-destructive"
                           onClick={() => setDeleteTarget({ id: r.id, title: r.title, kind: r.kind })}
                           title="Delete"
@@ -1047,13 +1039,13 @@ const rows = useMemo(() => {
 
           <div className="bg-muted/30 p-3 sm:p-5">
             {preview?.kind === "video" ? (
-              <video
-                key={preview.url}
-                src={preview.url}
-                controls
-                autoPlay
-                className="aspect-video w-full rounded-xl bg-black shadow-lg"
-              />
+              <div className="aspect-video w-full overflow-hidden rounded-xl bg-black shadow-lg">
+                <YouTubePlayer
+                  key={preview.url}
+                  video={{ url: preview.url } as any}
+                  title={preview.title}
+                />
+              </div>
             ) : (
               <iframe
                 key={preview?.url}

@@ -38,6 +38,7 @@ import {
   type Subscription,
 } from "@/lib/lms-storage";
 import { toast } from "sonner";
+import { YouTubePlayer } from "@/components/course/YouTubePlayer";
 
 export const Route = createFileRoute("/dashboard/student/live")({
   head: () => ({ meta: [{ title: "Live classes — Lumen" }, { name: "robots", content: "noindex" }] }),
@@ -394,11 +395,13 @@ function Live() {
             <p className="text-xs text-muted-foreground">{getCourseTitle(recordingTarget?.course_id ?? "")}</p>
             {recordingTarget?.recording_url || (recordingTarget as any)?.recordingUrl ? (
               <div className="aspect-video w-full overflow-hidden rounded-lg bg-black">
-                <video
-                  src={recordingTarget?.recording_url || (recordingTarget as any)?.recordingUrl}
-                  controls
-                  autoPlay
-                  className="h-full w-full object-contain"
+                <YouTubePlayer
+                  video={
+                    {
+                      url: recordingTarget?.recording_url || (recordingTarget as any)?.recordingUrl,
+                    } as any
+                  }
+                  title={recordingTarget?.title || t("liveClasses.recording.defaultTitle")}
                 />
               </div>
             ) : (

@@ -507,6 +507,23 @@
     "loadErrorDesc": "حدث خطأ أثناء جلب بيانات لوحة التحكم. يرجى المحاولة مرة أخرى."
   },
   "teacher": {
+    
+"savingDraft": "جاري حفظ المسودة...",
+"publishing": "جاري النشر...",
+"loadingCategories": "جاري تحميل الأقسام...",
+"invalidImageType": "نوع الملف غير مدعوم، يرجى اختيار صورة.",
+"imageTooLarge": "حجم الصورة كبير جداً، الحد الأقصى هو 5 ميجابايت.",
+"createCourseError": "فشل إنشاء الدورة التدريبية، يرجى المحاولة مرة أخرى.",
+"removeImage": "إزالة الصورة",
+"coverImageSizeHint": "الحد الأقصى 5 ميجابايت. صيغ مدعومة: JPG, PNG",
+"categoriesLoadError": "فشل تحميل الأقسام، يرجى تحديث الصفحة.",
+"invalidPrice": "يرجى إدخال سعر صحيح.",
+"coursePriceHint": "اتركه 0 إذا كنت تريد نشر هذه الدورة مجاناً.",
+    "levels": {
+  "beginner": "مبتدئ",
+  "intermediate": "متوسط",
+  "advanced": "متقدم"
+},
     "courseRemoveError": "فشل حذف الدورة. يرجى المحاولة مرة أخرى.",
     "coursesLoadError": "فشل تحميل دوراتك. يرجى المحاولة مرة أخرى.",
     "coursesLoading": "جارٍ تحميل دوراتك...",
@@ -1607,12 +1624,17 @@
     "errorGeneric": "فشل تحديث كلمة المرور، يرجى المحاولة لاحقاً."
   },
    "teacherUploads": {
+    "loading": "جارٍ التحميل…",
      "title": "الملفات والمحتوى",
     "description": "إدارة ورفع محتوى الدروس والمواد التعليمية",
     "coursePlaceholder": "اختر دورة",
     "destination": {
       "lessonField": "اختر درسًا",
+      "liveSession": "حصة مباشرة",
       "module": "اختر وحدة"
+    },
+      "preview": {
+      "openNewTab": "فتح في علامة تبويب جديدة"
     },
      "deleteDialog": {
       "cancel": "إلغاء",

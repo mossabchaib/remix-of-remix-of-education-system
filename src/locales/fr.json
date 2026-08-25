@@ -516,6 +516,22 @@
     "loadErrorDesc": "Une erreur s'est produite lors de la récupération de votre tableau de bord. Veuillez réessayer."
   },
   "teacher": {
+"savingDraft": "Enregistrement du brouillon...",
+"publishing": "Publication en cours...",
+"loadingCategories": "Chargement des catégories...",
+"invalidImageType": "Type de fichier non valide, veuillez choisir une image.",
+"imageTooLarge": "L'image est trop grande, la taille maximale est de 5 Mo.",
+"createCourseError": "Échec de la création du cours, veuillez réessayer.",
+"removeImage": "Supprimer l'image",
+"coverImageSizeHint": "Max 5 Mo. Formats acceptés : JPG, PNG",
+"categoriesLoadError": "Échec du chargement des catégories.",
+"invalidPrice": "Veuillez entrer un prix valide.",
+"coursePriceHint": "Laissez à 0 pour publier ce cours gratuitement.",
+    "levels": {
+  "beginner": "Débutant",
+  "intermediate": "Intermédiaire",
+  "advanced": "Avancé"
+},
     "courseRemoveError": "Échec de la suppression du cours. Veuillez réessayer.",
     "coursesLoadError": "Échec du chargement de vos cours. Veuillez réessayer.",
     "coursesLoading": "Chargement de vos cours...",
@@ -1607,12 +1623,17 @@
     "errorGeneric": "Échec de la mise à jour, veuillez réessayer plus tard."
   },
    "teacherUploads": {
+    "loading": "Chargement…",
        "title": "Fichiers et contenu",
     "description": "Gérez et téléchargez le contenu des leçons et les supports pédagogiques",
     "coursePlaceholder": "Sélectionnez un cours",
     "destination": {
       "lessonField": "Sélectionnez une leçon",
-      "module": "Sélectionnez un module"
+      "module": "Sélectionnez un module",
+       "liveSession": "Session en direct"
+    },
+     "preview": {
+      "openNewTab": "Ouvrir dans un nouvel onglet"
     },
     "deleteDialog": {
       "cancel": "Annuler",

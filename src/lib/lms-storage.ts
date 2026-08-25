@@ -292,12 +292,13 @@ export async function upsertQuiz(q: Partial<Quiz>) {
       const res: any = await lmsApi.quizzes.update(q.id, q);
       emit(K.teacherQuizzes);
       if (q.courseId) cacheInvalidate(CK.quizzesByCourse(q.courseId));
-      if (q.id) cacheInvalidate(CK.quiz(q.id));
+      cacheInvalidate(CK.quiz(q.id));
       return res?.data || res;
     } else {
-      console.log("q:", q);
       const res: any = await lmsApi.quizzes.create(q);
       emit(K.teacherQuizzes);
+      console.log("Created new quiz:", q);
+      if (q.courseId) cacheInvalidate(CK.quizzesByCourse(q.courseId)); 
       return res?.data || res;
     }
   } catch (err) {
@@ -308,7 +309,7 @@ export async function upsertQuiz(q: Partial<Quiz>) {
 export async function addQuizQuestion(quizId: string, question: Omit<Question, "id">) {
   const res: any = await lmsApi.quizzes.addQuestion(quizId, question);
   emit(K.teacherQuizzes);
-  cacheInvalidate(CK.quiz(quizId));
+  cacheInvalidate(CK.quiz(quizId)); // ✔️
   return res?.data || res;
 }
 export async function updateQuizQuestion(quizId: string, question: Question) {
@@ -320,7 +321,7 @@ export async function updateQuizQuestion(quizId: string, question: Question) {
 export async function removeQuizQuestion(quizId: string, questionId: string) {
   const res = await lmsApi.quizzes.removeQuestion(quizId, questionId);
   emit(K.teacherQuizzes);
-  cacheInvalidate(CK.quiz(quizId));
+  cacheInvalidate(CK.quiz(quizId)); // ✔️
   return res;
 }
 /** حذف كويز. */
@@ -529,6 +530,7 @@ export async function deleteStoredModule(moduleId: string) {
     const res = await lmsApi.deleteModule(moduleId);
     emit(K.teacherModules);
     cacheInvalidatePrefix("cache.modules:");
+    cacheInvalidatePrefix("cache.lessons:"); // ⬅️ زيدها
     return res;
   } catch (err) {
     console.error("Failed to delete module:", err);
@@ -553,6 +555,8 @@ export async function addStoredLesson(moduleId: string, data: Partial<Lesson>) {
   try {
     const res = await lmsApi.addLesson(moduleId, data);
     emit(K.teacherModules);
+    cacheInvalidatePrefix("cache.lessons:");
+    cacheInvalidatePrefix("cache.modules:"); // إيلا اللسونات بانة جوج المودول فالعرض
     return res;
   } catch (err) {
     console.error("Failed to add lesson:", err);
@@ -564,6 +568,8 @@ export async function updateStoredLesson(lessonId: string, data: Partial<Lesson>
   try {
     const res = await lmsApi.updateLesson(lessonId, data);
     emit(K.teacherModules);
+    cacheInvalidatePrefix("cache.lessons:");
+    cacheInvalidatePrefix("cache.modules:");
     return res;
   } catch (err) {
     console.error("Failed to update lesson:", err);
@@ -575,6 +581,8 @@ export async function deleteStoredLesson(lessonId: string) {
   try {
     const res = await lmsApi.deleteLesson(lessonId);
     emit(K.teacherModules);
+    cacheInvalidatePrefix("cache.lessons:");
+    cacheInvalidatePrefix("cache.modules:");
     return res;
   } catch (err) {
     console.error("Failed to delete lesson:", err);
@@ -1138,6 +1146,8 @@ export async function upsertTeacherCourse(data: any) {
       return res?.data || res;
     } else {
       const res: any = await lmsApi.createCourse(data);
+      cacheInvalidate(CK.teacherCourses);
+      cacheInvalidate(CK.allCourses);
       return res?.data || res;
     }
   } catch (err) {

@@ -1,8 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useDeferredValue, useEffect, useMemo, useState, memo } from "react";
 import {
   BookOpen, GraduationCap, Globe2, Lock, Search, Sparkles, ShieldCheck, Heart, Star,
+  ChevronLeft, ChevronRight,
 } from "lucide-react";
 import { RoleDashboardLayout } from "@/components/dashboard/RoleDashboardLayout";
 import { PageHeader } from "@/components/admin/PageHeader";
@@ -32,6 +33,8 @@ export const Route = createFileRoute("/dashboard/student/courses/")({
   }),
   component: BrowseCourses,
 });
+
+const PAGE_SIZE = 12;
 
 /**
  * Signature device for this page: courses read like catalogued volumes on
@@ -73,6 +76,131 @@ type RawCourse = {
 
 type CategoryRow = { id: string; name: string };
 
+/* ------------------------------------------------------------------ */
+/* CourseCard: extracted + memoized so that, combined with pagination,  */
+/* re-rendering the search input never re-renders cards whose data     */
+/* hasn't actually changed. Props are kept to primitives/strings/stable */
+/* callbacks only — passing the raw course object or the `t` function   */
+/* down would break memoization since those can change identity every   */
+/* render even when nothing relevant did.                               */
+/* ------------------------------------------------------------------ */
+type CourseCardProps = {
+  id: string;
+  title: string;
+  subtitle?: string;
+  imageCover?: string;
+  language?: string;
+  spineColor: string;
+  categoryName: string;
+  levelLabelText: string;
+  teacherName: string;
+  wished: boolean;
+  isPending: boolean;
+  ratingAverage?: number;
+  ratingCount?: number;
+  ratingsLoaded: boolean;
+  viewCourseLabel: string;
+  wishlistAddLabel: string;
+  wishlistRemoveLabel: string;
+  noRatingsLabel: string;
+  onToggleWishlist: (e: React.MouseEvent<HTMLButtonElement>) => void;
+};
+
+const CourseCard = memo(function CourseCard({
+  id,
+  title,
+  subtitle,
+  imageCover,
+  language,
+  spineColor,
+  categoryName,
+  levelLabelText,
+  teacherName,
+  wished,
+  isPending,
+  ratingAverage,
+  ratingCount,
+  ratingsLoaded,
+  viewCourseLabel,
+  wishlistAddLabel,
+  wishlistRemoveLabel,
+  noRatingsLabel,
+  onToggleWishlist,
+}: CourseCardProps) {
+  return (
+    <Card className="group relative overflow-hidden border-border/60 p-0 shadow-card transition-shadow hover:shadow-lg">
+      <div className="absolute inset-y-0 left-0 w-1.5" style={{ background: spineColor }} aria-hidden />
+      <div className="relative h-32 overflow-hidden bg-muted">
+        {imageCover ? (
+          <img
+            src={imageCover}
+            alt=""
+            loading="lazy"
+            decoding="async"
+            className="h-full w-full object-cover object-center"
+          />
+        ) : null}
+      </div>
+      <button
+        type="button"
+        data-id={id}
+        disabled={isPending}
+        onClick={onToggleWishlist}
+        className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-background/90 shadow-sm backdrop-blur transition-colors hover:bg-background disabled:cursor-wait"
+        aria-label={wished ? wishlistRemoveLabel : wishlistAddLabel}
+      >
+        <Heart
+          className={`h-4 w-4 transition-colors ${
+            wished ? "fill-destructive text-destructive" : "text-muted-foreground"
+          } ${isPending ? "scale-90" : ""}`}
+        />
+      </button>
+      <div className="space-y-3 p-5 pl-6">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge variant="outline" style={{ borderColor: spineColor, color: spineColor }}>
+              {categoryName}
+            </Badge>
+            <Badge variant="outline" className="text-xs">
+              {levelLabelText}
+            </Badge>
+          </div>
+
+          <div className="flex items-center gap-1 text-xs font-medium">
+            <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+            {ratingsLoaded && ratingCount ? (
+              <span className="text-foreground">{(ratingAverage ?? 0).toFixed(1)}</span>
+            ) : (
+              <span className="text-muted-foreground">{noRatingsLabel}</span>
+            )}
+          </div>
+        </div>
+
+        <div>
+          <p className="text-base font-semibold leading-snug">{title}</p>
+          {subtitle && <p className="mt-0.5 text-xs text-muted-foreground">{subtitle}</p>}
+        </div>
+        <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+          <span className="flex items-center gap-1">
+            <GraduationCap className="h-3 w-3" /> {teacherName}
+          </span>
+          {language && (
+            <span className="flex items-center gap-1">
+              <Globe2 className="h-3 w-3" /> {language}
+            </span>
+          )}
+        </div>
+        <Button asChild className="w-full">
+          <Link to="/dashboard/student/courses/$id" params={{ id }}>
+            <BookOpen className="mr-1.5 h-4 w-4" />
+            {viewCourseLabel}
+          </Link>
+        </Button>
+      </div>
+    </Card>
+  );
+});
+
 function BrowseCourses() {
   const { t } = useTranslation();
 
@@ -91,6 +219,17 @@ function BrowseCourses() {
   const [category, setCategory] = useState<string>("all");
   const [ratingFilter, setRatingFilter] = useState<string>("all"); // "all" | "1" | "2" | "3" | "4"
 
+  // Deferred copy of the query used only for the (potentially expensive)
+  // filter/sort pass. The <Input> itself always reflects `query` directly,
+  // so keystrokes are never blocked waiting on list re-rendering — React
+  // is free to commit the input update first and the list update at
+  // lower priority.
+  const deferredQuery = useDeferredValue(query);
+
+  // Pagination — search/filter/sort still run against the FULL course
+  // list, exactly as before; only rendering is limited to one page.
+  const [page, setPage] = useState(1);
+
   // Ratings — fetched once courses are loaded, keyed by course id. Kept
   // separate from `courses` so a slow ratings fetch never blocks the
   // course grid itself from rendering.
@@ -108,9 +247,14 @@ function BrowseCourses() {
     setWishlistState(getWishlist());
   }, []);
 
-  const handleToggleWishlist = async (courseId: string, e: React.MouseEvent) => {
+  // Stable across renders (data-id read off the event target) so that
+  // CourseCard's React.memo comparison isn't defeated by a fresh closure
+  // every render.
+  const handleToggleWishlist = useCallback(async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     e.stopPropagation();
+    const courseId = e.currentTarget.dataset.id;
+    if (!courseId) return;
     setWishlistPendingId(courseId);
     try {
       const next = toggleWishlist(courseId);
@@ -118,7 +262,7 @@ function BrowseCourses() {
     } finally {
       setWishlistPendingId(null);
     }
-  };
+  }, []);
 
   // Straight calls into lms-storage — no custom hooks involved.
   useEffect(() => {
@@ -127,18 +271,22 @@ function BrowseCourses() {
       const [sub, ok] = await Promise.all([getMySubscription(), hasActiveAccess()]);
       if (cancelled) return;
 
-      // Fixed: was storing the whole {plan, courses} object instead of just the plan.
       setSubscription(sub.plan);
 
-      // Individually purchased courses that are currently active.
+      // الدورات المشتراة فرديًا والفعّالة حاليًا
       const activeCourseIds = sub.courses
         .filter((c) => c.status === "active")
         .map((c) => c.course_id);
       setOwnedCourseIds(activeCourseIds);
-      setHasPlan(ok);
 
-      // Access is granted either via an active plan OR at least one active course purchase.
-      const hasAnyAccess = ok || activeCourseIds.length > 0;
+      // مهم: "hasPlan" يجب أن تعكس تحديدًا وجود خطة اشتراك فعّالة،
+      // وليس "أي نوع وصول" — وإلا فطالب اشترى دورة واحدة فقط
+      // سيُعامَل خطأً كمشترك بخطة ويرى الكتالوج كاملاً.
+      const planActive = sub.plan?.status === "active";
+      setHasPlan(planActive);
+
+      // الوصول للصفحة ذاتها يبقى صحيحًا: خطة فعّالة أو دورة واحدة فأكثر
+      const hasAnyAccess = planActive || activeCourseIds.length > 0;
       setAccess(hasAnyAccess);
       setChecking(false);
 
@@ -151,9 +299,9 @@ function BrowseCourses() {
         if (cancelled) return;
 
         const allCourses = Array.isArray(all) ? all : [];
-        // Plan holders see the full catalog. Course-only buyers see only
-        // the courses they actually purchased.
-        const visibleCourses = ok
+        // أصحاب الخطة يرون الكتالوج كاملاً. من اشترى دورات فردية
+        // فقط يرى دوراته المشتراة حصرًا.
+        const visibleCourses = planActive
           ? allCourses
           : allCourses.filter((c) => activeCourseIds.includes(c.id));
 
@@ -204,8 +352,10 @@ function BrowseCourses() {
     [courses],
   );
 
+  // Unchanged filter/sort logic — only the text-query source is the
+  // deferred value, so the input never waits on this computation.
   const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
+    const q = deferredQuery.trim().toLowerCase();
     const minRating = ratingFilter === "all" ? 0 : Number(ratingFilter);
 
     const result = published.filter((c) => {
@@ -225,12 +375,31 @@ function BrowseCourses() {
       (a, b) => (ratings[b.id]?.average_rating ?? 0) - (ratings[a.id]?.average_rating ?? 0),
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [published, query, level, category, categories, wishlistOnly, wishlist, ratingFilter, ratings]);
+  }, [published, deferredQuery, level, category, categories, wishlistOnly, wishlist, ratingFilter, ratings]);
 
   const categoryOptions = useMemo(
     () => ["all", ...Array.from(new Set(published.map((c) => categoryName(c))))],
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [published, categories],
+  );
+
+  // Reset to page 1 whenever a filter actually changes (not on every
+  // `filtered` recompute, so ratings finishing loading etc. don't reset
+  // the user's current page).
+  useEffect(() => {
+    setPage(1);
+  }, [query, level, category, wishlistOnly, ratingFilter]);
+
+  // Clamp page if the filtered result shrinks below the current page.
+  useEffect(() => {
+    const maxPage = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+    setPage((p) => Math.min(p, maxPage));
+  }, [filtered.length]);
+
+  const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const paginated = useMemo(
+    () => filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
+    [filtered, page],
   );
 
   const clearFilters = () => {
@@ -361,83 +530,68 @@ function BrowseCourses() {
           }
         />
       ) : (
-        <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-          {filtered.map((c) => {
-            const spine = spineFor(categoryName(c));
-            const wished = wishlist.includes(c.id);
-            const isPending = wishlistPendingId === c.id;
-            const courseRating = ratings[c.id];
-            return (
-              <Card
-                key={c.id}
-                className="group relative overflow-hidden border-border/60 p-0 shadow-card transition-shadow hover:shadow-lg"
-              >
-                <div className="absolute inset-y-0 left-0 w-1.5" style={{ background: spine.bg }} aria-hidden />
-                <div
-                  className="h-32 bg-muted bg-cover bg-center"
-                  style={c.image_cover ? { backgroundImage: `url(${c.image_cover})` } : undefined}
+        <>
+          <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+            {paginated.map((c) => {
+              const spine = spineFor(categoryName(c));
+              const wished = wishlist.includes(c.id);
+              const isPending = wishlistPendingId === c.id;
+              const courseRating = ratings[c.id];
+              return (
+                <CourseCard
+                  key={c.id}
+                  id={c.id}
+                  title={c.title}
+                  subtitle={c.subtitle}
+                  imageCover={c.image_cover}
+                  language={c.language}
+                  spineColor={spine.bg}
+                  categoryName={categoryName(c)}
+                  levelLabelText={levelLabel(c.level)}
+                  teacherName={teacherName(c)}
+                  wished={wished}
+                  isPending={isPending}
+                  ratingAverage={courseRating?.average_rating}
+                  ratingCount={courseRating?.total_ratings}
+                  ratingsLoaded={ratingsLoaded}
+                  viewCourseLabel={t("catalog.viewCourse")}
+                  wishlistAddLabel={t("student.addToWishlist")}
+                  wishlistRemoveLabel={t("student.removeFromWishlist")}
+                  noRatingsLabel={t("catalog.noRatings")}
+                  onToggleWishlist={handleToggleWishlist}
                 />
-                <button
-                  type="button"
-                  disabled={isPending}
-                  onClick={(e) => handleToggleWishlist(c.id, e)}
-                  className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-background/90 shadow-sm backdrop-blur transition-colors hover:bg-background disabled:cursor-wait"
-                  aria-label={wished ? t("student.removeFromWishlist") : t("student.addToWishlist")}
-                >
-                  <Heart
-                    className={`h-4 w-4 transition-colors ${
-                      wished ? "fill-destructive text-destructive" : "text-muted-foreground"
-                    } ${isPending ? "scale-90" : ""}`}
-                  />
-                </button>
-                <div className="space-y-3 p-5 pl-6">
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <Badge variant="outline" style={{ borderColor: spine.bg, color: spine.bg }}>
-                        {categoryName(c)}
-                      </Badge>
-                      <Badge variant="outline" className="text-xs">
-                        {levelLabel(c.level)}
-                      </Badge>
-                    </div>
+              );
+            })}
+          </div>
 
-                    <div className="flex items-center gap-1 text-xs font-medium">
-                      <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
-                      {ratingsLoaded && courseRating?.total_ratings ? (
-                        <span className="text-foreground">
-                          {courseRating.average_rating.toFixed(1)}
-                        </span>
-                      ) : (
-                        <span className="text-muted-foreground">{t("catalog.noRatings")}</span>
-                      )}
-                    </div>
-                  </div>
-
-                  <div>
-                    <p className="text-base font-semibold leading-snug">{c.title}</p>
-                    {c.subtitle && <p className="mt-0.5 text-xs text-muted-foreground">{c.subtitle}</p>}
-                  </div>
-                  <div className="flex items-center justify-between text-[11px] text-muted-foreground">
-                    <span className="flex items-center gap-1">
-                      <GraduationCap className="h-3 w-3" /> {teacherName(c)}
-                    </span>
-                    {c.language && (
-                      <span className="flex items-center gap-1">
-                        <Globe2 className="h-3 w-3" /> {c.language}
-                      </span>
-                    )}
-                  </div>
-                  <Button asChild className="w-full">
-                    <Link to="/dashboard/student/courses/$id" params={{ id: c.id }}>
-                      <BookOpen className="mr-1.5 h-4 w-4" />
-                      {t("catalog.viewCourse")}
-                    </Link>
-                  </Button>
-                </div>
-              </Card>
-            );
-          })}
-        </div>
+          {pageCount > 1 && (
+            <div className="mt-6 flex items-center justify-center gap-3">
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                disabled={page <= 1}
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                aria-label={t("common.previousPage", "Previous page")}
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <span className="text-xs text-muted-foreground">
+                {t("common.pageOf", { page, pageCount, defaultValue: `Page ${page} of ${pageCount}` })}
+              </span>
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                disabled={page >= pageCount}
+                onClick={() => setPage((p) => Math.min(pageCount, p + 1))}
+                aria-label={t("common.nextPage", "Next page")}
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
+        </>
       )}
     </RoleDashboardLayout>
   );

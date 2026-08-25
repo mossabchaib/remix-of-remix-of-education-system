@@ -274,37 +274,37 @@ function TeacherCourses() {
         />
       )}
 
-      <AlertDialog open={!!courseToDelete} onOpenChange={(open) => !open && !isDeleting && setCourseToDelete(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{t("teacher.deleteCourseTitle")}</AlertDialogTitle>
-            <AlertDialogDescription>
-              {t("teacher.deleteCourseDesc", {
-                title: courseToDelete?.title || t("teacher.untitledCourse"),
-              })}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting}>{t("common.cancel")}</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={(e) => {
-                e.preventDefault();
-                handleConfirmDelete();
-              }}
-              disabled={isDeleting}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              {isDeleting ? (
-                <>
-                  <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> {t("common.deleting")}
-                </>
-              ) : (
-                t("common.delete")
-              )}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+     <AlertDialog open={!!courseToDelete} onOpenChange={(open) => !open && !isDeleting && setCourseToDelete(null)}>
+  <AlertDialogContent>
+    <AlertDialogHeader>
+      <AlertDialogTitle>{t("teacher.deleteCourseTitle")}</AlertDialogTitle>
+      <AlertDialogDescription>
+        {t("teacher.deleteCourseDesc", {
+          title: courseToDelete?.title || t("teacher.untitledCourse"),
+        })}
+      </AlertDialogDescription>
+    </AlertDialogHeader>
+    <AlertDialogFooter>
+      <AlertDialogCancel disabled={isDeleting}>{t("common.cancel")}</AlertDialogCancel>
+      <AlertDialogAction
+        onClick={(e) => {
+          e.preventDefault(); // منع الإغلاق التلقائي الوهمي
+          handleConfirmDelete();
+        }}
+        disabled={isDeleting}
+        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+      >
+        {isDeleting ? (
+          <>
+            <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> {t("common.deleting")}
+          </>
+        ) : (
+          t("common.delete")
+        )}
+      </AlertDialogAction>
+    </AlertDialogFooter>
+  </AlertDialogContent>
+</AlertDialog>
     </RoleDashboardLayout>
   );
 }
