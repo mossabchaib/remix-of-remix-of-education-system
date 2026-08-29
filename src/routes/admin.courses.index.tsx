@@ -61,19 +61,14 @@ function CoursesAdmin() {
     [t],
   );
 
-const loadCourses = useCallback(async () => {
+  const loadCourses = useCallback(async () => {
     try {
       setLoadError(null);
       const result = await getAllCourses();
-      
-      // ضع الـ console.log هنا لمعرفة شكل البيانات الخام والمنظمة
-      console.log("Raw courses result:", result);
 
       const normalized = Array.isArray(result)
         ? result
         : (result as any)?.data || (result as any)?.courses || [];
-      
-      console.log("Normalized courses data:", normalized);
 
       setRawCourses(normalized);
     } catch (err: any) {
@@ -176,62 +171,112 @@ const loadCourses = useCallback(async () => {
     }
   };
 
- const columns: Column<CourseRow>[] = [
-    {
-      key: "title",
-      header: t("admin.course"),
-      sortable: true,
-      render: (c:any) => (
-        <div className="flex items-center gap-3">
-          <div className="h-10 w-14 shrink-0 rounded-md overflow-hidden bg-primary/10 flex items-center justify-center">
-            {c.image_cover && c.image_cover.startsWith("linear-gradient") ? (
-              <div className="w-full h-full" style={{ background: c.image_cover }} />
-            ) : c.image_cover ? (
-              <img src={c.image_cover} alt="" className="w-full h-full object-cover" />
-            ) : (
-              <BookOpen className="h-4 w-4 text-primary" />
-            )}
+  // Memoized so this array keeps a stable identity across renders that
+  // don't actually change anything it depends on. `columns` used to be
+  // rebuilt as a brand-new array (with brand-new render closures) on
+  // EVERY render of CoursesAdmin — including renders caused by unrelated
+  // state (e.g. `courseToDelete`, `isDeleting`). If DataTable is memoized
+  // internally (likely, since it owns its own search/filter/sort state
+  // over a data table), a fresh `columns` array every render defeats that
+  // memoization and forces DataTable to redo its internal filtering work
+  // even when nothing relevant changed — the same failure mode as the
+  // `actions` prop in the student catalog page.
+  const columns: Column<CourseRow>[] = useMemo(
+    () => [
+      {
+        key: "title",
+        header: t("admin.course"),
+        sortable: true,
+        render: (c: any) => (
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-14 shrink-0 rounded-md overflow-hidden bg-primary/10 flex items-center justify-center">
+              {c.image_cover && c.image_cover.startsWith("linear-gradient") ? (
+                <div className="w-full h-full" style={{ background: c.image_cover }} />
+              ) : c.image_cover ? (
+                <img src={c.image_cover} alt="" className="w-full h-full object-cover" />
+              ) : (
+                <BookOpen className="h-4 w-4 text-primary" />
+              )}
+            </div>
+            <div className="min-w-0">
+              <p className="truncate text-sm font-medium">
+                {c.title || t("admin.untitledCourse")}
+              </p>
+              <p className="truncate text-xs text-muted-foreground">
+                {c.categories?.name || c.language || "—"} · {t(`teacher.level.${c.level || "beginner"}`)}
+              </p>
+            </div>
           </div>
-          <div className="min-w-0">
-            <p className="truncate text-sm font-medium">
-              {c.title || t("admin.untitledCourse")}
-            </p>
-            <p className="truncate text-xs text-muted-foreground">
-              {c.categories?.name || c.language || "—"} · {t(`teacher.level.${c.level || "beginner"}`)}
-            </p>
-          </div>
-        </div>
-      ),
-    },
-    {
-      key: "teacher",
-      header: t("admin.instructor"),
-      sortable: true,
-      render: (c:any) => c.profiles?.full_name || (typeof c.teacher === "object" ? c.teacher?.full_name : c.teacher) || c.teacher_name || "—",
-    },
-    {
-      key: "rating",
-      header: t("admin.rating"),
-      sortable: true,
-      render: (c: CourseRow) =>
-        ratingsLoaded && c.ratingBucket !== noRatingsLabel ? (
-          <div className="flex items-center gap-1.5">
-            <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
-            <span className="text-sm font-medium">{c.rating!.toFixed(1)}</span>
-          </div>
-        ) : ratingsLoaded ? (
-          <span className="text-xs text-muted-foreground">{noRatingsLabel}</span>
-        ) : (
-          <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />
         ),
-    },
-    {
-      key: "status",
-      header: t("common.status"),
-      sortable: true,
-      render: (c) => <StatusPill value={c.status || "draft"} />,
-    },
-  ];
+      },
+      {
+        key: "teacher",
+        header: t("admin.instructor"),
+        sortable: true,
+        render: (c: any) =>
+          c.profiles?.full_name ||
+          (typeof c.teacher === "object" ? c.teacher?.full_name : c.teacher) ||
+          c.teacher_name ||
+          "—",
+      },
+      {
+        key: "rating",
+        header: t("admin.rating"),
+        sortable: true,
+        render: (c: CourseRow) =>
+          ratingsLoaded && c.ratingBucket !== noRatingsLabel ? (
+            <div className="flex items-center gap-1.5">
+              <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+              <span className="text-sm font-medium">{c.rating!.toFixed(1)}</span>
+            </div>
+          ) : ratingsLoaded ? (
+            <span className="text-xs text-muted-foreground">{noRatingsLabel}</span>
+          ) : (
+            <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />
+          ),
+      },
+      {
+        key: "status",
+        header: t("common.status"),
+        sortable: true,
+        render: (c) => <StatusPill value={c.status || "draft"} />,
+      },
+    ],
+    [t, ratingsLoaded, noRatingsLabel],
+  );
+
+  // Same reasoning as `columns` above: a stable reference so DataTable's
+  // internal filter UI/state doesn't get treated as "new props" on every
+  // unrelated render.
+  const filters = useMemo(
+    () => [
+      {
+        key: "level",
+        label: t("teacher.courseLevel"),
+        options: ["beginner", "intermediate", "advanced"],
+      },
+      {
+        key: "status",
+        label: t("common.status"),
+        options: ["published", "draft", "archived"],
+      },
+      {
+        key: "ratingBucket",
+        label: t("admin.rating"),
+        options: [...ratingBucketLabels, noRatingsLabel],
+      },
+    ],
+    [t, ratingBucketLabels, noRatingsLabel],
+  );
+
+  // Stable identity, same rationale.
+  const searchKeys = useMemo<(keyof CourseRow)[]>(() => ["title", "teacher", "category"], []);
+
+  const handleView = useCallback(
+    (c: CourseRow) => navigate({ to: "/admin/courses/$id", params: { id: c.id } }),
+    [navigate],
+  );
+  const handleDelete = useCallback((c: CourseRow) => setCourseToDelete(c), []);
 
   return (
     <>
@@ -257,26 +302,10 @@ const loadCourses = useCallback(async () => {
         <DataTable
           data={courses}
           columns={columns}
-          searchKeys={["title", "teacher", "category"]}
-          filters={[
-            {
-              key: "level",
-              label: t("teacher.courseLevel"),
-              options: ["beginner", "intermediate", "advanced"],
-            },
-            {
-              key: "status",
-              label: t("common.status"),
-              options: ["published", "draft", "archived"],
-            },
-            {
-              key: "ratingBucket",
-              label: t("admin.rating"),
-              options: [...ratingBucketLabels, noRatingsLabel],
-            },
-          ]}
-          onView={(c) => navigate({ to: "/admin/courses/$id", params: { id: c.id } })}
-          onDelete={(c) => setCourseToDelete(c)}
+          searchKeys={searchKeys}
+          filters={filters}
+          onView={handleView}
+          onDelete={handleDelete}
         />
       )}
 

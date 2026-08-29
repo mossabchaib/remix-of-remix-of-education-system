@@ -1,6 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
-import { useEffect, useMemo, useState, useRef } from "react";
+import {
+  useEffect,
+  useMemo,
+  useState,
+  useRef,
+  useCallback,
+  useDeferredValue,
+  useTransition,
+  memo,
+} from "react";
 import {
   CreditCard,
   Upload,
@@ -103,6 +112,152 @@ function coursePrice(c: RawCourse): number {
   return Number.isFinite(n) ? n : 0;
 }
 
+/* ------------------------------------------------------------------ */
+/* CourseSearchBar: owns its own local `localQuery` state so every     */
+/* keystroke only re-renders this small toolbar, never the (potentially */
+/* long) course list below it. Typing is debounced (200ms) before it   */
+/* is even handed to startTransition — this avoids firing a new low-   */
+/* priority transition on every single keystroke, which is what caused */
+/* visible input lag when typing fast. useDeferredValue on the consumer */
+/* side is kept as a second safety net.                                */
+/* ------------------------------------------------------------------ */
+type CourseSearchBarProps = {
+  initialQuery: string;
+  onQueryChange: (value: string) => void;
+  wishlistOnly: boolean;
+  onToggleWishlistOnly: () => void;
+  wishlistCount: number;
+  searchPlaceholder: string;
+  wishlistLabel: string;
+};
+
+const CourseSearchBar = memo(function CourseSearchBar({
+  initialQuery,
+  onQueryChange,
+  wishlistOnly,
+  onToggleWishlistOnly,
+  wishlistCount,
+  searchPlaceholder,
+  wishlistLabel,
+}: CourseSearchBarProps) {
+  const [localQuery, setLocalQuery] = useState(initialQuery);
+  const [, startTransition] = useTransition();
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setLocalQuery(val); // fast, local-only render — the Input never waits
+
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      startTransition(() => {
+        onQueryChange(val); // low-priority update to the parent's filter state
+      });
+    }, 200);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, []);
+
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      <div className="relative flex-1 min-w-[180px]">
+        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          value={localQuery}
+          onChange={handleChange}
+          placeholder={searchPlaceholder}
+          className="pl-9"
+        />
+      </div>
+      <Button
+        type="button"
+        variant={wishlistOnly ? "default" : "outline"}
+        onClick={onToggleWishlistOnly}
+        className="gap-1.5"
+      >
+        <Heart className={`h-4 w-4 ${wishlistOnly ? "fill-current" : ""}`} />
+        {wishlistLabel}
+        {wishlistCount > 0 && (
+          <Badge variant="secondary" className="ml-1 px-1.5 py-0 text-[10px]">
+            {wishlistCount}
+          </Badge>
+        )}
+      </Button>
+    </div>
+  );
+});
+
+/* ------------------------------------------------------------------ */
+/* CourseListItem: extracted + memoized so toggling one checkbox or one */
+/* wishlist heart never re-renders every other row in the list. Props  */
+/* are kept to primitives/strings/stable callbacks only, same reasoning */
+/* as CourseCard in the browse-courses page.                            */
+/* ------------------------------------------------------------------ */
+type CourseListItemProps = {
+  id: string;
+  title: string;
+  subtitle?: string;
+  imageCover?: string;
+  price: number;
+  checked: boolean;
+  wished: boolean;
+  onToggleSelected: (id: string) => void;
+  onToggleWishlist: (id: string, e: React.MouseEvent) => void;
+  wishlistAddLabel: string;
+  wishlistRemoveLabel: string;
+};
+
+const CourseListItem = memo(function CourseListItem({
+  id,
+  title,
+  subtitle,
+  imageCover,
+  price,
+  checked,
+  wished,
+  onToggleSelected,
+  onToggleWishlist,
+  wishlistAddLabel,
+  wishlistRemoveLabel,
+}: CourseListItemProps) {
+  return (
+    <label
+      className={cn(
+        "flex cursor-pointer items-center gap-3 rounded-xl border p-3 transition-colors",
+        checked ? "border-primary bg-primary/5" : "border-border/60 hover:bg-muted/40"
+      )}
+    >
+      <input
+        type="checkbox"
+        className="h-4 w-4 accent-primary"
+        checked={checked}
+        onChange={() => onToggleSelected(id)}
+      />
+      <div
+        className="h-10 w-10 shrink-0 rounded-lg bg-muted bg-cover bg-center"
+        style={imageCover ? { backgroundImage: `url(${imageCover})` } : undefined}
+      />
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-sm font-medium">{title}</p>
+        {subtitle && <p className="truncate text-xs text-muted-foreground">{subtitle}</p>}
+      </div>
+      <span className="shrink-0 text-sm font-semibold">${price.toFixed(2)}</span>
+      <button
+        type="button"
+        onClick={(e) => onToggleWishlist(id, e)}
+        className="shrink-0 rounded-full p-1.5 hover:bg-muted"
+        aria-label={wished ? wishlistRemoveLabel : wishlistAddLabel}
+      >
+        <Heart className={`h-4 w-4 ${wished ? "fill-destructive text-destructive" : "text-muted-foreground"}`} />
+      </button>
+    </label>
+  );
+});
+
 /* ============ Component ============ */
 function MySubscription() {
   const { t } = useTranslation();
@@ -127,6 +282,10 @@ function MySubscription() {
   const [wishlist, setWishlistState] = useState<string[]>([]);
   const [selectedCourseIds, setSelectedCourseIds] = useState<string[]>([]);
 
+  // Second safety net on top of the debounce + transition inside
+  // CourseSearchBar — belt and suspenders, cheap to keep.
+  const deferredCourseQuery = useDeferredValue(courseQuery);
+
   // shared proof state
   const [proofFile, setProofFile] = useState<File | null>(null);
   const [proofPreview, setProofPreview] = useState<string | null>(null);
@@ -146,7 +305,6 @@ function MySubscription() {
   async function load() {
     setLoading(true);
     const res = await getMySubscription();
-    console.log("res:",res)
     setData(res);
     setLoading(false);
   }
@@ -187,20 +345,22 @@ function MySubscription() {
     setLoadingCourses(false);
   }
 
-  function toggleCourseSelected(id: string) {
+  // Stable identities so CourseListItem's React.memo comparison isn't
+  // defeated by a fresh closure every render.
+  const toggleCourseSelected = useCallback((id: string) => {
     setSelectedCourseIds((cur) =>
       cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id],
     );
-  }
+  }, []);
 
-  function handleToggleWishlist(id: string, e: React.MouseEvent) {
+  const handleToggleWishlist = useCallback((id: string, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setWishlistState(toggleWishlist(id));
-  }
+  }, []);
 
   const availableCourses = useMemo(() => {
-    const q = courseQuery.trim().toLowerCase();
+    const q = deferredCourseQuery.trim().toLowerCase();
     return allCourses.filter((c) => {
       if (c.status && c.status !== "published") return false;
       if (takenCourseIds.has(c.id)) return false;
@@ -208,7 +368,7 @@ function MySubscription() {
       if (q && !c.title.toLowerCase().includes(q)) return false;
       return true;
     });
-  }, [allCourses, takenCourseIds, wishlistOnly, wishlist, courseQuery]);
+  }, [allCourses, takenCourseIds, wishlistOnly, wishlist, deferredCourseQuery]);
 
   const selectedCourses = useMemo(
     () => allCourses.filter((c) => selectedCourseIds.includes(c.id)),
@@ -589,31 +749,15 @@ function MySubscription() {
             <DialogDescription>{t("subscriptionPaged.courses.dialog.description")}</DialogDescription>
           </DialogHeader>
 
-          <div className="flex flex-wrap items-center gap-2">
-            <div className="relative flex-1 min-w-[180px]">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                value={courseQuery}
-                onChange={(e) => setCourseQuery(e.target.value)}
-                placeholder={t("catalog.searchPlaceholder")}
-                className="pl-9"
-              />
-            </div>
-            <Button
-              type="button"
-              variant={wishlistOnly ? "default" : "outline"}
-              onClick={() => setWishlistOnly((v) => !v)}
-              className="gap-1.5"
-            >
-              <Heart className={`h-4 w-4 ${wishlistOnly ? "fill-current" : ""}`} />
-              {t("student.wishlist")}
-              {wishlist.length > 0 && (
-                <Badge variant="secondary" className="ml-1 px-1.5 py-0 text-[10px]">
-                  {wishlist.length}
-                </Badge>
-              )}
-            </Button>
-          </div>
+          <CourseSearchBar
+            initialQuery={courseQuery}
+            onQueryChange={setCourseQuery}
+            wishlistOnly={wishlistOnly}
+            onToggleWishlistOnly={() => setWishlistOnly((v) => !v)}
+            wishlistCount={wishlist.length}
+            searchPlaceholder={t("catalog.searchPlaceholder")}
+            wishlistLabel={t("student.wishlist")}
+          />
 
           <div className="max-h-80 space-y-2 overflow-y-auto pr-1">
             {loadingCourses ? (
@@ -625,43 +769,22 @@ function MySubscription() {
                 {t("subscriptionPaged.courses.dialog.empty")}
               </p>
             ) : (
-              availableCourses.map((c) => {
-                const checked = selectedCourseIds.includes(c.id);
-                const wished = wishlist.includes(c.id);
-                return (
-                  <label
-                    key={c.id}
-                    className={cn(
-                      "flex cursor-pointer items-center gap-3 rounded-xl border p-3 transition-colors",
-                      checked ? "border-primary bg-primary/5" : "border-border/60 hover:bg-muted/40"
-                    )}
-                  >
-                    <input
-                      type="checkbox"
-                      className="h-4 w-4 accent-primary"
-                      checked={checked}
-                      onChange={() => toggleCourseSelected(c.id)}
-                    />
-                    <div
-                      className="h-10 w-10 shrink-0 rounded-lg bg-muted bg-cover bg-center"
-                      style={c.image_cover ? { backgroundImage: `url(${c.image_cover})` } : undefined}
-                    />
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-medium">{c.title}</p>
-                      {c.subtitle && <p className="truncate text-xs text-muted-foreground">{c.subtitle}</p>}
-                    </div>
-                    <span className="shrink-0 text-sm font-semibold">${coursePrice(c).toFixed(2)}</span>
-                    <button
-                      type="button"
-                      onClick={(e) => handleToggleWishlist(c.id, e)}
-                      className="shrink-0 rounded-full p-1.5 hover:bg-muted"
-                      aria-label={wished ? t("student.removeFromWishlist") : t("student.addToWishlist")}
-                    >
-                      <Heart className={`h-4 w-4 ${wished ? "fill-destructive text-destructive" : "text-muted-foreground"}`} />
-                    </button>
-                  </label>
-                );
-              })
+              availableCourses.map((c) => (
+                <CourseListItem
+                  key={c.id}
+                  id={c.id}
+                  title={c.title}
+                  subtitle={c.subtitle}
+                  imageCover={c.image_cover}
+                  price={coursePrice(c)}
+                  checked={selectedCourseIds.includes(c.id)}
+                  wished={wishlist.includes(c.id)}
+                  onToggleSelected={toggleCourseSelected}
+                  onToggleWishlist={handleToggleWishlist}
+                  wishlistAddLabel={t("student.addToWishlist")}
+                  wishlistRemoveLabel={t("student.removeFromWishlist")}
+                />
+              ))
             )}
           </div>
 

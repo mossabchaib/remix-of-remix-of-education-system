@@ -1,6 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
-import { useCallback, useDeferredValue, useEffect, useMemo, useState, memo } from "react";
+import {
+  useCallback,
+  useDeferredValue,
+  useEffect,
+  useMemo,
+  useState,
+  useTransition,
+  memo,
+} from "react";
 import {
   BookOpen, GraduationCap, Globe2, Lock, Search, Sparkles, ShieldCheck, Heart, Star,
   ChevronLeft, ChevronRight,
@@ -72,6 +80,17 @@ type RawCourse = {
   teacher_id?: string;
   teacher?: string;
   profiles?: { full_name?: string };
+};
+
+// Course enriched once (per courses/categories change) with the derived
+// fields the grid needs. Computing these here means neither the filter
+// pass nor the card render ever call categoryName()/teacherName()/spineFor()
+// again — those used to run on every keystroke via `filtered` and, worse,
+// a second time per card during render.
+type EnrichedCourse = RawCourse & {
+  _categoryName: string;
+  _teacherName: string;
+  _spineColor: string;
 };
 
 type CategoryRow = { id: string; name: string };
@@ -201,6 +220,120 @@ const CourseCard = memo(function CourseCard({
   );
 });
 
+/* ------------------------------------------------------------------ */
+/* SearchAndFilters: owns its OWN local `query` state so every         */
+/* keystroke only re-renders this small toolbar, never the parent (and */
+/* therefore never the course grid). The parent's `query` state is     */
+/* updated inside startTransition, so React treats it as low-priority  */
+/* and won't let it block the input from repainting immediately.       */
+/* Level/category/rating/wishlist toggles are cheap and go straight    */
+/* through, only the free-text query needs this treatment.             */
+/* ------------------------------------------------------------------ */
+type SearchAndFiltersProps = {
+  initialQuery: string;
+  onQueryChange: (value: string) => void;
+  level: string;
+  onLevelChange: (value: string) => void;
+  category: string;
+  onCategoryChange: (value: string) => void;
+  categoryOptions: string[];
+  ratingFilter: string;
+  onRatingFilterChange: (value: string) => void;
+  wishlistOnly: boolean;
+  onToggleWishlistOnly: () => void;
+  wishlistCount: number;
+};
+
+const SearchAndFilters = memo(function SearchAndFilters({
+  initialQuery,
+  onQueryChange,
+  level,
+  onLevelChange,
+  category,
+  onCategoryChange,
+  categoryOptions,
+  ratingFilter,
+  onRatingFilterChange,
+  wishlistOnly,
+  onToggleWishlistOnly,
+  wishlistCount,
+}: SearchAndFiltersProps) {
+  const { t } = useTranslation();
+  const [localQuery, setLocalQuery] = useState(initialQuery);
+  const [, startTransition] = useTransition();
+
+  const handleQueryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setLocalQuery(val); // fast, local-only render — the Input never waits
+    startTransition(() => {
+      onQueryChange(val); // low-priority update to the parent's filter state
+    });
+  };
+
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      <div className="relative w-56">
+        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          value={localQuery}
+          onChange={handleQueryChange}
+          placeholder={t("catalog.searchPlaceholder")}
+          className="pl-9"
+        />
+      </div>
+      <Select value={level} onValueChange={onLevelChange}>
+        <SelectTrigger className="w-40">
+          <SelectValue placeholder={t("catalog.level")} />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">{t("catalog.allLevels")}</SelectItem>
+          <SelectItem value="beginner">{t("catalog.levels.beginner")}</SelectItem>
+          <SelectItem value="intermediate">{t("catalog.levels.intermediate")}</SelectItem>
+          <SelectItem value="advanced">{t("catalog.levels.advanced")}</SelectItem>
+        </SelectContent>
+      </Select>
+      <Select value={category} onValueChange={onCategoryChange}>
+        <SelectTrigger className="w-44">
+          <SelectValue placeholder={t("catalog.category")} />
+        </SelectTrigger>
+        <SelectContent>
+          {categoryOptions.map((c) => (
+            <SelectItem key={c} value={c}>
+              {c === "all" ? t("catalog.allCategories") : c}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <Select value={ratingFilter} onValueChange={onRatingFilterChange}>
+        <SelectTrigger className="w-40">
+          <SelectValue placeholder={t("catalog.rating")} />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">{t("catalog.allRatings")}</SelectItem>
+          <SelectItem value="4">{t("catalog.ratingAndUp", { value: 4 })}</SelectItem>
+          <SelectItem value="3">{t("catalog.ratingAndUp", { value: 3 })}</SelectItem>
+          <SelectItem value="2">{t("catalog.ratingAndUp", { value: 2 })}</SelectItem>
+          <SelectItem value="1">{t("catalog.ratingAndUp", { value: 1 })}</SelectItem>
+        </SelectContent>
+      </Select>
+      <Button
+        type="button"
+        variant={wishlistOnly ? "default" : "outline"}
+        onClick={onToggleWishlistOnly}
+        className="gap-1.5"
+      >
+        <Heart className={`h-4 w-4 ${wishlistOnly ? "fill-current" : ""}`} />
+        {t("student.wishlist")}
+        {wishlistCount > 0 && (
+          <Badge variant="secondary" className="ml-1 px-1.5 py-0 text-[10px]">
+            {wishlistCount}
+          </Badge>
+        )}
+      </Button>
+    </div>
+  );
+});
+
 function BrowseCourses() {
   const { t } = useTranslation();
 
@@ -219,11 +352,8 @@ function BrowseCourses() {
   const [category, setCategory] = useState<string>("all");
   const [ratingFilter, setRatingFilter] = useState<string>("all"); // "all" | "1" | "2" | "3" | "4"
 
-  // Deferred copy of the query used only for the (potentially expensive)
-  // filter/sort pass. The <Input> itself always reflects `query` directly,
-  // so keystrokes are never blocked waiting on list re-rendering — React
-  // is free to commit the input update first and the list update at
-  // lower priority.
+  // Still deferred as a second safety net on top of the transition inside
+  // SearchAndFilters — belt and suspenders, cheap to keep.
   const deferredQuery = useDeferredValue(query);
 
   // Pagination — search/filter/sort still run against the FULL course
@@ -343,26 +473,58 @@ function BrowseCourses() {
     };
   }, [courses]);
 
-  const categoryName = (c: RawCourse) =>
-    c.categories?.name ?? c.category ?? categories.find((x) => x.id === c.category_id)?.name ?? t("catalog.defaultCategory");
-  const teacherName = (c: RawCourse) => c.profiles?.full_name ?? c.teacher ?? t("catalog.defaultInstructor");
+  // O(1) lookup instead of categories.find() — that used to run once per
+  // course on every single filter pass.
+  const categoryMap = useMemo(
+    () => new Map(categories.map((cat) => [cat.id, cat.name])),
+    [categories],
+  );
+
+  const resolveCategoryName = useCallback(
+    (c: RawCourse) =>
+      c.categories?.name ?? c.category ?? categoryMap.get(c.category_id ?? "") ?? t("catalog.defaultCategory"),
+    [categoryMap, t],
+  );
+  const resolveTeacherName = useCallback(
+    (c: RawCourse) => c.profiles?.full_name ?? c.teacher ?? t("catalog.defaultInstructor"),
+    [t],
+  );
 
   const published = useMemo(
     () => courses.filter((c) => !c.status || c.status === "published"),
     [courses],
   );
 
-  // Unchanged filter/sort logic — only the text-query source is the
-  // deferred value, so the input never waits on this computation.
+  // Enrich each course ONCE per courses/categories change — not on every
+  // keystroke. categoryName()/teacherName()/spineFor() previously ran
+  // inside the `filtered` useMemo (keyed on deferredQuery) AND again per
+  // card during render; now they run here, keyed only on `published` and
+  // `categoryMap`, so typing never re-triggers them.
+  const enrichedCourses: EnrichedCourse[] = useMemo(
+    () =>
+      published.map((c) => {
+        const cat = resolveCategoryName(c);
+        return {
+          ...c,
+          _categoryName: cat,
+          _teacherName: resolveTeacherName(c),
+          _spineColor: spineFor(cat).bg,
+        };
+      }),
+    [published, resolveCategoryName, resolveTeacherName],
+  );
+
+  // Filtering/sorting now only does cheap string/number comparisons on
+  // precomputed fields — no more per-keystroke lookups or hashing.
   const filtered = useMemo(() => {
     const q = deferredQuery.trim().toLowerCase();
     const minRating = ratingFilter === "all" ? 0 : Number(ratingFilter);
 
-    const result = published.filter((c) => {
+    const result = enrichedCourses.filter((c) => {
       const matchesQ =
         !q || c.title.toLowerCase().includes(q) || (c.subtitle ?? "").toLowerCase().includes(q);
       const matchesLevel = level === "all" || (c.level ?? "").toLowerCase() === level;
-      const matchesCat = category === "all" || categoryName(c) === category;
+      const matchesCat = category === "all" || c._categoryName === category;
       const matchesWishlist = !wishlistOnly || wishlist.includes(c.id);
       const matchesRating = minRating === 0 || (ratings[c.id]?.average_rating ?? 0) >= minRating;
       return matchesQ && matchesLevel && matchesCat && matchesWishlist && matchesRating;
@@ -374,13 +536,11 @@ function BrowseCourses() {
     return [...result].sort(
       (a, b) => (ratings[b.id]?.average_rating ?? 0) - (ratings[a.id]?.average_rating ?? 0),
     );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [published, deferredQuery, level, category, categories, wishlistOnly, wishlist, ratingFilter, ratings]);
+  }, [enrichedCourses, deferredQuery, level, category, wishlistOnly, wishlist, ratingFilter, ratings]);
 
   const categoryOptions = useMemo(
-    () => ["all", ...Array.from(new Set(published.map((c) => categoryName(c))))],
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [published, categories],
+    () => ["all", ...Array.from(new Set(enrichedCourses.map((c) => c._categoryName)))],
+    [enrichedCourses],
   );
 
   // Reset to page 1 whenever a filter actually changes (not on every
@@ -435,66 +595,20 @@ function BrowseCourses() {
         title={t("catalog.title")}
         description={hasPlan ? t("catalog.description") : t("catalog.descriptionCourseOnly", "Courses you have purchased.")}
         actions={
-          <div className="flex flex-wrap items-center gap-2">
-            <div className="relative w-56">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder={t("catalog.searchPlaceholder")}
-                className="pl-9"
-              />
-            </div>
-            <Select value={level} onValueChange={setLevel}>
-              <SelectTrigger className="w-40">
-                <SelectValue placeholder={t("catalog.level")} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{t("catalog.allLevels")}</SelectItem>
-                <SelectItem value="beginner">{t("catalog.levels.beginner")}</SelectItem>
-                <SelectItem value="intermediate">{t("catalog.levels.intermediate")}</SelectItem>
-                <SelectItem value="advanced">{t("catalog.levels.advanced")}</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={category} onValueChange={setCategory}>
-              <SelectTrigger className="w-44">
-                <SelectValue placeholder={t("catalog.category")} />
-              </SelectTrigger>
-              <SelectContent>
-                {categoryOptions.map((c) => (
-                  <SelectItem key={c} value={c}>
-                    {c === "all" ? t("catalog.allCategories") : c}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select value={ratingFilter} onValueChange={setRatingFilter}>
-              <SelectTrigger className="w-40">
-                <SelectValue placeholder={t("catalog.rating")} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{t("catalog.allRatings")}</SelectItem>
-                <SelectItem value="4">{t("catalog.ratingAndUp", { value: 4 })}</SelectItem>
-                <SelectItem value="3">{t("catalog.ratingAndUp", { value: 3 })}</SelectItem>
-                <SelectItem value="2">{t("catalog.ratingAndUp", { value: 2 })}</SelectItem>
-                <SelectItem value="1">{t("catalog.ratingAndUp", { value: 1 })}</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button
-              type="button"
-              variant={wishlistOnly ? "default" : "outline"}
-              onClick={() => setWishlistOnly((v) => !v)}
-              className="gap-1.5"
-            >
-              <Heart className={`h-4 w-4 ${wishlistOnly ? "fill-current" : ""}`} />
-              {t("student.wishlist")}
-              {wishlist.length > 0 && (
-                <Badge variant="secondary" className="ml-1 px-1.5 py-0 text-[10px]">
-                  {wishlist.length}
-                </Badge>
-              )}
-            </Button>
-          </div>
+          <SearchAndFilters
+            initialQuery={query}
+            onQueryChange={setQuery}
+            level={level}
+            onLevelChange={setLevel}
+            category={category}
+            onCategoryChange={setCategory}
+            categoryOptions={categoryOptions}
+            ratingFilter={ratingFilter}
+            onRatingFilterChange={setRatingFilter}
+            wishlistOnly={wishlistOnly}
+            onToggleWishlistOnly={() => setWishlistOnly((v) => !v)}
+            wishlistCount={wishlist.length}
+          />
         }
       />
 
@@ -533,7 +647,6 @@ function BrowseCourses() {
         <>
           <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
             {paginated.map((c) => {
-              const spine = spineFor(categoryName(c));
               const wished = wishlist.includes(c.id);
               const isPending = wishlistPendingId === c.id;
               const courseRating = ratings[c.id];
@@ -545,10 +658,10 @@ function BrowseCourses() {
                   subtitle={c.subtitle}
                   imageCover={c.image_cover}
                   language={c.language}
-                  spineColor={spine.bg}
-                  categoryName={categoryName(c)}
+                  spineColor={c._spineColor}
+                  categoryName={c._categoryName}
                   levelLabelText={levelLabel(c.level)}
-                  teacherName={teacherName(c)}
+                  teacherName={c._teacherName}
                   wished={wished}
                   isPending={isPending}
                   ratingAverage={courseRating?.average_rating}

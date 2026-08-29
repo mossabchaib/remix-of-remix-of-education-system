@@ -1,5 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState, useEffect, useCallback, useDeferredValue, memo } from "react";
+import {
+  useMemo,
+  useState,
+  useEffect,
+  useCallback,
+  useDeferredValue,
+  useRef,
+  useTransition,
+  memo,
+} from "react";
 import { useTranslation } from "react-i18next";
 import { Search, Globe2, GraduationCap, CalendarDays, Star, ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
@@ -31,12 +40,18 @@ export const Route = createFileRoute("/courses/")({
 });
 
 const PAGE_SIZE = 12;
+// How long to wait, after the user stops typing, before the (potentially
+// expensive) filter pass actually runs. Keeps rapid keystrokes from each
+// queuing their own transition.
+const SEARCH_DEBOUNCE_MS = 250;
 
 function isNewCourse(createdAt?: string) {
   if (!createdAt) return false;
   const days = (Date.now() - new Date(createdAt).getTime()) / (1000 * 60 * 60 * 24);
   return days <= 14;
 }
+
+type CategoryRow = { id: string; name: string };
 
 /* ------------------------------------------------------------------ */
 /* CourseCard: extracted + memoized. Combined with pagination, this    */
@@ -148,12 +163,126 @@ const CourseCard = memo(function CourseCard({
   );
 });
 
+/* ------------------------------------------------------------------ */
+/* CourseFilters: owns its OWN local `query` state so every keystroke   */
+/* only re-renders this small toolbar, never the parent (and therefore  */
+/* never the course grid). It commits to the parent in two layers:      */
+/*   1. a real debounce (setTimeout) — nothing is sent to the parent    */
+/*      until the user actually pauses typing for SEARCH_DEBOUNCE_MS.   */
+/*   2. startTransition around that commit — so even the debounced      */
+/*      update is low-priority and can be interrupted by the next       */
+/*      keystroke's local render.                                       */
+/* Category/level/rating/select changes are cheap and go straight       */
+/* through — only the free-text query needs this treatment.             */
+/* ------------------------------------------------------------------ */
+type CourseFiltersProps = {
+  initialQuery: string;
+  onQueryChange: (value: string) => void;
+  category: string;
+  onCategoryChange: (value: string) => void;
+  categories: CategoryRow[];
+  level: string;
+  onLevelChange: (value: string) => void;
+  ratingFilter: string;
+  onRatingFilterChange: (value: string) => void;
+  hasActiveFilters: boolean;
+  onClearFilters: () => void;
+};
+
+const CourseFilters = memo(function CourseFilters({
+  initialQuery,
+  onQueryChange,
+  category,
+  onCategoryChange,
+  categories,
+  level,
+  onLevelChange,
+  ratingFilter,
+  onRatingFilterChange,
+  hasActiveFilters,
+  onClearFilters,
+}: CourseFiltersProps) {
+  const { t } = useTranslation();
+  const [localQuery, setLocalQuery] = useState(initialQuery);
+  const [, startTransition] = useTransition();
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Clear any pending debounce on unmount so it never fires (and updates
+  // state) after the toolbar is gone.
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, []);
+
+  // If the query is reset from outside (e.g. "clear filters"), reflect it
+  // locally too.
+  useEffect(() => {
+    setLocalQuery(initialQuery);
+  }, [initialQuery]);
+
+  const handleQueryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setLocalQuery(val); // instant — the Input never waits on filtering
+
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      startTransition(() => {
+        onQueryChange(val); // low-priority commit to the parent's filter state
+      });
+    }, SEARCH_DEBOUNCE_MS);
+  };
+
+  return (
+    <div className="mt-6 flex flex-wrap items-center gap-3">
+      <div className="relative min-w-[260px] flex-1">
+        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          value={localQuery}
+          onChange={handleQueryChange}
+          className="h-11 bg-background pl-10"
+          placeholder={t("coursesPage.searchPlaceholder")}
+        />
+      </div>
+      <Select value={category} onValueChange={onCategoryChange}>
+        <SelectTrigger className="h-11 w-[180px] bg-background"><SelectValue placeholder={t("coursesPage.filters.category")} /></SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">{t("coursesPage.filters.allCategories")}</SelectItem>
+          {categories.map((c) => <SelectItem key={c.id} value={c.name}>{c.name}</SelectItem>)}
+        </SelectContent>
+      </Select>
+      <Select value={level} onValueChange={onLevelChange}>
+        <SelectTrigger className="h-11 w-[160px] bg-background"><SelectValue placeholder={t("coursesPage.filters.level")} /></SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">{t("coursesPage.filters.allLevels")}</SelectItem>
+          <SelectItem value="beginner">{t("coursesPage.levels.beginner")}</SelectItem>
+          <SelectItem value="intermediate">{t("coursesPage.levels.intermediate")}</SelectItem>
+          <SelectItem value="advanced">{t("coursesPage.levels.advanced")}</SelectItem>
+        </SelectContent>
+      </Select>
+      <Select value={ratingFilter} onValueChange={onRatingFilterChange}>
+        <SelectTrigger className="h-11 w-[160px] bg-background"><SelectValue placeholder={t("coursesPage.filters.rating")} /></SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">{t("coursesPage.filters.allRatings")}</SelectItem>
+          <SelectItem value="4">{t("coursesPage.filters.ratingAndUp", { value: 4 })}</SelectItem>
+          <SelectItem value="3">{t("coursesPage.filters.ratingAndUp", { value: 3 })}</SelectItem>
+          <SelectItem value="2">{t("coursesPage.filters.ratingAndUp", { value: 2 })}</SelectItem>
+          <SelectItem value="1">{t("coursesPage.filters.ratingAndUp", { value: 1 })}</SelectItem>
+        </SelectContent>
+      </Select>
+      {hasActiveFilters && (
+        <Button variant="ghost" onClick={onClearFilters} className="h-11">{t("coursesPage.clearFilters")}</Button>
+      )}
+    </div>
+  );
+});
+
 function CoursesPage() {
   const { t, i18n } = useTranslation();
 
   const [courses, setCourses] = useState<Course[]>([]);
   const [coursesLoading, setCoursesLoading] = useState(true);
-  const [categories, setCategories] = useState<any[]>([]);
+  const [categories, setCategories] = useState<CategoryRow[]>([]);
   const { isAuthenticated }: any = useAuth();
 
   const [q, setQ] = useState("");
@@ -161,10 +290,8 @@ function CoursesPage() {
   const [level, setLevel] = useState<string>("all");
   const [ratingFilter, setRatingFilter] = useState<string>("all"); // "all" | "1" | "2" | "3" | "4"
 
-  // The <Input> always reflects `q` directly, so every keystroke commits
-  // instantly. The (potentially heavier) filter/sort pass below reads
-  // `deferredQ` instead, which React is free to update at lower priority
-  // once the input has already painted.
+  // Still deferred as a second safety net on top of the debounce +
+  // transition inside CourseFilters — belt and suspenders, cheap to keep.
   const deferredQ = useDeferredValue(q);
 
   // Pagination — search/filter/sort still run against the FULL course
@@ -176,10 +303,13 @@ function CoursesPage() {
   const [ratings, setRatings] = useState<Record<string, CourseRatingSummary>>({});
   const [ratingsLoaded, setRatingsLoaded] = useState(false);
 
-  function formatDate(createdAt?: string) {
-    if (!createdAt) return "";
-    return new Date(createdAt).toLocaleDateString(i18n.language, { month: "short", day: "numeric", year: "numeric" });
-  }
+  const formatDate = useCallback(
+    (createdAt?: string) => {
+      if (!createdAt) return "";
+      return new Date(createdAt).toLocaleDateString(i18n.language, { month: "short", day: "numeric", year: "numeric" });
+    },
+    [i18n.language],
+  );
 
   // Load categories
   const loadCategories = useCallback(async () => {
@@ -200,7 +330,7 @@ function CoursesPage() {
     try {
       setCoursesLoading(true);
       const data: any = await getAllCourses();
-      console.log("data:", data);
+      console.log("data:",data)
       const coursesList = Array.isArray(data)
         ? data
         : data?.courses || data?.data || [];
@@ -257,20 +387,53 @@ function CoursesPage() {
 
   const hasActiveFilters = q !== "" || cat !== "all" || level !== "all" || ratingFilter !== "all";
 
-  function resetFilters() {
+  const resetFilters = useCallback(() => {
     setQ("");
     setCat("all");
     setLevel("all");
     setRatingFilter("all");
-  }
+  }, []);
 
-  // Unchanged filter/sort logic — only the text-query source is the
-  // deferred value, so the input never waits on this computation.
+  // Enrich each course ONCE per courses/categories/language change — not
+  // on every keystroke. categoryLabel/instructorLine/coverStyle/isNew/
+  // createdAtLabel used to be recomputed inline inside the card-render
+  // loop (and isNewCourse() re-evaluates Date.now() each time); now they
+  // run here, keyed only on `courses` + `t` + `i18n.language`, so typing
+  // never re-triggers them.
+  const enrichedCourses = useMemo(
+    () =>
+      courses.map((c: any) => {
+        const coverStyle: React.CSSProperties = c.image_cover
+          ? c.image_cover.startsWith("linear-gradient")
+            ? { background: c.image_cover }
+            : { backgroundImage: `url(${c.image_cover})`, backgroundSize: "cover", backgroundPosition: "center" }
+          : { backgroundImage: c.cover };
+
+        return {
+          ...c,
+          _categoryLabel: c.categories?.name || c.category || t("coursesPage.generalCategory"),
+          _instructorLine: t("coursesPage.byInstructor", {
+            name: c.profiles?.full_name || c.teacher || t("coursesPage.defaultInstructor"),
+          }),
+          _coverStyle: coverStyle,
+          _isNew: isNewCourse(c.created_at),
+          _createdAtLabel: c.created_at ? formatDate(c.created_at) : undefined,
+        };
+      }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [courses, t, i18n.language, formatDate],
+  );
+
+  // Filtering/sorting now only does cheap string/number comparisons on
+  // precomputed fields — no more per-card recomputation of labels/styles.
   const filtered = useMemo(() => {
-    let list = [...courses];
+    let list = enrichedCourses;
 
     // 1. Search by title
-    if (deferredQ) list = list.filter((c: any) => c.title?.toLowerCase().includes(deferredQ.toLowerCase()));
+    if (deferredQ) {
+      const q2 = deferredQ.toLowerCase();
+      list = list.filter((c: any) => c.title?.toLowerCase().includes(q2));
+    }
 
     // 2. Filter by category (matches category name, relation, or id)
     if (cat !== "all") {
@@ -296,12 +459,10 @@ function CoursesPage() {
     // stable in modern JS engines, so courses that share the same rating
     // simply keep their existing relative order — no secondary tie-break
     // needed.
-    list.sort(
+    return [...list].sort(
       (a: any, b: any) => (ratings[b.id]?.average_rating ?? 0) - (ratings[a.id]?.average_rating ?? 0),
     );
-
-    return list;
-  }, [courses, deferredQ, cat, level, ratingFilter, ratings]);
+  }, [enrichedCourses, deferredQ, cat, level, ratingFilter, ratings]);
 
   // Reset to page 1 whenever a filter actually changes (not on every
   // `filtered` recompute, so ratings finishing loading etc. don't reset
@@ -330,46 +491,19 @@ function CoursesPage() {
           <p className="mt-2 max-w-2xl text-muted-foreground">
             {t("coursesPage.subtitle", { count: courses.length })}
           </p>
-          <div className="mt-6 flex flex-wrap items-center gap-3">
-            <div className="relative min-w-[260px] flex-1">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                value={q}
-                onChange={(e) => setQ(e.target.value)}
-                className="h-11 bg-background pl-10"
-                placeholder={t("coursesPage.searchPlaceholder")}
-              />
-            </div>
-            <Select value={cat} onValueChange={setCat}>
-              <SelectTrigger className="h-11 w-[180px] bg-background"><SelectValue placeholder={t("coursesPage.filters.category")} /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{t("coursesPage.filters.allCategories")}</SelectItem>
-                {categories.map((c) => <SelectItem key={c.id} value={c.name}>{c.name}</SelectItem>)}
-              </SelectContent>
-            </Select>
-            <Select value={level} onValueChange={setLevel}>
-              <SelectTrigger className="h-11 w-[160px] bg-background"><SelectValue placeholder={t("coursesPage.filters.level")} /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{t("coursesPage.filters.allLevels")}</SelectItem>
-                <SelectItem value="beginner">{t("coursesPage.levels.beginner")}</SelectItem>
-                <SelectItem value="intermediate">{t("coursesPage.levels.intermediate")}</SelectItem>
-                <SelectItem value="advanced">{t("coursesPage.levels.advanced")}</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={ratingFilter} onValueChange={setRatingFilter}>
-              <SelectTrigger className="h-11 w-[160px] bg-background"><SelectValue placeholder={t("coursesPage.filters.rating")} /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{t("coursesPage.filters.allRatings")}</SelectItem>
-                <SelectItem value="4">{t("coursesPage.filters.ratingAndUp", { value: 4 })}</SelectItem>
-                <SelectItem value="3">{t("coursesPage.filters.ratingAndUp", { value: 3 })}</SelectItem>
-                <SelectItem value="2">{t("coursesPage.filters.ratingAndUp", { value: 2 })}</SelectItem>
-                <SelectItem value="1">{t("coursesPage.filters.ratingAndUp", { value: 1 })}</SelectItem>
-              </SelectContent>
-            </Select>
-            {hasActiveFilters && (
-              <Button variant="ghost" onClick={resetFilters} className="h-11">{t("coursesPage.clearFilters")}</Button>
-            )}
-          </div>
+          <CourseFilters
+            initialQuery={q}
+            onQueryChange={setQ}
+            category={cat}
+            onCategoryChange={setCat}
+            categories={categories}
+            level={level}
+            onLevelChange={setLevel}
+            ratingFilter={ratingFilter}
+            onRatingFilterChange={setRatingFilter}
+            hasActiveFilters={hasActiveFilters}
+            onClearFilters={resetFilters}
+          />
         </div>
       </section>
 
@@ -398,12 +532,6 @@ function CoursesPage() {
             <>
               <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 {paginated.map((c: any) => {
-                  const coverStyle = c.image_cover
-                    ? c.image_cover.startsWith("linear-gradient")
-                      ? { background: c.image_cover }
-                      : { backgroundImage: `url(${c.image_cover})`, backgroundSize: "cover", backgroundPosition: "center" }
-                    : { backgroundImage: c.cover };
-
                   const courseRating = ratings[c.id];
 
                   return (
@@ -412,14 +540,14 @@ function CoursesPage() {
                       id={c.id}
                       title={c.title}
                       subtitle={c.subtitle || c.description}
-                      coverStyle={coverStyle}
-                      categoryLabel={c.categories?.name || c.category || t("coursesPage.generalCategory")}
-                      isNew={isNewCourse(c.created_at)}
+                      coverStyle={c._coverStyle}
+                      categoryLabel={c._categoryLabel}
+                      isNew={c._isNew}
                       isAuthenticated={!!isAuthenticated}
-                      instructorLine={t("coursesPage.byInstructor", { name: c.profiles?.full_name || c.teacher || t("coursesPage.defaultInstructor") })}
+                      instructorLine={c._instructorLine}
                       level={c.level}
                       language={c.language}
-                      createdAtLabel={c.created_at ? formatDate(c.created_at) : undefined}
+                      createdAtLabel={c._createdAtLabel}
                       ratingAverage={courseRating?.average_rating}
                       ratingCount={courseRating?.total_ratings}
                       ratingsLoaded={ratingsLoaded}

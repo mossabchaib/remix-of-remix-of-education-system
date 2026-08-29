@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -67,6 +67,10 @@ export type Filter<T> = {
 };
 
 const PAGE_WINDOW_SIZE = 5;
+// How long to wait after the user stops typing before the (potentially
+// expensive) filter/sort pass runs. Chosen to feel instant while still
+// coalescing bursts of keystrokes into a single recompute.
+const SEARCH_DEBOUNCE_MS = 250;
 
 /** Returns a sliding window of page numbers centered on the current page. */
 function getPageWindow(current: number, totalPages: number, windowSize = PAGE_WINDOW_SIZE) {
@@ -82,7 +86,7 @@ function getPageWindow(current: number, totalPages: number, windowSize = PAGE_WI
   return Array.from({ length: end - start + 1 }, (_, i) => start + i);
 }
 
-export function DataTable<T extends { id: string }>({
+function DataTableInner<T extends { id: string }>({
   data,
   columns,
   searchKeys,
@@ -109,7 +113,38 @@ export function DataTable<T extends { id: string }>({
   emptyMessage?: string;
 }) {
   const { t } = useTranslation();
+
+  // `inputValue` drives the Input directly, so every keystroke repaints
+  // instantly no matter how heavy the filter/sort pass below is.
+  // `query` is what `filtered` actually reads, and it's only updated
+  // (via startTransition, low priority) after SEARCH_DEBOUNCE_MS of no
+  // typing — this is the same "local fast state + debounced heavy state"
+  // pattern used for the course catalog search box. Without it, every
+  // keystroke synchronously re-ran filter+sort over the full dataset at
+  // high priority and the Input visibly lagged behind typing.
+  const [inputValue, setInputValue] = useState("");
   const [query, setQuery] = useState("");
+  const [, startTransition] = useTransition();
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, []);
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setInputValue(val);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      startTransition(() => {
+        setQuery(val);
+        setPage(1);
+      });
+    }, SEARCH_DEBOUNCE_MS);
+  };
+
   const [sortKey, setSortKey] = useState<string | null>(null);
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
   const [page, setPage] = useState(1);
@@ -179,11 +214,8 @@ export function DataTable<T extends { id: string }>({
         <div className="relative min-w-[220px] flex-1">
           <Search className="pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
-            value={query}
-            onChange={(e) => {
-              setQuery(e.target.value);
-              setPage(1);
-            }}
+            value={inputValue}
+            onChange={handleSearchChange}
             placeholder={t("dashboard_common.search")}
             className="ps-9"
           />
@@ -427,3 +459,14 @@ export function DataTable<T extends { id: string }>({
     </div>
   );
 }
+
+// DataTable is generic over T, so it can't be wrapped with plain
+// `React.memo(DataTableInner)` without losing that generic signature —
+// memo's return type isn't generic. This cast preserves DataTableInner's
+// original generic call signature for consumers while still giving it
+// memo's shallow-prop-comparison bailout, so passing the SAME `columns`/
+// `filters`/`searchKeys` array references from the parent (see the admin
+// courses page, where these are now memoized) actually skips re-render
+// instead of that memoization being silently wasted.
+import { memo } from "react";
+export const DataTable = memo(DataTableInner) as typeof DataTableInner;
