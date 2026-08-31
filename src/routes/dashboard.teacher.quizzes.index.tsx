@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Plus, ListChecks, Trash2, Clock } from "lucide-react";
+import { Plus, ListChecks, Trash2, Clock, Loader2 } from "lucide-react";
 import { RoleDashboardLayout } from "@/components/dashboard/RoleDashboardLayout";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { Card } from "@/components/ui/card";
@@ -32,8 +32,6 @@ export const Route = createFileRoute("/dashboard/teacher/quizzes/")({
   component: TeacherQuizzes,
 });
 
-// Minimal shape we rely on for a teacher's course. Kept local since the
-// removed hook did not expose a dedicated type for it.
 interface TeacherCourse {
   id: string;
   title: string;
@@ -42,8 +40,6 @@ interface TeacherCourse {
 function TeacherQuizzes() {
   const { t } = useTranslation();
 
-  // --- Courses: previously sourced from useTeacherCourses(), now read
-  // directly from lms-storage and kept in sync via its storage events. ---
   const [courses, setCourses] = useState<TeacherCourse[]>([]);
   const [coursesLoading, setCoursesLoading] = useState(true);
 
@@ -91,11 +87,11 @@ function TeacherQuizzes() {
   const [open, setOpen] = useState(false);
   const [creating, setCreating] = useState(false);
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
-  const [deleting, setDeleting] = useState(false);
+  // نتتبع أي عنصر قيد الحذف تحديدًا حتى تظهر حالة التحميل على بطاقته فقط
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  // Combined loading flag: quizzes can't be fetched until courses have
-  // resolved, so the skeletons should stay up for both phases.
   const loading = coursesLoading || quizzesLoading;
+  const deleting = !!deletingId;
 
   async function loadQuizzes() {
     if (!courses || courses.length === 0) {
@@ -123,16 +119,24 @@ function TeacherQuizzes() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [coursesLoading, courses.length]);
 
-  async function handleCreate(v: { title: string; courseId: string; courseTitle: string; minutes: number }) {
+  async function handleCreate(v: {
+    title: string;
+    courseId: string;
+    courseTitle: string;
+    minutes: number;
+  }) {
     setCreating(true);
+
     try {
-      const created = await upsertQuiz({
+      await upsertQuiz({
         title: v.title,
         courseId: v.courseId,
         minutes: v.minutes,
       });
+
       toast.success(t("teacherQuizzes.toast.created"));
       setOpen(false);
+      loadQuizzes();
       loadQuizzes();
     } catch (err) {
       console.error("Failed to create quiz:", err);
@@ -144,16 +148,17 @@ function TeacherQuizzes() {
 
   async function confirmDelete() {
     if (!pendingDeleteId) return;
-    setDeleting(true);
+    const id = pendingDeleteId;
+    setDeletingId(id);
     try {
-      await deleteQuiz(pendingDeleteId);
-      setQuizzes((prev) => prev.filter((q) => q.id !== pendingDeleteId));
+      await deleteQuiz(id);
+      setQuizzes((prev) => prev.filter((q) => q.id !== id));
       toast.success(t("teacherQuizzes.toast.removed"));
     } catch (err) {
       console.error("Failed to remove quiz:", err);
       toast.error(t("teacherQuizzes.toast.removeFailed"));
     } finally {
-      setDeleting(false);
+      setDeletingId(null);
       setPendingDeleteId(null);
     }
   }
@@ -164,8 +169,13 @@ function TeacherQuizzes() {
         title={t("teacherQuizzes.title")}
         description={t("teacherQuizzes.description")}
         actions={
-          <Button onClick={() => setOpen(true)} disabled={!courses || courses.length === 0}>
-            <Plus className="mr-1.5 h-4 w-4" /> {t("teacherQuizzes.newQuiz")}
+          <Button onClick={() => setOpen(true)} disabled={loading || !courses || courses.length === 0}>
+            {loading ? (
+              <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
+            ) : (
+              <Plus className="mr-1.5 h-4 w-4" />
+            )}
+            {t("teacherQuizzes.newQuiz")}
           </Button>
         }
       />
@@ -200,53 +210,61 @@ function TeacherQuizzes() {
         />
       ) : (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {quizzes.map((q) => (
-            <Card key={q.id} className="group border-border/60 p-5 shadow-card transition-shadow hover:shadow-md">
-              <div className="flex items-start gap-3">
-                <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-primary-soft text-primary">
-                  <ListChecks className="h-5 w-5" />
+          {quizzes.map((q) => {
+            const isDeletingThis = deletingId === q.id;
+            return (
+              <Card key={q.id} className="group border-border/60 p-5 shadow-card transition-shadow hover:shadow-md">
+                <div className="flex items-start gap-3">
+                  <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-primary-soft text-primary">
+                    <ListChecks className="h-5 w-5" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-semibold">{q.title}</p>
+                    <p className="truncate text-xs text-muted-foreground">{q.course}</p>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-destructive opacity-0 transition-opacity hover:bg-destructive/10 hover:text-destructive group-hover:opacity-100"
+                    onClick={() => setPendingDeleteId(q.id)}
+                    disabled={deleting}
+                    title={t("teacherQuizzes.deleteQuiz")}
+                  >
+                    {isDeletingThis ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Trash2 className="h-4 w-4" />
+                    )}
+                  </Button>
                 </div>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-semibold">{q.title}</p>
-                  <p className="truncate text-xs text-muted-foreground">{q.course}</p>
+
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <Badge variant="outline" className="gap-1">
+                    <ListChecks className="h-3 w-3" /> {t("teacherQuizzes.questionsCount", { count: q.questions?.length ?? 0 })}
+                  </Badge>
+                  <Badge variant="outline" className="gap-1">
+                    <Clock className="h-3 w-3" /> {t("teacherQuizzes.minutes", { count: q.minutes })}
+                  </Badge>
+                  <Badge variant="outline" className="border-success/20 bg-success/10 text-success">
+                    {t("teacherQuizzes.published")}
+                  </Badge>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="opacity-0 transition-opacity group-hover:opacity-100"
-                  onClick={() => setPendingDeleteId(q.id)}
-                  title={t("teacherQuizzes.deleteQuiz")}
-                >
-                  <Trash2 className="h-4 w-4 text-muted-foreground" />
-                </Button>
-              </div>
 
-              <div className="mt-3 flex flex-wrap gap-2">
-                <Badge variant="outline" className="gap-1">
-                  <ListChecks className="h-3 w-3" /> {t("teacherQuizzes.questionsCount", { count: q.questions?.length ?? 0 })}
-                </Badge>
-                <Badge variant="outline" className="gap-1">
-                  <Clock className="h-3 w-3" /> {t("teacherQuizzes.minutes", { count: q.minutes })}
-                </Badge>
-                <Badge variant="outline" className="border-success/20 bg-success/10 text-success">
-                  {t("teacherQuizzes.published")}
-                </Badge>
-              </div>
-
-              <div className="mt-4 flex gap-2">
-                <Button asChild className="flex-1">
-                  <Link to="/dashboard/teacher/quizzes/$id" params={{ id: q.id }}>{t("teacherQuizzes.manageQuestions")}</Link>
-                </Button>
-                <Button asChild variant="outline">
-                  <Link to="/dashboard/student/quizzes/$id" params={{ id: q.id }}>{t("teacherQuizzes.preview")}</Link>
-                </Button>
-              </div>
-            </Card>
-          ))}
+                <div className="mt-4 flex gap-2">
+                  <Button asChild className="flex-1">
+                    <Link to="/dashboard/teacher/quizzes/$id" params={{ id: q.id }}>{t("teacherQuizzes.manageQuestions")}</Link>
+                  </Button>
+                  <Button asChild variant="outline">
+                    <Link to="/dashboard/student/quizzes/$id" params={{ id: q.id }}>{t("teacherQuizzes.preview")}</Link>
+                  </Button>
+                </div>
+              </Card>
+            );
+          })}
         </div>
       )}
 
-      <Dialog open={open} onOpenChange={setOpen}>
+      <Dialog open={open} onOpenChange={(v) => !creating && setOpen(v)}>
         <DialogContent>
           <DialogHeader><DialogTitle>{t("teacherQuizzes.newDialog.title")}</DialogTitle></DialogHeader>
           <NewQuizForm courses={courses ?? []} onSubmit={handleCreate} submitting={creating} t={t} />
@@ -263,8 +281,17 @@ function TeacherQuizzes() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={deleting}>{t("teacherQuizzes.deleteDialog.cancel")}</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete} disabled={deleting}>
-              <Trash2 className="mr-1.5 h-4 w-4" /> {deleting ? t("teacherQuizzes.deleteDialog.deleting") : t("teacherQuizzes.deleteDialog.confirm")}
+            <AlertDialogAction
+              onClick={confirmDelete}
+              disabled={deleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 focus:ring-destructive"
+            >
+              {deleting ? (
+                <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
+              ) : (
+                <Trash2 className="mr-1.5 h-4 w-4" />
+              )}
+              {deleting ? t("teacherQuizzes.deleteDialog.deleting") : t("teacherQuizzes.deleteDialog.confirm")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -308,13 +335,14 @@ function NewQuizForm({
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           placeholder={t("teacherQuizzes.newDialog.titlePlaceholder")}
+          disabled={submitting}
           required
         />
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-1.5">
           <Label>{t("teacherQuizzes.newDialog.course")}</Label>
-          <Select value={courseId} onValueChange={setCourseId}>
+          <Select value={courseId} onValueChange={setCourseId} disabled={submitting}>
             <SelectTrigger><SelectValue placeholder={t("teacherQuizzes.newDialog.selectCourse")} /></SelectTrigger>
             <SelectContent>
               {courses.map((c) => <SelectItem key={c.id} value={c.id}>{c.title}</SelectItem>)}
@@ -323,11 +351,12 @@ function NewQuizForm({
         </div>
         <div className="space-y-1.5">
           <Label>{t("teacherQuizzes.newDialog.duration")}</Label>
-          <Input type="number" min={1} value={minutes} onChange={(e) => setMinutes(e.target.value)} />
+          <Input type="number" min={1} value={minutes} onChange={(e) => setMinutes(e.target.value)} disabled={submitting} />
         </div>
       </div>
       <DialogFooter>
         <Button type="submit" disabled={submitting}>
+          {submitting && <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />}
           {submitting ? t("teacherQuizzes.newDialog.creating") : t("teacherQuizzes.newDialog.create")}
         </Button>
       </DialogFooter>

@@ -257,6 +257,7 @@
     "copyright": "© {{year}} EL MANARA Learning, Inc. All rights reserved."
   },
   "admin": {
+    
     "noRatings": "No ratings yet",
   "ratingAndUp": "{{value}} stars & up",
     "subscription": {
@@ -872,15 +873,19 @@
     "retry": "Retry",
     "courseNotFound": "Course not found"
   },
-    "teacherLessons": {
+  "teacherLessons": {
     "title": "Lessons",
     "description": "Every lesson across your courses, in one place.",
     "newLesson": "New lesson",
     "freePreview": "Free preview",
     "loading": "Loading your lessons...",
-    "kind": { "video": "Video", "quiz": "Quiz", "article": "Article" },
-    "stats": { "total": "Total lessons", "videos": "Videos", "quizzes": "Quizzes", "articles": "Articles" },
+    "kind": { "video": "Video", "quiz": "Quiz", "reading": "Article" },
+    "stats": { "modules": "Modules", "total": "Total lessons", "videos": "Videos", "quizzes": "Quizzes", "articles": "Articles" },
     "table": { "lesson": "Lesson", "course": "Course", "module": "Module", "type": "Type", "duration": "Duration" },
+      "tabs": {
+      "lessons": "Lessons",
+      "modules": "Modules"
+    },
     "emptyCourses": {
       "title": "No courses yet",
       "description": "Create a course first, then add lessons to it.",
@@ -911,6 +916,7 @@
       "module": "Module",
       "noModules": "No modules",
       "noModulesHint": "This course has no modules yet. Add one from the course builder first.",
+      "addModule": "Add module",
       "save": "Save",
       "saving": "Saving...",
       "create": "Create",
@@ -924,6 +930,47 @@
       "removeFailed": "Failed to remove lesson",
       "created": "Lesson created — students notified",
       "createFailed": "Failed to create lesson"
+    },
+    "modules": {
+      "title": "Modules",
+      "description": "Organize your courses into modules",
+      "newModule": "New Module",
+      "table": {
+        "module": "Module",
+        "course": "Course",
+        "lessons": "Lessons"
+      },
+      "emptyModules": {
+        "title": "No modules yet",
+        "description": "Create your first module to start adding lessons"
+      },
+      "newDialog": {
+        "title": "New Module",
+        "description": "Add a new module to one of your courses"
+      },
+      "editDialog": {
+        "title": "Edit Module"
+      },
+      "deleteDialog": {
+        "title": "Delete module?",
+        "description": "This will permanently delete \"{{title}}\" and its lessons. This action cannot be undone."
+      },
+      "form": {
+        "title": "Module title",
+        "titlePlaceholder": "e.g. Getting Started",
+        "save": "Save changes",
+        "saving": "Saving...",
+        "create": "Create module",
+        "creating": "Creating..."
+      },
+      "toast": {
+        "created": "Module created",
+        "createFailed": "Failed to create module",
+        "updated": "Module updated",
+        "updateFailed": "Failed to update module",
+        "removed": "Module removed",
+        "removeFailed": "Failed to remove module"
+      }
     }
   },
   "teacherUploadsr": {
@@ -1623,7 +1670,105 @@
     "errorInvalidToken": "The reset link is invalid or has expired.",
     "errorGeneric": "Failed to update password, please try again later."
   },
+   "teacherQuizEditorCard": {
+    "backToQuizzes": "Back to quizzes",
+    "notFound": {
+      "title": "Quiz not found",
+      "description": "This quiz doesn't seem to exist or may have been deleted.",
+      "back": "Back to quiz list"
+    },
+    "meta": {
+      "quizTitle": "Quiz title",
+      "duration": "Duration (minutes)",
+      "save": "Save",
+      "saving": "Saving..."
+    },
+    "questions": {
+      "heading": "Questions",
+      "newQuestion": "New question",
+      "emptyTitle": "No questions yet",
+      "emptyDescription": "Start by adding the first question to this quiz."
+    },
+    "questionDialog": {
+      "newTitle": "Add a new question",
+      "editTitle": "Edit question"
+    },
+    "deleteDialog": {
+      "title": "Delete question",
+      "description": "Are you sure you want to delete this question? This action cannot be undone.",
+      "cancel": "Cancel",
+      "confirm": "Delete",
+      "deleting": "Deleting..."
+    },
+    "toast": {
+      "loadFailed": "Failed to load the quiz.",
+      "metaUpdated": "Quiz details updated successfully.",
+      "metaSaveFailed": "Failed to save quiz details.",
+      "questionAdded": "Question added successfully.",
+      "questionUpdated": "Question updated successfully.",
+      "questionSaveFailed": "Failed to save the question.",
+      "questionRemoved": "Question removed successfully.",
+      "questionRemoveFailed": "Failed to remove the question."
+    },
+    "questionForm": {
+      "types": {
+        "qcm": "Multiple choice",
+        "trueFalse": "True / False",
+        "matching": "Matching"
+      },
+      "fields": {
+        "type": "Question type",
+        "text": "Question text",
+        "textPlaceholder": "Type the question…"
+      },
+      "options": {
+        "label": "Options",
+        "hint": "Check the correct answer(s)",
+        "placeholder": "Option {{index}}",
+        "add": "Add option",
+        "markCorrect": "Mark as correct"
+      },
+      "trueFalse": {
+        "label": "Correct answer",
+        "hint": "Toggle the correct value for this statement.",
+        "false": "False",
+        "true": "True"
+      },
+      "matching": {
+        "label": "Pairs",
+        "hint": "Left item ↔ correct match on the right",
+        "leftPlaceholder": "Left item",
+        "rightPlaceholder": "Correct match",
+        "add": "Add pair"
+      },
+      "errors": {
+        "textRequired": "Question text is required.",
+        "minOptions": "Add at least 2 options.",
+        "needCorrectOption": "Mark at least one option as correct.",
+        "minPairs": "Add at least 2 complete pairs."
+      },
+      "actions": {
+        "cancel": "Cancel",
+        "save": "Save changes",
+        "add": "Add question",
+        "saving": "Saving..."
+      }
+    },
+    "questionList": {
+      "empty": "No questions yet. Add your first one.",
+      "types": {
+        "qcm": "Multiple choice",
+        "trueFalse": "True / False",
+        "matching": "Matching"
+      },
+      "optionsCount": "{{count}} options",
+      "pairsCount": "{{count}} pairs",
+      "editAria": "Edit question",
+      "deleteAria": "Delete question"
+    }
+  },
   "teacherUploads": {
+    "generalCourse":"General Course",
     "loading": "Loading…",
      "title": "Files & Content",
     "description": "Manage and upload lesson content and educational materials",

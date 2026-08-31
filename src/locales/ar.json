@@ -869,27 +869,27 @@
   },
   "teacherLessons": {
     "title": "الدروس",
-    "description": "جميع الدروس في مقرراتك، في مكان واحد.",
+    "description": "كل درس في دوراتك، في مكان واحد.",
     "newLesson": "درس جديد",
     "freePreview": "معاينة مجانية",
     "loading": "جارٍ تحميل دروسك...",
-    "kind": { "video": "فيديو", "quiz": "اختبار", "article": "مقالة" },
-    "stats": { "total": "إجمالي الدروس", "videos": "فيديوهات", "quizzes": "اختبارات", "articles": "مقالات" },
-    "table": { "lesson": "الدرس", "course": "المقرر", "module": "الوحدة", "type": "النوع", "duration": "المدة" },
+    "kind": { "video": "فيديو", "quiz": "اختبار", "article": "مقال" },
+    "stats": {  "modules": "الوحدات","total": "إجمالي الدروس", "videos": "فيديوهات", "quizzes": "اختبارات", "articles": "مقالات" },
+    "table": { "lesson": "الدرس", "course": "الدورة", "module": "الوحدة", "type": "النوع", "duration": "المدة" },
     "emptyCourses": {
-      "title": "لا توجد مقررات بعد",
-      "description": "أنشئ مقررًا أولاً، ثم أضف الدروس إليه.",
-      "cta": "الانتقال إلى المقررات"
+      "title": "لا توجد دورات بعد",
+      "description": "أنشئ دورة أولاً، ثم أضف إليها الدروس.",
+      "cta": "الذهاب إلى الدورات"
     },
     "emptyLessons": {
       "title": "لا توجد دروس بعد",
       "description": "أضف درسك الأول للبدء."
     },
     "editDialog": { "title": "تعديل الدرس" },
-    "newDialog": { "title": "درس جديد", "description": "اختر المقرر والوحدة اللذين ينتمي إليهما هذا الدرس." },
+    "newDialog": { "title": "درس جديد", "description": "اختر الدورة والوحدة التي ينتمي إليها هذا الدرس." },
     "deleteDialog": {
       "title": "حذف الدرس؟",
-      "description": "سيتم حذف \"{{title}}\" نهائيًا. لا يمكن التراجع عن هذا الإجراء.",
+      "description": "سيؤدي هذا إلى حذف \"{{title}}\" نهائيًا. لا يمكن التراجع عن هذا الإجراء.",
       "cancel": "إلغاء",
       "confirm": "حذف",
       "deleting": "جارٍ الحذف..."
@@ -902,10 +902,11 @@
       "durationPlaceholder": "مثال: 10 دقائق",
       "contentUrl": "رابط المحتوى",
       "allowPreview": "السماح كمعاينة مجانية",
-      "course": "المقرر",
+      "course": "الدورة",
       "module": "الوحدة",
       "noModules": "لا توجد وحدات",
-      "noModulesHint": "لا يحتوي هذا المقرر على وحدات بعد. أضف وحدة من أداة إنشاء المقرر أولاً.",
+      "noModulesHint": "لا تحتوي هذه الدورة على وحدات بعد. أضف واحدة من منشئ الدورة أولاً.",
+      "addModule": "إضافة وحدة",
       "save": "حفظ",
       "saving": "جارٍ الحفظ...",
       "create": "إنشاء",
@@ -915,10 +916,56 @@
       "loadFailed": "فشل تحميل الدروس",
       "updated": "تم تحديث الدرس",
       "updateFailed": "فشل تحديث الدرس",
-      "removed": "تم حذف الدرس",
-      "removeFailed": "فشل حذف الدرس",
+      "removed": "تمت إزالة الدرس",
+      "removeFailed": "فشلت إزالة الدرس",
       "created": "تم إنشاء الدرس — تم إشعار الطلاب",
       "createFailed": "فشل إنشاء الدرس"
+    },
+    "modules": {
+      "title": "الوحدات",
+      "description": "نظّم دوراتك في وحدات",
+      "newModule": "وحدة جديدة",
+      "table": {
+        "module": "الوحدة",
+        "course": "الدورة",
+        "lessons": "الدروس"
+      },
+      "emptyModules": {
+        "title": "لا توجد وحدات بعد",
+        "description": "أنشئ وحدتك الأولى لتبدأ بإضافة الدروس"
+      },
+      "newDialog": {
+        "title": "وحدة جديدة",
+        "description": "أضف وحدة جديدة إلى إحدى دوراتك"
+      },
+      "editDialog": {
+        "title": "تعديل الوحدة"
+      },
+      "deleteDialog": {
+        "title": "حذف الوحدة؟",
+        "description": "سيؤدي هذا إلى حذف \"{{title}}\" ودروسها نهائيًا. لا يمكن التراجع عن هذا الإجراء."
+      },
+      "form": {
+        "title": "عنوان الوحدة",
+        "titlePlaceholder": "مثال: البدء",
+        "save": "حفظ التغييرات",
+        "saving": "جارٍ الحفظ...",
+        "create": "إنشاء وحدة",
+        "creating": "جارٍ الإنشاء..."
+      },
+      "toast": {
+        "created": "تم إنشاء الوحدة",
+        "createFailed": "فشل إنشاء الوحدة",
+        "updated": "تم تحديث الوحدة",
+        "updateFailed": "فشل تحديث الوحدة",
+        "removed": "تمت إزالة الوحدة",
+        "removeFailed": "فشلت إزالة الوحدة"
+      }
+    },
+  
+    "tabs": {
+      "lessons": "الدروس",
+      "modules": "الوحدات"
     }
   },
    "teacherUploadsr": {
@@ -1623,7 +1670,105 @@
     "errorInvalidToken": "رابط إعادة التعيين غير صالح أو منتهي الصلاحية.",
     "errorGeneric": "فشل تحديث كلمة المرور، يرجى المحاولة لاحقاً."
   },
+  "teacherQuizEditorCard": {
+    "backToQuizzes": "الرجوع إلى الاختبارات",
+    "notFound": {
+      "title": "الاختبار غير موجود",
+      "description": "يبدو أن هذا الاختبار غير موجود أو تم حذفه.",
+      "back": "الرجوع إلى قائمة الاختبارات"
+    },
+    "meta": {
+      "quizTitle": "عنوان الاختبار",
+      "duration": "المدة (بالدقائق)",
+      "save": "حفظ",
+      "saving": "جاري الحفظ..."
+    },
+    "questions": {
+      "heading": "الأسئلة",
+      "newQuestion": "سؤال جديد",
+      "emptyTitle": "لا توجد أسئلة بعد",
+      "emptyDescription": "ابدأ بإضافة أول سؤال لهذا الاختبار."
+    },
+    "questionDialog": {
+      "newTitle": "إضافة سؤال جديد",
+      "editTitle": "تعديل السؤال"
+    },
+    "deleteDialog": {
+      "title": "حذف السؤال",
+      "description": "هل أنت متأكد من حذف هذا السؤال؟ لا يمكن التراجع عن هذا الإجراء.",
+      "cancel": "إلغاء",
+      "confirm": "حذف",
+      "deleting": "جاري الحذف..."
+    },
+    "toast": {
+      "loadFailed": "تعذر تحميل الاختبار.",
+      "metaUpdated": "تم تحديث بيانات الاختبار بنجاح.",
+      "metaSaveFailed": "تعذر حفظ بيانات الاختبار.",
+      "questionAdded": "تمت إضافة السؤال بنجاح.",
+      "questionUpdated": "تم تحديث السؤال بنجاح.",
+      "questionSaveFailed": "تعذر حفظ السؤال.",
+      "questionRemoved": "تم حذف السؤال بنجاح.",
+      "questionRemoveFailed": "تعذر حذف السؤال."
+    },
+    "questionForm": {
+      "types": {
+        "qcm": "اختيار من متعدد",
+        "trueFalse": "صح / خطأ",
+        "matching": "مطابقة"
+      },
+      "fields": {
+        "type": "نوع السؤال",
+        "text": "نص السؤال",
+        "textPlaceholder": "اكتب السؤال هنا…"
+      },
+      "options": {
+        "label": "الخيارات",
+        "hint": "حدد الإجابة (أو الإجابات) الصحيحة",
+        "placeholder": "الخيار {{index}}",
+        "add": "إضافة خيار",
+        "markCorrect": "تحديد كإجابة صحيحة"
+      },
+      "trueFalse": {
+        "label": "الإجابة الصحيحة",
+        "hint": "بدّل القيمة الصحيحة لهذه العبارة.",
+        "false": "خطأ",
+        "true": "صح"
+      },
+      "matching": {
+        "label": "الأزواج",
+        "hint": "العنصر الأيسر ↔ التطابق الصحيح على اليمين",
+        "leftPlaceholder": "العنصر الأيسر",
+        "rightPlaceholder": "التطابق الصحيح",
+        "add": "إضافة زوج"
+      },
+      "errors": {
+        "textRequired": "نص السؤال مطلوب.",
+        "minOptions": "أضف خيارين على الأقل.",
+        "needCorrectOption": "حدد خيارًا واحدًا صحيحًا على الأقل.",
+        "minPairs": "أضف زوجين كاملين على الأقل."
+      },
+      "actions": {
+        "cancel": "إلغاء",
+        "save": "حفظ التغييرات",
+        "add": "إضافة سؤال",
+        "saving": "جاري الحفظ..."
+      }
+    },
+    "questionList": {
+      "empty": "ماكاينش أسئلة بعد. زيد أول سؤال.",
+      "types": {
+        "qcm": "اختيار من متعدد",
+        "trueFalse": "صح / خطأ",
+        "matching": "مطابقة"
+      },
+      "optionsCount": "{{count}} خيارات",
+      "pairsCount": "{{count}} أزواج",
+      "editAria": "تعديل السؤال",
+      "deleteAria": "حذف السؤال"
+    }
+  },
    "teacherUploads": {
+    "generalCourse": "دورة عامة",
     "loading": "جارٍ التحميل…",
      "title": "الملفات والمحتوى",
     "description": "إدارة ورفع محتوى الدروس والمواد التعليمية",

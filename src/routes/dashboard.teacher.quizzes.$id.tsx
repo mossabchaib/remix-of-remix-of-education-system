@@ -172,6 +172,10 @@ function QuizEditor({
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
   const [deletingQuestion, setDeletingQuestion] = useState(false);
 
+  // True whenever ANY background operation is in flight. Used to lock down
+  // controls across the page so the user can't kick off overlapping actions.
+  const isBusy = savingMeta || submittingQuestion || deletingQuestion;
+
   useEffect(() => {
     setTitleDraft(quiz.title);
     setMinutesDraft(String(quiz.minutes));
@@ -263,7 +267,11 @@ function QuizEditor({
         title={quiz.title}
         description={quiz.course}
         actions={
-          <Button variant="outline" onClick={() => navigate({ to: "/dashboard/teacher/quizzes" })}>
+          <Button
+            variant="outline"
+            onClick={() => navigate({ to: "/dashboard/teacher/quizzes" })}
+            disabled={isBusy}
+          >
             <ArrowLeft className="mr-1.5 h-4 w-4" /> {t("teacherQuizEditor.backToQuizzes")}
           </Button>
         }
@@ -273,14 +281,31 @@ function QuizEditor({
         <div className="grid gap-4 sm:grid-cols-[1fr_140px_auto] sm:items-end">
           <div className="space-y-1.5">
             <Label>{t("teacherQuizEditor.meta.quizTitle")}</Label>
-            <Input value={titleDraft} onChange={(e) => setTitleDraft(e.target.value)} />
+            <Input
+              value={titleDraft}
+              onChange={(e) => setTitleDraft(e.target.value)}
+              disabled={savingMeta}
+            />
           </div>
           <div className="space-y-1.5">
             <Label>{t("teacherQuizEditor.meta.duration")}</Label>
-            <Input type="number" min={1} value={minutesDraft} onChange={(e) => setMinutesDraft(e.target.value)} />
+            <Input
+              type="number"
+              min={1}
+              value={minutesDraft}
+              onChange={(e) => setMinutesDraft(e.target.value)}
+              disabled={savingMeta}
+            />
           </div>
           <Button onClick={saveMeta} disabled={!isDirty || savingMeta}>
-            {savingMeta ? <Loader2 className="h-4 w-4 animate-spin" /> : t("teacherQuizEditor.meta.save")}
+            {savingMeta ? (
+              <>
+                <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
+                {t("teacherQuizEditor.meta.saving")}
+              </>
+            ) : (
+              t("teacherQuizEditor.meta.save")
+            )}
           </Button>
         </div>
       </Card>
@@ -290,7 +315,7 @@ function QuizEditor({
           <h3 className="text-sm font-semibold text-foreground">{t("teacherQuizEditor.questions.heading")}</h3>
           <Badge variant="outline">{quiz.questions?.length ?? 0}</Badge>
         </div>
-        <Button onClick={handleAddClick} disabled={submittingQuestion}>
+        <Button onClick={handleAddClick} disabled={isBusy}>
           <Plus className="mr-1.5 h-4 w-4" /> {t("teacherQuizEditor.questions.newQuestion")}
         </Button>
       </div>
@@ -306,6 +331,8 @@ function QuizEditor({
             questions={quiz.questions}
             onEdit={handleEditClick}
             onDelete={(qid) => setPendingDeleteId(qid)}
+            disabled={isBusy}
+            deletingId={deletingQuestion ? pendingDeleteId : null}
           />
         )}
       </div>
@@ -321,6 +348,7 @@ function QuizEditor({
             initial={editingQuestion ?? undefined}
             onSubmit={handleFormSubmit}
             onCancel={() => setDialogOpen(false)}
+            submitting={submittingQuestion}
           />
         </DialogContent>
       </Dialog>
@@ -332,9 +360,19 @@ function QuizEditor({
             <AlertDialogDescription>{t("teacherQuizEditor.deleteDialog.description")}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={deletingQuestion}>{t("teacherQuizEditor.deleteDialog.cancel")}</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDeleteQuestion} disabled={deletingQuestion}>
-              {deletingQuestion ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : <Trash2 className="mr-1.5 h-4 w-4" />}
+            <AlertDialogCancel disabled={deletingQuestion}>
+              {t("teacherQuizEditor.deleteDialog.cancel")}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDeleteQuestion}
+              disabled={deletingQuestion}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 focus:ring-destructive"
+            >
+              {deletingQuestion ? (
+                <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
+              ) : (
+                <Trash2 className="mr-1.5 h-4 w-4" />
+              )}
               {deletingQuestion ? t("teacherQuizEditor.deleteDialog.deleting") : t("teacherQuizEditor.deleteDialog.confirm")}
             </AlertDialogAction>
           </AlertDialogFooter>

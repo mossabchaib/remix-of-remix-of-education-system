@@ -320,7 +320,7 @@ export const lmsApi = {
 // --- Live Sessions ---
   // Maps to the `live_sessions` table: id, title, course_id, host,
   // starts_at, duration, attendees, join_url, status.
-  live: {
+   live: {
     list: (params?: { courseId?: string; status?: boolean }) => {
       const qs = new URLSearchParams();
       if (params?.courseId) qs.set("courseId", params.courseId);
@@ -331,6 +331,14 @@ export const lmsApi = {
 
     listByCourse: (courseId: string) =>
       api.get<{ data: any[] }>(`/api/live-sessions/course/${courseId}`),
+
+    // جلسات المعلّم المسجّل دخوله حاليًا (يعتمد على التوكن)
+    myLiveSessions: () =>
+      api.get<{ data: any[] }>(`/api/live-sessions/my-sessions`),
+
+    // جلسات معلّم معيّن عبر ID
+    listByTeacher: (teacherId: string) =>
+      api.get<{ data: any[] }>(`/api/live-sessions/teacher/${teacherId}`),
 
     get: (id: string) => api.get<{ data: any }>(`/api/live-sessions/${id}`),
 

@@ -60,92 +60,167 @@ function StudentQuizzes() {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedCourse, setSelectedCourse] = useState<string>("all");
 
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const [sub, ok, catsData, courseListRaw]: any = await Promise.all([
-          getMySubscription(),
-          hasActiveAccess(),
-          getAdminCategories().catch(() => []),
-          getAllCourses().catch(() => []),
-        ]);
+useEffect(() => {
+  let cancelled = false;
 
-        if (cancelled) return;
+  (async () => {
+    try {
+      console.log("========== QUIZZES LOAD START ==========");
 
-        // Store only the plan object, not the whole {plan, courses} shape.
-        setSubscription(sub.plan);
+      const [sub, ok, catsData, courseListRaw]: any = await Promise.all([
+        getMySubscription(),
+        hasActiveAccess(),
+        getAdminCategories().catch(() => []),
+        getAllCourses().catch(() => []),
+      ]);
 
-        // Individually purchased courses that are currently active.
-        const activeCourseIds = (sub.courses ?? [])
-          .filter((c: any) => c.status === "active")
-          .map((c: any) => c.course_id);
-        setOwnedCourseIds(activeCourseIds);
-        setHasPlan(ok);
+      console.log("SUBSCRIPTION:", sub);
+      console.log("HAS ACTIVE ACCESS:", ok);
+      console.log("CATEGORIES:", catsData);
+      console.log("COURSES RAW:", courseListRaw);
 
-        // Access is granted either via an active plan OR at least one active course purchase.
-        const hasAnyAccess = ok || activeCourseIds.length > 0;
-        setAccess(hasAnyAccess);
-        setChecking(false);
+      if (cancelled) return;
 
-        // Normalize categories (API may return an array or a wrapped object)
-        const validCats = Array.isArray(catsData) ? catsData : catsData?.categories || catsData?.data || [];
-        setCategories(validCats);
+      setSubscription(sub.plan);
 
-        // Normalize courses
-        const allCourses = Array.isArray(courseListRaw) ? courseListRaw : [];
+      const activeCourseIds = (sub.courses ?? [])
+        .filter((c: any) => c.status === "active")
+        .map((c: any) => c.course_id);
 
-        // Plan holders see quizzes for the full catalog. Course-only buyers
-        // see quizzes only for the courses they actually purchased.
-        const visibleCourses = ok
-          ? allCourses
-          : allCourses.filter((c: any) => activeCourseIds.includes(c.id));
+      console.log("ACTIVE COURSE IDS:", activeCourseIds);
 
-        setCourses(visibleCourses);
+      setOwnedCourseIds(activeCourseIds);
+      setHasPlan(ok);
 
-        if (hasAnyAccess) {
-          setLoading(true);
-          const [results, myAttemptsList] = await Promise.all([
-            Promise.all(
-              visibleCourses.map(async (c: any) => {
-                const qz = await getQuizzesByCourse(c.id).catch(() => []);
-                return (Array.isArray(qz) ? qz : []).map((q: any) => ({
+      const hasAnyAccess = ok || activeCourseIds.length > 0;
+
+      console.log("HAS ANY ACCESS:", hasAnyAccess);
+
+      setAccess(hasAnyAccess);
+      setChecking(false);
+
+      const validCats = Array.isArray(catsData)
+        ? catsData
+        : catsData?.categories || catsData?.data || [];
+
+      console.log("NORMALIZED CATEGORIES:", validCats);
+
+      setCategories(validCats);
+
+      const allCourses = Array.isArray(courseListRaw)
+        ? courseListRaw
+        : [];
+
+      console.log("ALL COURSES:", allCourses);
+
+      const visibleCourses = ok
+        ? allCourses
+        : allCourses.filter((c: any) =>
+            activeCourseIds.includes(c.id)
+          );
+
+      console.log("VISIBLE COURSES:", visibleCourses);
+
+      setCourses(visibleCourses);
+
+      if (hasAnyAccess) {
+        setLoading(true);
+
+        const [results, myAttemptsList] = await Promise.all([
+          Promise.all(
+            visibleCourses.map(async (c: any) => {
+
+              console.log(
+                `🔵 FETCHING QUIZZES FOR COURSE: ${c.id} - ${c.title}`
+              );
+
+              const qz = await getQuizzesByCourse(c.id).catch((err) => {
+                console.error(
+                  `❌ QUIZ FETCH ERROR FOR COURSE ${c.id}:`,
+                  err
+                );
+                
+                return [];
+              });
+
+              console.log(
+                `🟢 QUIZZES RETURNED FOR COURSE ${c.id}:`,
+                qz
+              );
+
+              const normalized = (Array.isArray(qz) ? qz : []).map(
+                (q: any) => ({
                   ...q,
                   courseId: c.id,
                   courseName: c.title,
-                  courseObj: c, // Keep the course object around for later filtering
-                }));
-              }),
-            ),
-            getMyAttempts().catch(() => []),
-          ]);
+                  courseObj: c,
+                })
+              );
 
-          if (cancelled) return;
-          setQuizzes(results.flat());
+              console.log(
+                `🟣 NORMALIZED QUIZZES FOR COURSE ${c.id}:`,
+                normalized
+              );
 
-          // Convert the student's attempts into a keyed map for fast lookup
-          const attemptsMap: Record<string, any> = {};
-          if (Array.isArray(myAttemptsList)) {
-            myAttemptsList.forEach((att: any) => {
-              const qId = att?.quiz_id ?? att?.quizId;
-              if (qId) {
-                attemptsMap[qId] = att;
-              }
-            });
-          }
-          setAttempts(attemptsMap);
+              return normalized;
+            }),
+          ),
+
+          getMyAttempts().catch((err) => {
+            console.error("❌ ATTEMPTS ERROR:", err);
+            return [];
+          }),
+        ]);
+
+        console.log("========== ALL QUIZ RESULTS ==========");
+        console.log("RESULTS:", results);
+        console.log("FLATTENED RESULTS:", results.flat());
+        console.log("=======================================");
+
+        if (cancelled) return;
+
+        setQuizzes(results.flat());
+
+        console.log(
+          "QUIZZES STATE WILL BE SET TO:",
+          results.flat()
+        );
+
+        const attemptsMap: Record<string, any> = {};
+
+        if (Array.isArray(myAttemptsList)) {
+          console.log("MY ATTEMPTS:", myAttemptsList);
+
+          myAttemptsList.forEach((att: any) => {
+            const qId = att?.quiz_id ?? att?.quizId;
+
+            if (qId) {
+              attemptsMap[qId] = att;
+            }
+          });
         }
-      } catch (err) {
-        console.error("Failed to load quizzes data:", err);
-        if (!cancelled) setChecking(false);
-      } finally {
-        if (!cancelled) setLoading(false);
+
+        console.log("ATTEMPTS MAP:", attemptsMap);
+
+        setAttempts(attemptsMap);
       }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+
+      console.log("========== QUIZZES LOAD END ==========");
+
+    } catch (err) {
+      console.error("❌ FAILED TO LOAD QUIZZES DATA:", err);
+
+      if (!cancelled) setChecking(false);
+
+    } finally {
+      if (!cancelled) setLoading(false);
+    }
+  })();
+
+  return () => {
+    cancelled = true;
+  };
+}, []);
 
   // Courses available under the currently selected category
   const availableCourses = useMemo(() => {

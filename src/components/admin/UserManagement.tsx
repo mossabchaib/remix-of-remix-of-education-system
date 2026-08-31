@@ -115,7 +115,7 @@ export function UserManagement({
       },
       {
         key: "email",
-        header: t("admin.email"),
+        header: t("student.email"),
         sortable: true,
         render: (u) => <span className="text-sm text-muted-foreground">{u.email}</span>,
       },

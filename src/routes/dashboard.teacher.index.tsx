@@ -16,7 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   getTeacherCourses,
-  getLiveSessions,
+  getMyLiveSessions,
   getTeacherProgressRollup,
   type LiveSession,
 } from "@/lib/lms-storage";
@@ -50,7 +50,7 @@ function TeacherOverview() {
       setLoading(true);
       const [coursesRes, liveRes, rollupRes]: any = await Promise.all([
         getTeacherCourses(),
-        getLiveSessions(),
+        getMyLiveSessions(),
         getTeacherProgressRollup(),
       ]);
 

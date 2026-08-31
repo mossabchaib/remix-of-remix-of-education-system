@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Plus, Trash2, CircleCheck } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { Plus, Trash2, CircleCheck, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,12 +12,6 @@ import {
 import { cn } from "@/lib/utils";
 import type { Question, QuestionType, MatchingPair } from "@/lib/lms-storage";
 
-const TYPE_OPTIONS: { value: QuestionType; label: string }[] = [
-  { value: "qcm", label: "Multiple choice" },
-  { value: "true_false", label: "True / False" },
-  { value: "matching", label: "Matching" },
-];
-
 function genId() {
   return Math.random().toString(36).slice(2, 8);
 }
@@ -25,11 +20,21 @@ export function QuestionForm({
   initial,
   onSubmit,
   onCancel,
+  submitting = false,
 }: {
   initial?: Question;
   onSubmit: (q: Omit<Question, "id"> & { id?: string }) => void;
   onCancel: () => void;
+  submitting?: boolean;
 }) {
+  const { t } = useTranslation();
+
+  const TYPE_OPTIONS: { value: QuestionType; label: string }[] = [
+    { value: "qcm", label: t("teacherQuizEditorCard.questionForm.types.qcm") },
+    { value: "true_false", label: t("teacherQuizEditorCard.questionForm.types.trueFalse") },
+    { value: "matching", label: t("teacherQuizEditorCard.questionForm.types.matching") },
+  ];
+
   const [type, setType] = useState<QuestionType>(initial?.type ?? "qcm");
   const [text, setText] = useState(initial?.text ?? "");
   const [error, setError] = useState<string | null>(null);
@@ -49,6 +54,7 @@ export function QuestionForm({
   );
 
   function toggleCorrectOption(idx: number) {
+    if (submitting) return;
     setCorrectOptionIndexes((cur) =>
       cur.includes(idx) ? cur.filter((i) => i !== idx) : [...cur, idx]
     );
@@ -56,21 +62,22 @@ export function QuestionForm({
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (submitting) return;
     setError(null);
 
     if (!text.trim()) {
-      setError("Question text is required.");
+      setError(t("teacherQuizEditorCard.questionForm.errors.textRequired"));
       return;
     }
 
     if (type === "qcm") {
       const cleanOptions = options.map((o) => o.trim()).filter(Boolean);
       if (cleanOptions.length < 2) {
-        setError("Add at least 2 options.");
+        setError(t("teacherQuizEditorCard.questionForm.errors.minOptions"));
         return;
       }
       if (correctOptionIndexes.length === 0) {
-        setError("Mark at least one option as correct.");
+        setError(t("teacherQuizEditorCard.questionForm.errors.needCorrectOption"));
         return;
       }
       onSubmit({ id: initial?.id, type, text: text.trim(), options: cleanOptions, correctOptionIndexes });
@@ -79,7 +86,7 @@ export function QuestionForm({
     } else {
       const cleanPairs = pairs.filter((p) => p.left.trim() && p.right.trim());
       if (cleanPairs.length < 2) {
-        setError("Add at least 2 complete pairs.");
+        setError(t("teacherQuizEditorCard.questionForm.errors.minPairs"));
         return;
       }
       onSubmit({ id: initial?.id, type, text: text.trim(), pairs: cleanPairs });
@@ -90,12 +97,12 @@ export function QuestionForm({
     <form className="grid gap-5" onSubmit={handleSubmit}>
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-1.5">
-          <Label>Question type</Label>
-          <Select value={type} onValueChange={(v) => setType(v as QuestionType)}>
+          <Label>{t("teacherQuizEditorCard.questionForm.fields.type")}</Label>
+          <Select value={type} onValueChange={(v) => setType(v as QuestionType)} disabled={submitting}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
-              {TYPE_OPTIONS.map((t) => (
-                <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
+              {TYPE_OPTIONS.map((opt) => (
+                <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -103,21 +110,22 @@ export function QuestionForm({
       </div>
 
       <div className="space-y-1.5">
-        <Label>Question text</Label>
+        <Label>{t("teacherQuizEditorCard.questionForm.fields.text")}</Label>
         <Textarea
           value={text}
           onChange={(e) => setText(e.target.value)}
           rows={2}
-          placeholder="Type the question…"
+          placeholder={t("teacherQuizEditorCard.questionForm.fields.textPlaceholder")}
           className="resize-none"
+          disabled={submitting}
         />
       </div>
 
       {type === "qcm" && (
         <div className="space-y-2.5">
           <div className="flex items-center justify-between">
-            <Label>Options</Label>
-            <span className="text-xs text-muted-foreground">Check the correct answer(s)</span>
+            <Label>{t("teacherQuizEditorCard.questionForm.options.label")}</Label>
+            <span className="text-xs text-muted-foreground">{t("teacherQuizEditorCard.questionForm.options.hint")}</span>
           </div>
           <div className="space-y-2">
             {options.map((opt, idx) => {
@@ -133,28 +141,31 @@ export function QuestionForm({
                   <button
                     type="button"
                     onClick={() => toggleCorrectOption(idx)}
+                    disabled={submitting}
                     className={cn(
-                      "grid h-7 w-7 shrink-0 place-items-center rounded-full border transition-colors",
+                      "grid h-7 w-7 shrink-0 place-items-center rounded-full border transition-colors disabled:cursor-not-allowed disabled:opacity-60",
                       isCorrect ? "border-success bg-success text-white" : "border-border text-transparent"
                     )}
-                    aria-label="Mark as correct"
+                    aria-label={t("teacherQuizEditorCard.questionForm.options.markCorrect")}
                   >
                     <CircleCheck className="h-4 w-4" />
                   </button>
                   <Input
                     value={opt}
-                    placeholder={`Option ${idx + 1}`}
+                    placeholder={t("teacherQuizEditorCard.questionForm.options.placeholder", { index: idx + 1 })}
                     onChange={(e) => {
                       const next = [...options];
                       next[idx] = e.target.value;
                       setOptions(next);
                     }}
+                    disabled={submitting}
                     className="border-none bg-transparent shadow-none focus-visible:ring-0"
                   />
                   <Button
                     type="button"
                     variant="ghost"
                     size="icon"
+                    disabled={submitting}
                     onClick={() => {
                       setOptions(options.filter((_, i) => i !== idx));
                       setCorrectOptionIndexes(
@@ -168,8 +179,14 @@ export function QuestionForm({
               );
             })}
           </div>
-          <Button type="button" variant="outline" size="sm" onClick={() => setOptions([...options, ""])}>
-            <Plus className="mr-1 h-3.5 w-3.5" /> Add option
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={submitting}
+            onClick={() => setOptions([...options, ""])}
+          >
+            <Plus className="mr-1 h-3.5 w-3.5" /> {t("teacherQuizEditorCard.questionForm.options.add")}
           </Button>
         </div>
       )}
@@ -177,13 +194,17 @@ export function QuestionForm({
       {type === "true_false" && (
         <div className="flex items-center justify-between rounded-lg border border-border/60 p-4">
           <div>
-            <Label>Correct answer</Label>
-            <p className="text-xs text-muted-foreground">Toggle the correct value for this statement.</p>
+            <Label>{t("teacherQuizEditorCard.questionForm.trueFalse.label")}</Label>
+            <p className="text-xs text-muted-foreground">{t("teacherQuizEditorCard.questionForm.trueFalse.hint")}</p>
           </div>
           <div className="flex items-center gap-2">
-            <span className={cn("text-sm", !correctBoolean ? "font-semibold text-foreground" : "text-muted-foreground")}>False</span>
-            <Switch checked={correctBoolean} onCheckedChange={setCorrectBoolean} />
-            <span className={cn("text-sm", correctBoolean ? "font-semibold text-foreground" : "text-muted-foreground")}>True</span>
+            <span className={cn("text-sm", !correctBoolean ? "font-semibold text-foreground" : "text-muted-foreground")}>
+              {t("teacherQuizEditorCard.questionForm.trueFalse.false")}
+            </span>
+            <Switch checked={correctBoolean} onCheckedChange={setCorrectBoolean} disabled={submitting} />
+            <span className={cn("text-sm", correctBoolean ? "font-semibold text-foreground" : "text-muted-foreground")}>
+              {t("teacherQuizEditorCard.questionForm.trueFalse.true")}
+            </span>
           </div>
         </div>
       )}
@@ -191,32 +212,40 @@ export function QuestionForm({
       {type === "matching" && (
         <div className="space-y-2.5">
           <div className="flex items-center justify-between">
-            <Label>Pairs</Label>
-            <span className="text-xs text-muted-foreground">Left column ↔ correct right match</span>
+            <Label>{t("teacherQuizEditorCard.questionForm.matching.label")}</Label>
+            <span className="text-xs text-muted-foreground">{t("teacherQuizEditorCard.questionForm.matching.hint")}</span>
           </div>
           <div className="space-y-2">
             {pairs.map((p, idx) => (
               <div key={p.id} className="flex items-center gap-2">
                 <Input
                   value={p.left}
-                  placeholder="Left item"
+                  placeholder={t("teacherQuizEditorCard.questionForm.matching.leftPlaceholder")}
                   onChange={(e) => {
                     const next = [...pairs];
                     next[idx] = { ...p, left: e.target.value };
                     setPairs(next);
                   }}
+                  disabled={submitting}
                 />
                 <span className="shrink-0 text-muted-foreground">↔</span>
                 <Input
                   value={p.right}
-                  placeholder="Correct match"
+                  placeholder={t("teacherQuizEditorCard.questionForm.matching.rightPlaceholder")}
                   onChange={(e) => {
                     const next = [...pairs];
                     next[idx] = { ...p, right: e.target.value };
                     setPairs(next);
                   }}
+                  disabled={submitting}
                 />
-                <Button type="button" variant="ghost" size="icon" onClick={() => setPairs(pairs.filter((x) => x.id !== p.id))}>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  disabled={submitting}
+                  onClick={() => setPairs(pairs.filter((x) => x.id !== p.id))}
+                >
                   <Trash2 className="h-4 w-4 text-muted-foreground" />
                 </Button>
               </div>
@@ -226,9 +255,10 @@ export function QuestionForm({
             type="button"
             variant="outline"
             size="sm"
+            disabled={submitting}
             onClick={() => setPairs([...pairs, { id: genId(), left: "", right: "" }])}
           >
-            <Plus className="mr-1 h-3.5 w-3.5" /> Add pair
+            <Plus className="mr-1 h-3.5 w-3.5" /> {t("teacherQuizEditorCard.questionForm.matching.add")}
           </Button>
         </div>
       )}
@@ -238,8 +268,21 @@ export function QuestionForm({
       )}
 
       <div className="flex justify-end gap-2 border-t border-border/60 pt-4">
-        <Button type="button" variant="outline" onClick={onCancel}>Cancel</Button>
-        <Button type="submit">{initial ? "Save changes" : "Add question"}</Button>
+        <Button type="button" variant="outline" onClick={onCancel} disabled={submitting}>
+          {t("teacherQuizEditorCard.questionForm.actions.cancel")}
+        </Button>
+        <Button type="submit" disabled={submitting}>
+          {submitting ? (
+            <>
+              <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
+              {t("teacherQuizEditorCard.questionForm.actions.saving")}
+            </>
+          ) : initial ? (
+            t("teacherQuizEditorCard.questionForm.actions.save")
+          ) : (
+            t("teacherQuizEditorCard.questionForm.actions.add")
+          )}
+        </Button>
       </div>
     </form>
   );

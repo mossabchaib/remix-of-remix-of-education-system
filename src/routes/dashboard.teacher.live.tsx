@@ -28,7 +28,7 @@ import {
 } from "@/components/ui/select";
 import { EmptyState } from "@/components/common/EmptyState";
 import {
-  getLiveSessions,
+  getMyLiveSessions,   // بدل getLiveSessions
   upsertLiveSession,
   deleteLiveSession,
   getProfile,
@@ -65,6 +65,7 @@ function Live() {
     async function loadCourses() {
       try {
         const result = await getTeacherCourses();
+        console.log("Loaded teacher courses:", result);
         if (!isMounted) return;
         const list: TeacherCourse[] = Array.isArray(result)
           ? result
@@ -107,11 +108,12 @@ function Live() {
   const [deleting, setDeleting] = useState(false);
   const [startingId, setStartingId] = useState<string | null>(null);
 
-  async function loadSessions() {
+async function loadSessions() {
     setSessionsLoading(true);
     try {
-      const data = await getLiveSessions();
-      setSessions(data);
+      const data = await getMyLiveSessions();
+      console.log("Loaded my live sessions:", data);
+      setSessions(Array.isArray(data) ? data : (data as any)?.data || []);
     } catch (err) {
       console.error("Failed to load live sessions:", err);
       toast.error(t("teacherLive.toast.loadFailed"));
@@ -119,7 +121,6 @@ function Live() {
       setSessionsLoading(false);
     }
   }
-
   useEffect(() => {
     loadSessions();
     // eslint-disable-next-line react-hooks/exhaustive-deps

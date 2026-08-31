@@ -261,7 +261,7 @@ export type QuizAttempt = {
 
 /** جلب كل الكويزات الخاصة بكورس معيّن. */
 export async function getQuizzesByCourse(courseId: string): Promise<Quiz[]> {
-  return withCache(CK.quizzesByCourse(courseId), CACHE_TTL.medium, async () => {
+  // return withCache(CK.quizzesByCourse(courseId), CACHE_TTL.medium, async () => {
     try {
       const res: any = await lmsApi.quizzes.listByCourse(courseId);
       return Array.isArray(res) ? res : res?.data || [];
@@ -269,8 +269,9 @@ export async function getQuizzesByCourse(courseId: string): Promise<Quiz[]> {
       console.error("Failed to fetch quizzes:", err);
       return [];
     }
-  });
-}
+  }
+// );
+// }
 
 /** جلب كويز واحد بالتفاصيل (أسئلة + خيارات). */
 export async function getQuiz(id: string): Promise<Quiz | null> {
@@ -290,17 +291,29 @@ export async function upsertQuiz(q: Partial<Quiz>) {
   try {
     if (q.id) {
       const res: any = await lmsApi.quizzes.update(q.id, q);
+
       emit(K.teacherQuizzes);
-      if (q.courseId) cacheInvalidate(CK.quizzesByCourse(q.courseId));
-      cacheInvalidate(CK.quiz(q.id));
-      return res?.data || res;
-    } else {
-      const res: any = await lmsApi.quizzes.create(q);
-      emit(K.teacherQuizzes);
-      console.log("Created new quiz:", q);
-      if (q.courseId) cacheInvalidate(CK.quizzesByCourse(q.courseId)); 
+
+      cacheInvalidatePrefix("cache.quizzesByCourse:");
+      cacheInvalidatePrefix("cache.quiz:");
+
       return res?.data || res;
     }
+
+    const res: any = await lmsApi.quizzes.create(q);
+
+    const newQuiz = res?.data || res;
+
+    console.log("CREATE RESPONSE:", newQuiz);
+
+    emit(K.teacherQuizzes);
+
+    // حذف كل cache الخاص بالـ quizzes
+    cacheInvalidatePrefix("cache.quizzesByCourse:");
+    cacheInvalidatePrefix("cache.quiz:");
+
+    return newQuiz;
+
   } catch (err) {
     console.error("Failed to save quiz:", err);
     throw err;
@@ -708,6 +721,25 @@ export async function endLiveSession(id: string) {
   }
 }
 
+export async function getMyLiveSessions() {
+  try {
+    const res: any = await lmsApi.live.myLiveSessions();
+    return res?.data || res;
+  } catch (err) {
+    console.error("Failed to fetch my live sessions:", err);
+    throw err;
+  }
+}
+
+export async function getLiveSessionsByTeacher(teacherId: string) {
+  try {
+    const res: any = await lmsApi.live.listByTeacher(teacherId);
+    return res?.data || res;
+  } catch (err) {
+    console.error(`Failed to fetch live sessions for teacher ${teacherId}:`, err);
+    throw err;
+  }
+}
 /** حذف جلسة. */
 export async function deleteLiveSession(id: string) {
   try {

@@ -873,27 +873,31 @@
   },
   "teacherLessons": {
     "title": "Leçons",
-    "description": "Toutes les leçons de vos cours, réunies en un seul endroit.",
+    "description": "Toutes les leçons de vos cours, au même endroit.",
     "newLesson": "Nouvelle leçon",
     "freePreview": "Aperçu gratuit",
     "loading": "Chargement de vos leçons...",
     "kind": { "video": "Vidéo", "quiz": "Quiz", "article": "Article" },
-    "stats": { "total": "Total des leçons", "videos": "Vidéos", "quizzes": "Quiz", "articles": "Articles" },
+    "stats": { "modules": "Modules", "total": "Total des leçons", "videos": "Vidéos", "quizzes": "Quiz", "articles": "Articles" },
     "table": { "lesson": "Leçon", "course": "Cours", "module": "Module", "type": "Type", "duration": "Durée" },
+      "tabs": {
+      "lessons": "Leçons",
+      "modules": "Modules"
+    },
     "emptyCourses": {
-      "title": "Aucun cours pour le moment",
+      "title": "Aucun cours pour l'instant",
       "description": "Créez d'abord un cours, puis ajoutez-y des leçons.",
       "cta": "Aller aux cours"
     },
     "emptyLessons": {
-      "title": "Aucune leçon pour le moment",
+      "title": "Aucune leçon pour l'instant",
       "description": "Ajoutez votre première leçon pour commencer."
     },
     "editDialog": { "title": "Modifier la leçon" },
     "newDialog": { "title": "Nouvelle leçon", "description": "Choisissez le cours et le module auxquels appartient cette leçon." },
     "deleteDialog": {
       "title": "Supprimer la leçon ?",
-      "description": "Cela supprimera définitivement \"{{title}}\". Cette action est irréversible.",
+      "description": "Cette action supprimera définitivement \"{{title}}\". Cette action est irréversible.",
       "cancel": "Annuler",
       "confirm": "Supprimer",
       "deleting": "Suppression..."
@@ -905,11 +909,12 @@
       "duration": "Durée",
       "durationPlaceholder": "ex. 10 min",
       "contentUrl": "URL du contenu",
-      "allowPreview": "Autoriser en tant qu'aperçu gratuit",
+      "allowPreview": "Autoriser en aperçu gratuit",
       "course": "Cours",
       "module": "Module",
       "noModules": "Aucun module",
       "noModulesHint": "Ce cours n'a pas encore de modules. Ajoutez-en un depuis le créateur de cours d'abord.",
+      "addModule": "Ajouter un module",
       "save": "Enregistrer",
       "saving": "Enregistrement...",
       "create": "Créer",
@@ -921,8 +926,49 @@
       "updateFailed": "Échec de la mise à jour de la leçon",
       "removed": "Leçon supprimée",
       "removeFailed": "Échec de la suppression de la leçon",
-      "created": "Leçon créée — étudiants notifiés",
+      "created": "Leçon créée — élèves informés",
       "createFailed": "Échec de la création de la leçon"
+    },
+    "modules": {
+      "title": "Modules",
+      "description": "Organisez vos cours en modules",
+      "newModule": "Nouveau module",
+      "table": {
+        "module": "Module",
+        "course": "Cours",
+        "lessons": "Leçons"
+      },
+      "emptyModules": {
+        "title": "Aucun module pour l'instant",
+        "description": "Créez votre premier module pour commencer à ajouter des leçons"
+      },
+      "newDialog": {
+        "title": "Nouveau module",
+        "description": "Ajoutez un nouveau module à l'un de vos cours"
+      },
+      "editDialog": {
+        "title": "Modifier le module"
+      },
+      "deleteDialog": {
+        "title": "Supprimer le module ?",
+        "description": "Cette action supprimera définitivement \"{{title}}\" et ses leçons. Cette action est irréversible."
+      },
+      "form": {
+        "title": "Titre du module",
+        "titlePlaceholder": "ex. Prise en main",
+        "save": "Enregistrer les modifications",
+        "saving": "Enregistrement...",
+        "create": "Créer le module",
+        "creating": "Création..."
+      },
+      "toast": {
+        "created": "Module créé",
+        "createFailed": "Échec de la création du module",
+        "updated": "Module mis à jour",
+        "updateFailed": "Échec de la mise à jour du module",
+        "removed": "Module supprimé",
+        "removeFailed": "Échec de la suppression du module"
+      }
     }
   },
   "teacherUploadsr": {
@@ -1622,7 +1668,105 @@
     "errorInvalidToken": "Le lien de réinitialisation est invalide ou a expiré.",
     "errorGeneric": "Échec de la mise à jour, veuillez réessayer plus tard."
   },
+  "teacherQuizEditorCard": {
+    "backToQuizzes": "Retour aux quiz",
+    "notFound": {
+      "title": "Quiz introuvable",
+      "description": "Ce quiz semble ne pas exister ou avoir été supprimé.",
+      "back": "Retour à la liste des quiz"
+    },
+    "meta": {
+      "quizTitle": "Titre du quiz",
+      "duration": "Durée (minutes)",
+      "save": "Enregistrer",
+      "saving": "Enregistrement..."
+    },
+    "questions": {
+      "heading": "Questions",
+      "newQuestion": "Nouvelle question",
+      "emptyTitle": "Aucune question pour le moment",
+      "emptyDescription": "Commencez par ajouter la première question de ce quiz."
+    },
+    "questionDialog": {
+      "newTitle": "Ajouter une nouvelle question",
+      "editTitle": "Modifier la question"
+    },
+    "deleteDialog": {
+      "title": "Supprimer la question",
+      "description": "Êtes-vous sûr de vouloir supprimer cette question ? Cette action est irréversible.",
+      "cancel": "Annuler",
+      "confirm": "Supprimer",
+      "deleting": "Suppression..."
+    },
+    "toast": {
+      "loadFailed": "Échec du chargement du quiz.",
+      "metaUpdated": "Les informations du quiz ont été mises à jour avec succès.",
+      "metaSaveFailed": "Échec de l'enregistrement des informations du quiz.",
+      "questionAdded": "Question ajoutée avec succès.",
+      "questionUpdated": "Question mise à jour avec succès.",
+      "questionSaveFailed": "Échec de l'enregistrement de la question.",
+      "questionRemoved": "Question supprimée avec succès.",
+      "questionRemoveFailed": "Échec de la suppression de la question."
+    },
+    "questionForm": {
+      "types": {
+        "qcm": "Choix multiple",
+        "trueFalse": "Vrai / Faux",
+        "matching": "Association"
+      },
+      "fields": {
+        "type": "Type de question",
+        "text": "Texte de la question",
+        "textPlaceholder": "Saisissez la question…"
+      },
+      "options": {
+        "label": "Options",
+        "hint": "Cochez la ou les bonnes réponses",
+        "placeholder": "Option {{index}}",
+        "add": "Ajouter une option",
+        "markCorrect": "Marquer comme correcte"
+      },
+      "trueFalse": {
+        "label": "Bonne réponse",
+        "hint": "Basculez la valeur correcte pour cet énoncé.",
+        "false": "Faux",
+        "true": "Vrai"
+      },
+      "matching": {
+        "label": "Paires",
+        "hint": "Élément de gauche ↔ correspondance correcte à droite",
+        "leftPlaceholder": "Élément de gauche",
+        "rightPlaceholder": "Correspondance correcte",
+        "add": "Ajouter une paire"
+      },
+      "errors": {
+        "textRequired": "Le texte de la question est requis.",
+        "minOptions": "Ajoutez au moins 2 options.",
+        "needCorrectOption": "Marquez au moins une option comme correcte.",
+        "minPairs": "Ajoutez au moins 2 paires complètes."
+      },
+      "actions": {
+        "cancel": "Annuler",
+        "save": "Enregistrer les modifications",
+        "add": "Ajouter la question",
+        "saving": "Enregistrement..."
+      }
+    },
+    "questionList": {
+      "empty": "Aucune question pour le moment. Ajoutez la première.",
+      "types": {
+        "qcm": "Choix multiple",
+        "trueFalse": "Vrai / Faux",
+        "matching": "Association"
+      },
+      "optionsCount": "{{count}} options",
+      "pairsCount": "{{count}} paires",
+      "editAria": "Modifier la question",
+      "deleteAria": "Supprimer la question"
+    }
+  },
    "teacherUploads": {
+    "generalCourse":"Cours général",
     "loading": "Chargement…",
        "title": "Fichiers et contenu",
     "description": "Gérez et téléchargez le contenu des leçons et les supports pédagogiques",

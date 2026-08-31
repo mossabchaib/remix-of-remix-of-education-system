@@ -53,6 +53,18 @@ function formatDate(createdAt?: string) {
   return new Date(createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
 
+/**
+ * Formats the raw price value coming straight from the database (course.price).
+ * Returns null when the field is missing/unparseable so callers can decide
+ * whether to render anything — nothing is invented here.
+ */
+function formatPrice(price: unknown) {
+  if (price === null || price === undefined || price === "") return null;
+  const n = Number(price);
+  if (Number.isNaN(n)) return null;
+  return `da ${n.toFixed(2)}`;
+}
+
 const HERO_BG_URL =
   "background.png";
 
@@ -487,6 +499,17 @@ function CourseCard({
       : { backgroundImage: `url(${c.image_cover})`, backgroundSize: "cover", backgroundPosition: "center" }
     : { backgroundImage: c.cover };
 
+  // Price straight from the database field (course.price). isFree only
+  // affects the label shown ("Free" vs the actual amount) — the number
+  // itself always comes from c.price, nothing invented.
+  const priceLabel = formatPrice(c.price);
+  const isFree = Number(c.price) === 0;
+  const hasOriginalPrice =
+    c.original_price !== undefined &&
+    c.original_price !== null &&
+    Number(c.original_price) > Number(c.price);
+  const originalPriceLabel = hasOriginalPrice ? formatPrice(c.original_price) : null;
+
   return (
     <Card className="group relative flex h-full flex-col overflow-hidden border-black/10 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
       <Link to="/courses/$id" params={{ id: c.id }} className="block">
@@ -552,6 +575,21 @@ function CourseCard({
               </span>
             )}
           </div>
+
+          {/* Price, straight from c.price in the database. Only rendered
+              when the field resolves to a real number. */}
+          {priceLabel && (
+            <div className="mt-3 flex items-center gap-2 border-t border-black/10 pt-3">
+              <span className="text-base font-bold text-black">
+                {isFree ? "Free" : priceLabel}
+              </span>
+              {!isFree && originalPriceLabel && (
+                <span className="text-xs text-black/40 line-through">
+                  {originalPriceLabel}
+                </span>
+              )}
+            </div>
+          )}
         </div>
       </Link>
     </Card>

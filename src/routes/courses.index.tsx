@@ -51,6 +51,12 @@ function isNewCourse(createdAt?: string) {
   return days <= 14;
 }
 
+function formatPrice(price?: number | null) {
+  if (price === undefined || price === null) return null;
+  if (price === 0) return "Free";
+  return `$${price.toFixed(2)}`;
+}
+
 type CategoryRow = { id: string; name: string };
 
 /* ------------------------------------------------------------------ */
@@ -77,6 +83,8 @@ type CourseCardProps = {
   ratingAverage?: number;
   ratingCount?: number;
   ratingsLoaded: boolean;
+  price?: number | null;
+  originalPrice?: number | null;
 };
 
 const CourseCard = memo(function CourseCard({
@@ -94,7 +102,14 @@ const CourseCard = memo(function CourseCard({
   ratingAverage,
   ratingCount,
   ratingsLoaded,
+  price,
+  originalPrice,
 }: CourseCardProps) {
+  const hasDiscount =
+    typeof originalPrice === "number" &&
+    typeof price === "number" &&
+    originalPrice > price;
+
   return (
     <Card className="group relative flex h-full flex-col overflow-hidden border-border/60 shadow-card transition-all duration-300 hover:-translate-y-1 hover:shadow-elegant">
       <Link to="/courses/$id" params={{ id }} className="block">
@@ -109,6 +124,32 @@ const CourseCard = memo(function CourseCard({
               <Badge className="border-none bg-primary text-primary-foreground">New</Badge>
             )}
           </div>
+
+          {/* Price badge on the cover image, bottom-right */}
+          {price !== undefined && price !== null && (
+            <div className="absolute inset-x-3 bottom-3 flex justify-end">
+              <span
+                className={
+                  price === 0
+                    ? "rounded-md bg-emerald-500/95 px-2.5 py-1 text-xs font-semibold text-white backdrop-blur-sm"
+                    : "flex items-center gap-1.5 rounded-md bg-background/90 px-2.5 py-1 text-xs font-semibold text-foreground backdrop-blur-sm"
+                }
+              >
+                {price === 0 ? (
+                  "Free"
+                ) : (
+                  <>
+                    ${price.toFixed(2)}
+                    {hasDiscount && (
+                      <span className="text-[10px] font-normal text-muted-foreground line-through">
+                        ${originalPrice!.toFixed(2)}
+                      </span>
+                    )}
+                  </>
+                )}
+              </span>
+            </div>
+          )}
         </div>
       </Link>
 
@@ -172,7 +213,7 @@ const CourseCard = memo(function CourseCard({
 /*   2. startTransition around that commit — so even the debounced      */
 /*      update is low-priority and can be interrupted by the next       */
 /*      keystroke's local render.                                       */
-/* Category/level/rating/select changes are cheap and go straight       */
+/* Category/level/rating/price/select changes are cheap and go straight */
 /* through — only the free-text query needs this treatment.             */
 /* ------------------------------------------------------------------ */
 type CourseFiltersProps = {
@@ -185,6 +226,8 @@ type CourseFiltersProps = {
   onLevelChange: (value: string) => void;
   ratingFilter: string;
   onRatingFilterChange: (value: string) => void;
+  priceFilter: string;
+  onPriceFilterChange: (value: string) => void;
   hasActiveFilters: boolean;
   onClearFilters: () => void;
 };
@@ -199,6 +242,8 @@ const CourseFilters = memo(function CourseFilters({
   onLevelChange,
   ratingFilter,
   onRatingFilterChange,
+  priceFilter,
+  onPriceFilterChange,
   hasActiveFilters,
   onClearFilters,
 }: CourseFiltersProps) {
@@ -270,6 +315,14 @@ const CourseFilters = memo(function CourseFilters({
           <SelectItem value="1">{t("coursesPage.filters.ratingAndUp", { value: 1 })}</SelectItem>
         </SelectContent>
       </Select>
+      <Select value={priceFilter} onValueChange={onPriceFilterChange}>
+        <SelectTrigger className="h-11 w-[160px] bg-background"><SelectValue placeholder={t("coursesPage.filters.price", "Price")} /></SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">{t("coursesPage.filters.allPrices", "All prices")}</SelectItem>
+          <SelectItem value="free">{t("coursesPage.filters.free", "Free")}</SelectItem>
+          <SelectItem value="paid">{t("coursesPage.filters.paid", "Paid")}</SelectItem>
+        </SelectContent>
+      </Select>
       {hasActiveFilters && (
         <Button variant="ghost" onClick={onClearFilters} className="h-11">{t("coursesPage.clearFilters")}</Button>
       )}
@@ -289,6 +342,7 @@ function CoursesPage() {
   const [cat, setCat] = useState<string>("all");
   const [level, setLevel] = useState<string>("all");
   const [ratingFilter, setRatingFilter] = useState<string>("all"); // "all" | "1" | "2" | "3" | "4"
+  const [priceFilter, setPriceFilter] = useState<string>("all"); // "all" | "free" | "paid"
 
   // Still deferred as a second safety net on top of the debounce +
   // transition inside CourseFilters — belt and suspenders, cheap to keep.
@@ -330,7 +384,6 @@ function CoursesPage() {
     try {
       setCoursesLoading(true);
       const data: any = await getAllCourses();
-      console.log("data:",data)
       const coursesList = Array.isArray(data)
         ? data
         : data?.courses || data?.data || [];
@@ -385,21 +438,23 @@ function CoursesPage() {
     };
   }, [courses]);
 
-  const hasActiveFilters = q !== "" || cat !== "all" || level !== "all" || ratingFilter !== "all";
+  const hasActiveFilters =
+    q !== "" || cat !== "all" || level !== "all" || ratingFilter !== "all" || priceFilter !== "all";
 
   const resetFilters = useCallback(() => {
     setQ("");
     setCat("all");
     setLevel("all");
     setRatingFilter("all");
+    setPriceFilter("all");
   }, []);
 
   // Enrich each course ONCE per courses/categories/language change — not
   // on every keystroke. categoryLabel/instructorLine/coverStyle/isNew/
-  // createdAtLabel used to be recomputed inline inside the card-render
-  // loop (and isNewCourse() re-evaluates Date.now() each time); now they
-  // run here, keyed only on `courses` + `t` + `i18n.language`, so typing
-  // never re-triggers them.
+  // createdAtLabel/price used to be recomputed inline inside the
+  // card-render loop (and isNewCourse() re-evaluates Date.now() each
+  // time); now they run here, keyed only on `courses` + `t` +
+  // `i18n.language`, so typing never re-triggers them.
   const enrichedCourses = useMemo(
     () =>
       courses.map((c: any) => {
@@ -408,6 +463,18 @@ function CoursesPage() {
             ? { background: c.image_cover }
             : { backgroundImage: `url(${c.image_cover})`, backgroundSize: "cover", backgroundPosition: "center" }
           : { backgroundImage: c.cover };
+
+        const rawPrice = c.price ?? c.course_price ?? c.cost;
+        const price =
+          rawPrice === undefined || rawPrice === null || rawPrice === ""
+            ? null
+            : Number(rawPrice);
+
+        const rawOriginalPrice = c.original_price ?? c.compare_at_price ?? c.old_price;
+        const originalPrice =
+          rawOriginalPrice === undefined || rawOriginalPrice === null || rawOriginalPrice === ""
+            ? null
+            : Number(rawOriginalPrice);
 
         return {
           ...c,
@@ -418,6 +485,8 @@ function CoursesPage() {
           _coverStyle: coverStyle,
           _isNew: isNewCourse(c.created_at),
           _createdAtLabel: c.created_at ? formatDate(c.created_at) : undefined,
+          _price: price,
+          _originalPrice: originalPrice,
         };
       }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -455,21 +524,28 @@ function CoursesPage() {
       list = list.filter((c: any) => (ratings[c.id]?.average_rating ?? 0) >= minRating);
     }
 
-    // 5. Sort by average rating, highest first. Array.prototype.sort is
+    // 5. Price (free vs paid)
+    if (priceFilter === "free") {
+      list = list.filter((c: any) => (c._price ?? 0) === 0);
+    } else if (priceFilter === "paid") {
+      list = list.filter((c: any) => (c._price ?? 0) > 0);
+    }
+
+    // 6. Sort by average rating, highest first. Array.prototype.sort is
     // stable in modern JS engines, so courses that share the same rating
     // simply keep their existing relative order — no secondary tie-break
     // needed.
     return [...list].sort(
       (a: any, b: any) => (ratings[b.id]?.average_rating ?? 0) - (ratings[a.id]?.average_rating ?? 0),
     );
-  }, [enrichedCourses, deferredQ, cat, level, ratingFilter, ratings]);
+  }, [enrichedCourses, deferredQ, cat, level, ratingFilter, priceFilter, ratings]);
 
   // Reset to page 1 whenever a filter actually changes (not on every
   // `filtered` recompute, so ratings finishing loading etc. don't reset
   // the user's current page).
   useEffect(() => {
     setPage(1);
-  }, [q, cat, level, ratingFilter]);
+  }, [q, cat, level, ratingFilter, priceFilter]);
 
   // Clamp page if the filtered result shrinks below the current page.
   useEffect(() => {
@@ -501,6 +577,8 @@ function CoursesPage() {
             onLevelChange={setLevel}
             ratingFilter={ratingFilter}
             onRatingFilterChange={setRatingFilter}
+            priceFilter={priceFilter}
+            onPriceFilterChange={setPriceFilter}
             hasActiveFilters={hasActiveFilters}
             onClearFilters={resetFilters}
           />
@@ -551,6 +629,8 @@ function CoursesPage() {
                       ratingAverage={courseRating?.average_rating}
                       ratingCount={courseRating?.total_ratings}
                       ratingsLoaded={ratingsLoaded}
+                      price={c._price}
+                      originalPrice={c._originalPrice}
                     />
                   );
                 })}
