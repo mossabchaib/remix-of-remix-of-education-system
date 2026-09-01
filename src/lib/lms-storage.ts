@@ -955,6 +955,7 @@ export async function getMySubscription(): Promise<MySubscriptions> {
   return withSessionCache(SK.mySubscription, SESSION_CACHE_TTL.medium, async () => {
     try {
       const res: any = await lmsApi.subscriptions.getMine();
+      console.log("res:",res)
       return {
         plan: res?.subscription?.plan ?? null,
         courses: Array.isArray(res?.subscription?.courses) ? res?.subscription?.courses : [],

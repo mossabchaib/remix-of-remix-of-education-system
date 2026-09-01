@@ -77,7 +77,7 @@ function StudentOverview() {
         // Fetch subscription + access flag together, same as the live page.
         const [sub, ok]: any = await Promise.all([getMySubscription(), hasActiveAccess()]);
         if (cancelled) return;
-
+        console.log("suboverview:",sub)
         // Store only the plan object, not the whole {plan, courses} shape.
         setSubscription(sub.plan);
 
@@ -463,8 +463,8 @@ function StudentOverview() {
 
 function NoSubscriptionState({ subscription }: { subscription: Subscription | null }) {
   const { t } = useTranslation();
-  const pending = subscription?.status === "pending";
-
+  const pending = subscription?.status == "pending";
+  console.log("subscription:",subscription)
   return (
     <Card className="flex flex-col items-center gap-4 border-dashed border-border/60 p-12 text-center shadow-card">
       <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10">

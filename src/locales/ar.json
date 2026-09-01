@@ -1783,7 +1783,8 @@
     },
      "deleteDialog": {
       "cancel": "إلغاء",
-      "confirm": "حذف"
+      "confirm": "حذف",
+      "title": "حذف الملف"
     },
       "addContent": "إضافة محتوى",
       "filters": {

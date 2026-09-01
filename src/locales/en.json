@@ -1783,7 +1783,8 @@
     },
      "deleteDialog": {
       "cancel": "Cancel",
-      "confirm": "Delete"
+      "confirm": "Delete",
+      "title": "Delete File"
     },
       "addContent": "Add content",
       "filters": {

@@ -1781,7 +1781,8 @@
     },
     "deleteDialog": {
       "cancel": "Annuler",
-      "confirm": "Supprimer"
+      "confirm": "Supprimer",
+      "title": "Supprimer le fichier"
     },
       "addContent": "Ajouter un contenu",
       "filters": {

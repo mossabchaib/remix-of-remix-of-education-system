@@ -400,7 +400,7 @@ function BrowseCourses() {
     (async () => {
       const [sub, ok] = await Promise.all([getMySubscription(), hasActiveAccess()]);
       if (cancelled) return;
-
+console.log("sub",sub.plan)
       setSubscription(sub.plan);
 
       // الدورات المشتراة فرديًا والفعّالة حاليًا
