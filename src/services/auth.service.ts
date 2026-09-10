@@ -54,8 +54,7 @@ export async function signUpRequest(params: {
   password: string;
   role: BackendRole;
 }): Promise<SignUpResult> {
-  console.log("signUpRequest params:", params);
-  const res = await api.post<ApiEnvelope<SignUpData>>("/api/auth/signup", {
+const res = await api.post<ApiEnvelope<SignUpData>>("/api/auth/signup", {
     email: params.email,
     password: params.password,
     fullName: params.name,

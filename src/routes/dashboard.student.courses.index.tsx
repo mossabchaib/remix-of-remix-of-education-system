@@ -400,10 +400,7 @@ function BrowseCourses() {
     (async () => {
       const [sub, ok] = await Promise.all([getMySubscription(), hasActiveAccess()]);
       if (cancelled) return;
-console.log("sub",sub.plan)
-      setSubscription(sub.plan);
-
-      // الدورات المشتراة فرديًا والفعّالة حاليًا
+// الدورات المشتراة فرديًا والفعّالة حاليًا
       const activeCourseIds = sub.courses
         .filter((c) => c.status === "active")
         .map((c) => c.course_id);

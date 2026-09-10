@@ -303,11 +303,7 @@ export async function upsertQuiz(q: Partial<Quiz>) {
     const res: any = await lmsApi.quizzes.create(q);
 
     const newQuiz = res?.data || res;
-
-    console.log("CREATE RESPONSE:", newQuiz);
-
     emit(K.teacherQuizzes);
-
     // حذف كل cache الخاص بالـ quizzes
     cacheInvalidatePrefix("cache.quizzesByCourse:");
     cacheInvalidatePrefix("cache.quiz:");
@@ -858,7 +854,6 @@ export async function setProfile(p: Partial<ProfileData>) {
 export async function getAdminUsers(): Promise<ProfileData[]> {
   try {
     const res: any = await lmsApi.users.list();
-    console.log("getAdminUsers response:", res);
     if (Array.isArray(res)) return res;
     return res?.data ?? [];
   } catch (err) {
@@ -955,7 +950,6 @@ export async function getMySubscription(): Promise<MySubscriptions> {
   return withSessionCache(SK.mySubscription, SESSION_CACHE_TTL.medium, async () => {
     try {
       const res: any = await lmsApi.subscriptions.getMine();
-      console.log("res:",res)
       return {
         plan: res?.subscription?.plan ?? null,
         courses: Array.isArray(res?.subscription?.courses) ? res?.subscription?.courses : [],
@@ -1273,7 +1267,6 @@ export async function getStoredUploads(params?: {
 //   const kind: "video" | "pdf" = isVideo ? "video" : "pdf";
 
 //   try {
-//     console.log("Uploading file:", file,options);
 //     // 1) اطلب من الباك اند رابط رفع موقّع (بدون إرسال أي بايت من الملف)
 //     const signRes: any = await lmsApi.uploads.sign({
 //       fileName: file.name,
@@ -1284,7 +1277,6 @@ export async function getStoredUploads(params?: {
 
 //     // 2) ارفع الملف مباشرة إلى Supabase — هنا يُقاس الـ progress الحقيقي بالكامل
 //     await api.uploadToSignedUrl(signedUrl, file, options?.onProgress);
-// console.log("File uploaded to signed URL:", file, options);
 //     // 3) بلّغ الباك اند بالاكتمال ليسجّل الميتاداتا فقط
 //     const confirmRes: any = await lmsApi.uploads.confirm({
 //       key: path,

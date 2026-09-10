@@ -65,63 +65,40 @@ useEffect(() => {
 
   (async () => {
     try {
-      console.log("========== QUIZZES LOAD START ==========");
-
-      const [sub, ok, catsData, courseListRaw]: any = await Promise.all([
+const [sub, ok, catsData, courseListRaw]: any = await Promise.all([
         getMySubscription(),
         hasActiveAccess(),
         getAdminCategories().catch(() => []),
         getAllCourses().catch(() => []),
       ]);
-
-      console.log("SUBSCRIPTION:", sub);
-      console.log("HAS ACTIVE ACCESS:", ok);
-      console.log("CATEGORIES:", catsData);
-      console.log("COURSES RAW:", courseListRaw);
-
-      if (cancelled) return;
+if (cancelled) return;
 
       setSubscription(sub.plan);
 
       const activeCourseIds = (sub.courses ?? [])
         .filter((c: any) => c.status === "active")
         .map((c: any) => c.course_id);
-
-      console.log("ACTIVE COURSE IDS:", activeCourseIds);
-
-      setOwnedCourseIds(activeCourseIds);
+setOwnedCourseIds(activeCourseIds);
       setHasPlan(ok);
 
       const hasAnyAccess = ok || activeCourseIds.length > 0;
-
-      console.log("HAS ANY ACCESS:", hasAnyAccess);
-
-      setAccess(hasAnyAccess);
+setAccess(hasAnyAccess);
       setChecking(false);
 
       const validCats = Array.isArray(catsData)
         ? catsData
         : catsData?.categories || catsData?.data || [];
-
-      console.log("NORMALIZED CATEGORIES:", validCats);
-
-      setCategories(validCats);
+setCategories(validCats);
 
       const allCourses = Array.isArray(courseListRaw)
         ? courseListRaw
         : [];
-
-      console.log("ALL COURSES:", allCourses);
-
-      const visibleCourses = ok
+const visibleCourses = ok
         ? allCourses
         : allCourses.filter((c: any) =>
             activeCourseIds.includes(c.id)
           );
-
-      console.log("VISIBLE COURSES:", visibleCourses);
-
-      setCourses(visibleCourses);
+setCourses(visibleCourses);
 
       if (hasAnyAccess) {
         setLoading(true);
@@ -129,12 +106,7 @@ useEffect(() => {
         const [results, myAttemptsList] = await Promise.all([
           Promise.all(
             visibleCourses.map(async (c: any) => {
-
-              console.log(
-                `🔵 FETCHING QUIZZES FOR COURSE: ${c.id} - ${c.title}`
-              );
-
-              const qz = await getQuizzesByCourse(c.id).catch((err) => {
+const qz = await getQuizzesByCourse(c.id).catch((err) => {
                 console.error(
                   `❌ QUIZ FETCH ERROR FOR COURSE ${c.id}:`,
                   err
@@ -142,13 +114,7 @@ useEffect(() => {
                 
                 return [];
               });
-
-              console.log(
-                `🟢 QUIZZES RETURNED FOR COURSE ${c.id}:`,
-                qz
-              );
-
-              const normalized = (Array.isArray(qz) ? qz : []).map(
+const normalized = (Array.isArray(qz) ? qz : []).map(
                 (q: any) => ({
                   ...q,
                   courseId: c.id,
@@ -156,13 +122,7 @@ useEffect(() => {
                   courseObj: c,
                 })
               );
-
-              console.log(
-                `🟣 NORMALIZED QUIZZES FOR COURSE ${c.id}:`,
-                normalized
-              );
-
-              return normalized;
+return normalized;
             }),
           ),
 
@@ -171,27 +131,13 @@ useEffect(() => {
             return [];
           }),
         ]);
-
-        console.log("========== ALL QUIZ RESULTS ==========");
-        console.log("RESULTS:", results);
-        console.log("FLATTENED RESULTS:", results.flat());
-        console.log("=======================================");
-
-        if (cancelled) return;
+if (cancelled) return;
 
         setQuizzes(results.flat());
-
-        console.log(
-          "QUIZZES STATE WILL BE SET TO:",
-          results.flat()
-        );
-
-        const attemptsMap: Record<string, any> = {};
+const attemptsMap: Record<string, any> = {};
 
         if (Array.isArray(myAttemptsList)) {
-          console.log("MY ATTEMPTS:", myAttemptsList);
-
-          myAttemptsList.forEach((att: any) => {
+myAttemptsList.forEach((att: any) => {
             const qId = att?.quiz_id ?? att?.quizId;
 
             if (qId) {
@@ -199,15 +145,9 @@ useEffect(() => {
             }
           });
         }
-
-        console.log("ATTEMPTS MAP:", attemptsMap);
-
-        setAttempts(attemptsMap);
+setAttempts(attemptsMap);
       }
-
-      console.log("========== QUIZZES LOAD END ==========");
-
-    } catch (err) {
+} catch (err) {
       console.error("❌ FAILED TO LOAD QUIZZES DATA:", err);
 
       if (!cancelled) setChecking(false);

@@ -168,9 +168,7 @@ function uploadToSignedUrl(
     };
 
     xhr.onload = () => {
-      console.log(xhr.status, xhr.responseText);
-
-      if (xhr.status >= 200 && xhr.status < 300) {
+if (xhr.status >= 200 && xhr.status < 300) {
         resolve();
       } else {
         reject(new Error(xhr.responseText));
@@ -244,8 +242,7 @@ export const lmsApi = {
     api.get<{ data: any }>(`/api/quizzes/${id}`),
 
   create: (data: any) =>{
-    console.log("Creating quiz with data:", data);
-    api.post<{ data: any }>("/api/quizzes", data)},
+api.post<{ data: any }>("/api/quizzes", data)},
 
   update: (id: string, data: any) =>
     api.put<{ data: any }>(`/api/quizzes/${id}`, data),
@@ -487,14 +484,12 @@ signOut: async () => {
 
     // جديد: الخطوة 1 — طلب رابط رفع موقّع
   sign: async (payload: { fileName: string; kind: "video" | "pdf"; courseId?: string }) => {
-    console.log("📤 Sending sign payload:", payload);
-    try {
+try {
       const response = await api.post<{ data: { path: string; token: string; signedUrl: string } }>(
         "/api/uploads/sign",
         payload
       );
-      console.log("📥 Sign response received:", response);
-      return response;
+return response;
     } catch (error) {
       console.error("❌ Sign API error:", error);
       throw error;

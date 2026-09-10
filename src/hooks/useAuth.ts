@@ -30,8 +30,7 @@ export function useAuth() {
 
   const register = useCallback(
     async (params: { name: string; email: string; password: string; role: SessionRole }): Promise<SignUpOutcome> => {
-      console.log("register params:", params);
-      setLoading(true);
+setLoading(true);
       try {
         return await signUpLib(params);
       } catch (err) {

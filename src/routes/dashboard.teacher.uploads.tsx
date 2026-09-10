@@ -130,14 +130,7 @@ function Uploads() {
     ? courses.find((c) => c.title === pageCourse)?.id
     : undefined;
   const { uploads, loading, refresh } = useUploads(activeCourseId, pageCourse === "all" ? undefined : pageCourse);
-console.log("UPLOADS:", uploads);
-console.log("COURSES:", courses);
-
 uploads.forEach((upload: any, index: number) => {
-  console.log(`UPLOAD ${index}:`, upload);
-  console.log("course_id:", upload.course_id);
-  console.log("course:", upload.course);
-  console.log("courseId:", upload.courseId);
 });
   // ---------------- Wizard state ----------------
   const [wizardOpen, setWizardOpen] = useState(false);

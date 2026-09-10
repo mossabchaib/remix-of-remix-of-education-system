@@ -77,11 +77,7 @@ function StudentOverview() {
         // Fetch subscription + access flag together, same as the live page.
         const [sub, ok]: any = await Promise.all([getMySubscription(), hasActiveAccess()]);
         if (cancelled) return;
-        console.log("suboverview:",sub)
-        // Store only the plan object, not the whole {plan, courses} shape.
-        setSubscription(sub.plan);
-
-        // Individually purchased courses that are currently active.
+// Individually purchased courses that are currently active.
         const activeCourseIds = (sub.courses ?? [])
           .filter((c: any) => c.status === "active")
           .map((c: any) => String(c.course_id));
@@ -464,29 +460,6 @@ function StudentOverview() {
 function NoSubscriptionState({ subscription }: { subscription: Subscription | null }) {
   const { t } = useTranslation();
   const pending = subscription?.status == "pending";
-  console.log("subscription:",subscription)
-  return (
-    <Card className="flex flex-col items-center gap-4 border-dashed border-border/60 p-12 text-center shadow-card">
-      <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10">
-        <Lock className="h-6 w-6 text-primary" />
-      </div>
-      <div className="space-y-1">
-        <p className="text-base font-semibold">
-          {pending ? t("student.subPendingTitle") : t("student.unlockDashboard")}
-        </p>
-        <p className="max-w-sm text-sm text-muted-foreground">
-          {pending ? t("student.subPendingDesc") : t("student.subscribeDesc")}
-        </p>
-      </div>
-      {!pending && (
-        <Button asChild className="gap-2">
-          <Link to="/dashboard/student/orders">
-            <Crown className="h-4 w-4" /> {t("student.viewPlans")}
-          </Link>
-        </Button>
-      )}
-    </Card>
-  );
 }
 
 function OverviewSkeleton() {

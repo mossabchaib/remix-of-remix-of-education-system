@@ -37,8 +37,7 @@ export function Navbar() {
   ];
 
   const handleLanguageChange = (code: string) => {
-    console.log("Changing language to:", code);
-    i18n.changeLanguage(code);
+i18n.changeLanguage(code);
   };
 
   const currentLangLabel = languages.find((l) => l.code === i18n.language)?.label || "English";

@@ -65,8 +65,7 @@ function Live() {
     async function loadCourses() {
       try {
         const result = await getTeacherCourses();
-        console.log("Loaded teacher courses:", result);
-        if (!isMounted) return;
+if (!isMounted) return;
         const list: TeacherCourse[] = Array.isArray(result)
           ? result
           : (result as any)?.data || (result as any)?.courses || [];
@@ -112,8 +111,7 @@ async function loadSessions() {
     setSessionsLoading(true);
     try {
       const data = await getMyLiveSessions();
-      console.log("Loaded my live sessions:", data);
-      setSessions(Array.isArray(data) ? data : (data as any)?.data || []);
+setSessions(Array.isArray(data) ? data : (data as any)?.data || []);
     } catch (err) {
       console.error("Failed to load live sessions:", err);
       toast.error(t("teacherLive.toast.loadFailed"));

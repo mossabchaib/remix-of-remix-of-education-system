@@ -84,8 +84,7 @@ export function authErrorMessage(err: unknown, fallback: string): string {
 
 export async function signIn(email: string, password: string): Promise<NonNullable<Session>> {
   const profile = await signInRequest({ email, password });
-  console.log("profile:",profile)
-  const session: NonNullable<Session> = {
+const session: NonNullable<Session> = {
     email: profile.email,
     name: profile.full_name,
     role: profile.role,
@@ -109,8 +108,7 @@ export async function signUp(params: {
   password: string;
   role: SessionRole;
 }): Promise<SignUpOutcome> {
-  console.log("signUp params:", params);
-  const result: SignUpResult = await signUpRequest(params);
+const result: SignUpResult = await signUpRequest(params);
 
   if (result.status === "confirm_email") {
     return { status: "confirm_email", message: result.message };

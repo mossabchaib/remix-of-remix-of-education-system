@@ -14,8 +14,7 @@ export function useKeyedStorage<T>(key: string, read: () => T | Promise<T>, init
     async function load() {
       try {
         const result = await read();
-         console.log(`📦 [useKeyedStorage] Raw result for "${key}":`, result);
-        if (isMounted) {
+if (isMounted) {
           // التأكد دائماً من أن النتيجة مصفوفة أو إرجاع مصفوفة فارغة
           setValue(Array.isArray(result) ? result : (result as any)?.data || (result as any)?.courses || initialValue);
         }
