@@ -10,7 +10,7 @@ export function Footer() {
             <Link to="/" className="flex items-center gap-2">
                <span className="relative flex h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-xl p-0.5 shadow-md shadow-sky-500/20 transition-all duration-300 group-hover:scale-105 group-hover:shadow-lg group-hover:shadow-sky-500/30">
       <span className="flex h-full w-full items-center justify-center rounded-[10px] bg-background/90 backdrop-blur-sm transition-colors group-hover:bg-background/70">
-       <img src="public/logo.png" alt="El Manara Logo" className="h-16 w-16 object-contain" />
+       <img src="/logo.png" alt="El Manara Logo" className="h-16 w-16 object-contain" />
       </span>
     </span>
               <span className="text-lg font-semibold tracking-tight">El Manara</span>
