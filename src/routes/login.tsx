@@ -175,7 +175,7 @@ export function AuthShell({ children }: { children: React.ReactNode }) {
        <img src="/logo.png" alt="El Manara Logo" className="h-16 w-16 object-contain" />
       </span>
     </span>
-  <span className="text-lg font-semibold">El Manara.</span>
+  <span className="text-lg font-semibold">El Manara</span>
 </Link>
           <div>
             <p className="text-3xl font-semibold leading-tight tracking-tight">
